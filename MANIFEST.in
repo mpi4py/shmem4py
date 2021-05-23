@@ -1,0 +1,2 @@
+recursive-include demo *.py makfile
+recursive-include shmem4py/src *.h *.c *.py

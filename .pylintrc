@@ -1,0 +1,5 @@
+[MASTER]
+disable = locally-disabled,file-ignored,useless-object-inheritance
+extension-pkg-whitelist = shmem4py.api
+good-names = a,i,j,k,p,q,pe,op
+reports = no
