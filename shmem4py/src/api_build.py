@@ -17,8 +17,8 @@ with open(os.path.join(srcdir, "libshmem.c")) as c:
     )
 
 if __name__ == '__main__':
-    from shmemcc import shmemcompiler
-    cc = os.environ.get('SHMEMCC', 'shmemcc')
-    ld = os.environ.get('SHMEMLD')
-    with shmemcompiler(cc, ld):
+    from fficompiler import fficompiler
+    cc = fficompiler.search('SHMEMCC', ('shmemcc', 'oshcc'))
+    ld = fficompiler.search('SHMEMLD')
+    with fficompiler(cc, ld):
         ffibuilder.compile()

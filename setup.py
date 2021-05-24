@@ -22,10 +22,10 @@ def get_version(pkgdir):
 
 class build_ext(cmd_build_ext, object):
     def build_extensions(self):
-        from shmemcc import shmemcompiler
-        cc = os.environ.get('SHMEMCC', 'shmemcc')
-        ld = os.environ.get('SHMEMLD')
-        shmemcompiler(cc, ld).configure(self.compiler)
+        from fficompiler import fficompiler
+        cc = fficompiler.search('SHMEMCC', ('shmemcc', 'oshcc'))
+        ld = fficompiler.search('SHMEMLD')
+        fficompiler(cc, ld).configure(self.compiler)
         super(build_ext, self).build_extensions()
 
 class install(cmd_install, object):

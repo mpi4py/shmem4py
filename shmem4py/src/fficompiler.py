@@ -1,4 +1,9 @@
-class shmemcompiler:
+import os
+import shlex
+import shutil
+
+
+class fficompiler:
 
     from cffi import ffiplatform
 
@@ -13,21 +18,25 @@ class shmemcompiler:
     def __exit__(self, *args):
         self.ffiplatform.compile = self.ffi_compile
 
-    def configure(self, compiler):
-        try:
-            from shlex import split as shlex_split
-        except ImportError:
-            from distutils.util import split_quoted as shlex_split
-        try:
-            from shutil import which as shutil_which
-        except ImportError:
-            from distutils.spawn import find_executable as shutil_which
+    @staticmethod
+    def search(envvar, fallback=None):
+        cmd = os.environ.get(envvar)
+        if cmd:
+            return cmd
+        if fallback:
+            if isinstance(fallback, str):
+                fallback = fallback.split(os.pathsep)
+            for cmd in fallback:
+                if shutil.which(cmd):
+                    return cmd
+        return None
 
+    def configure(self, compiler):
         def fix_command(command, cmd):
             if not cmd:
                 return
-            cmd = shlex_split(cmd)
-            exe = shutil_which(cmd[0])
+            cmd = shlex.split(cmd)
+            exe = shutil.which(cmd[0])
             if not exe:
                 return
             command[0] = exe
@@ -37,7 +46,7 @@ class shmemcompiler:
         fix_command(compiler.linker_so, self.ld)
 
     def compile(self, *args, **kargs):
-        from setuptools.command import build_ext
+        from distutils.command import build_ext
         customize_compiler_orig = build_ext.customize_compiler
 
         def customize_compiler(compiler):
