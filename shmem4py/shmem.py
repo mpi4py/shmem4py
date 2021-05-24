@@ -63,7 +63,7 @@ def global_exit(status: int = 0) -> 'NoReturn':  # pragma: nocover
 def init_thread(requested: int = THREAD_MULTIPLE) -> int:
     """
     """
-    provided = ffi.new('int*')
+    provided = ffi.new('int*', lib.SHMEM_THREAD_SINGLE)
     ierr = lib.shmem_init_thread(requested, provided)
     if ierr != 0:  # pragma: nocover
         raise RuntimeError(f"shmem_init_thread: error {ierr}")
@@ -73,7 +73,7 @@ def init_thread(requested: int = THREAD_MULTIPLE) -> int:
 def query_thread() -> int:
     """
     """
-    provided = ffi.new('int*')
+    provided = ffi.new('int*', lib.SHMEM_THREAD_SINGLE)
     lib.shmem_query_thread(provided)
     return provided[0]
 
@@ -153,10 +153,12 @@ class Ctx:
         """
         ctx = ffi.new('shmem_ctx_t*', lib.SHMEM_CTX_INVALID)
         if team is None:
-            lib.shmem_ctx_create(options, ctx)
+            ierr = lib.shmem_ctx_create(options, ctx)
         else:
             team = team.ob_team
-            lib.shmem_team_create_ctx(team, options, ctx)
+            ierr = lib.shmem_team_create_ctx(team, options, ctx)
+        if ierr != 0:  # pragma: nocover
+            raise RuntimeError(f"shmem_team_create_ctx: error {ierr}")
         return Ctx(ctx[0])
 
     def destroy(self) -> None:
@@ -179,7 +181,9 @@ class Ctx:
         """
         ctx = self.ob_ctx
         team = ffi.new('shmem_team_t*', lib.SHMEM_TEAM_INVALID)
-        lib.shmem_ctx_get_team(ctx, team)
+        ierr = lib.shmem_ctx_get_team(ctx, team)
+        if ierr != 0:  # pragma: nocover
+            raise RuntimeError(f"shmem_ctx_get_team: error {ierr}")
         return Team(team[0])
 
     def fence(self) -> None:
@@ -295,7 +299,9 @@ class Team:
         """
         team = self.ob_team
         ctx = ffi.new('shmem_ctx_t*', lib.SHMEM_CTX_INVALID)
-        lib.shmem_team_create_ctx(team, options, ctx)
+        ierr = lib.shmem_team_create_ctx(team, options, ctx)
+        if ierr != 0:  # pragma: nocover
+            raise RuntimeError(f"shmem_team_create_ctx: error {ierr}")
         return Ctx(ctx[0])
 
     def sync(self) -> None:

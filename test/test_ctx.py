@@ -48,17 +48,30 @@ class TestCtx(unittest.TestCase):
         for ctx in ctxs:
             with ctx as alias:
                 self.assertTrue(ctx is alias)
-            if ctx:
-                with ctx.create() as newctx:
-                    self.assertNotEqual(newctx, ctx)
-                    self.assertNotEqual(newctx, shmem.CTX_INVALID)
-                self.assertEqual(newctx, shmem.CTX_INVALID)
 
+    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
+    def testWithNew(self):
+        for ctx in ctxs:
+            if not ctx: continue
+            with ctx.create() as newctx:
+                self.assertNotEqual(newctx, ctx)
+                self.assertNotEqual(newctx, shmem.CTX_INVALID)
+            self.assertEqual(newctx, shmem.CTX_INVALID)
+
+    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
     def testCreate(self):
         ctx = shmem.CTX_DEFAULT.create()
         self.assertNotEqual(ctx, shmem.CTX_DEFAULT)
         ctx.destroy()
         self.assertEqual(ctx, shmem.CTX_INVALID)
+        ctx = shmem.CTX_DEFAULT.create(team=shmem.TEAM_WORLD)
+        self.assertNotEqual(ctx, shmem.CTX_DEFAULT)
+        ctx.destroy()
+        self.assertEqual(ctx, shmem.CTX_INVALID)
+
+    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
+    @unittest.skipIf('open-mpi' in shmem.VENDOR_STRING, 'open-mpi')
+    def testCreateOptions(self):
         for opt in options:
             ctx = shmem.CTX_DEFAULT.create(opt)
             ctx.destroy()
@@ -84,6 +97,7 @@ class TestCtx(unittest.TestCase):
             alias.destroy()
             self.assertFalse(alias)
 
+    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
     def testGetTeam(self):
         ctx = shmem.CTX_DEFAULT
         team = ctx.get_team()

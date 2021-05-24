@@ -1,18 +1,22 @@
 python = python
 PYTHON = $(python)$(py)
 
+shmemrun ?= shmemrun oshrun mpiexec mpirun
+SHMEMRUN := $(firstword \
+            $(foreach cmd, $(shmemrun), \
+            $(if $(shell command -v $(cmd) 2>/dev/null), $(cmd))))
+
 .PHONY: build
 build:
 	$(PYTHON) setup.py build build_ext --inplace
 
 .PHONY: test
 test:
-	$(PYTHON) -m unittest discover -s test/
+	$(PYTHON) -m unittest discover $(opt) -s test
 
-SHMEMRUN = shmemrun
 .PHONY: test-%
 test-%:
-	$(SHMEMRUN) -n $* $(PYTHON) -m unittest discover -s test/
+	$(SHMEMRUN) -n $* $(PYTHON) -m unittest discover $(opt) -s test
 
 .PHONY: lint
 lint:
@@ -23,7 +27,7 @@ lint:
 cover:
 	$(PYTHON) -m coverage erase
 	$(PYTHON) -m coverage run -m shmem4py > /dev/null
-	$(PYTHON) -m coverage run -m unittest discover -s test/
+	$(PYTHON) -m coverage run -m unittest discover -s test
 	$(PYTHON) -m coverage combine
 	$(PYTHON) -m coverage report
 	$(PYTHON) -m coverage html

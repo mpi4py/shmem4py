@@ -1,8 +1,8 @@
 #include <shmem.h>
 
 #if defined(OSHMEM_MAJOR_VERSION)
-/* --- */
 
+#if INT32_MAX == INT_MAX
 #define shmem_ctx_int32_atomic_fetch            shmem_ctx_int_atomic_fetch
 #define shmem_ctx_int32_atomic_set              shmem_ctx_int_atomic_set
 #define shmem_ctx_int32_atomic_swap             shmem_ctx_int_atomic_swap
@@ -11,7 +11,8 @@
 #define shmem_ctx_int32_atomic_inc              shmem_ctx_int_atomic_inc
 #define shmem_ctx_int32_atomic_fetch_add        shmem_ctx_int_atomic_fetch_add
 #define shmem_ctx_int32_atomic_add              shmem_ctx_int_atomic_add
-
+#endif
+#if UINT32_MAX == UINT_MAX
 #define shmem_ctx_uint32_atomic_fetch           shmem_ctx_uint_atomic_fetch
 #define shmem_ctx_uint32_atomic_set             shmem_ctx_uint_atomic_set
 #define shmem_ctx_uint32_atomic_swap            shmem_ctx_uint_atomic_swap
@@ -20,7 +21,7 @@
 #define shmem_ctx_uint32_atomic_inc             shmem_ctx_uint_atomic_inc
 #define shmem_ctx_uint32_atomic_fetch_add       shmem_ctx_uint_atomic_fetch_add
 #define shmem_ctx_uint32_atomic_add             shmem_ctx_uint_atomic_add
-
+#endif
 #if INT64_MAX > LONG_MAX
 #define shmem_ctx_int64_atomic_fetch            shmem_ctx_longlong_atomic_fetch
 #define shmem_ctx_int64_atomic_set              shmem_ctx_longlong_atomic_set
@@ -40,7 +41,6 @@
 #define shmem_ctx_int64_atomic_fetch_add        shmem_ctx_long_atomic_fetch_add
 #define shmem_ctx_int64_atomic_add              shmem_ctx_long_atomic_add
 #endif
-
 #if UINT64_MAX > ULONG_MAX
 #define shmem_ctx_uint64_atomic_fetch           shmem_ctx_ulonglong_atomic_fetch
 #define shmem_ctx_uint64_atomic_set             shmem_ctx_ulonglong_atomic_set
@@ -60,7 +60,6 @@
 #define shmem_ctx_uint64_atomic_fetch_add       shmem_ctx_ulong_atomic_fetch_add
 #define shmem_ctx_uint64_atomic_add             shmem_ctx_ulong_atomic_add
 #endif
-
 #if PTRDIFF_MAX > INT32_MAX
 #define shmem_ctx_ptrdiff_atomic_fetch          shmem_ctx_int64_atomic_fetch
 #define shmem_ctx_ptrdiff_atomic_set            shmem_ctx_int64_atomic_set
@@ -80,7 +79,6 @@
 #define shmem_ctx_ptrdiff_atomic_fetch_add      shmem_ctx_int32_atomic_fetch_add
 #define shmem_ctx_ptrdiff_atomic_add            shmem_ctx_int32_atomic_add
 #endif
-
 #if SIZE_MAX > UINT32_MAX
 #define shmem_ctx_size_atomic_fetch             shmem_ctx_uint64_atomic_fetch
 #define shmem_ctx_size_atomic_set               shmem_ctx_uint64_atomic_set
@@ -101,8 +99,7 @@
 #define shmem_ctx_size_atomic_add               shmem_ctx_uint32_atomic_add
 #endif
 
-/* --- */
-
+#if INT32_MAX == INT_MAX
 #define shmem_int32_atomic_fetch            shmem_int_atomic_fetch
 #define shmem_int32_atomic_set              shmem_int_atomic_set
 #define shmem_int32_atomic_swap             shmem_int_atomic_swap
@@ -111,7 +108,8 @@
 #define shmem_int32_atomic_inc              shmem_int_atomic_inc
 #define shmem_int32_atomic_fetch_add        shmem_int_atomic_fetch_add
 #define shmem_int32_atomic_add              shmem_int_atomic_add
-
+#endif
+#if UINT32_MAX == UINT_MAX
 #define shmem_uint32_atomic_fetch           shmem_uint_atomic_fetch
 #define shmem_uint32_atomic_set             shmem_uint_atomic_set
 #define shmem_uint32_atomic_swap            shmem_uint_atomic_swap
@@ -120,7 +118,7 @@
 #define shmem_uint32_atomic_inc             shmem_uint_atomic_inc
 #define shmem_uint32_atomic_fetch_add       shmem_uint_atomic_fetch_add
 #define shmem_uint32_atomic_add             shmem_uint_atomic_add
-
+#endif
 #if INT64_MAX > LONG_MAX
 #define shmem_int64_atomic_fetch            shmem_longlong_atomic_fetch
 #define shmem_int64_atomic_set              shmem_longlong_atomic_set
@@ -140,7 +138,6 @@
 #define shmem_int64_atomic_fetch_add        shmem_long_atomic_fetch_add
 #define shmem_int64_atomic_add              shmem_long_atomic_add
 #endif
-
 #if UINT64_MAX > ULONG_MAX
 #define shmem_uint64_atomic_fetch           shmem_ulonglong_atomic_fetch
 #define shmem_uint64_atomic_set             shmem_ulonglong_atomic_set
@@ -160,7 +157,6 @@
 #define shmem_uint64_atomic_fetch_add       shmem_ulong_atomic_fetch_add
 #define shmem_uint64_atomic_add             shmem_ulong_atomic_add
 #endif
-
 #if PTRDIFF_MAX > INT32_MAX
 #define shmem_ptrdiff_atomic_fetch          shmem_int64_atomic_fetch
 #define shmem_ptrdiff_atomic_set            shmem_int64_atomic_set
@@ -180,7 +176,6 @@
 #define shmem_ptrdiff_atomic_fetch_add      shmem_int32_atomic_fetch_add
 #define shmem_ptrdiff_atomic_add            shmem_int32_atomic_add
 #endif
-
 #if SIZE_MAX > UINT32_MAX
 #define shmem_size_atomic_fetch             shmem_uint64_atomic_fetch
 #define shmem_size_atomic_set               shmem_uint64_atomic_set
@@ -201,22 +196,53 @@
 #define shmem_size_atomic_add               shmem_uint32_atomic_add
 #endif
 
-/* --- */
 #endif
 
+/* --- */
 
-#if (100*SHMEM_MAJOR_VERSION+SHMEM_MINOR_VERSION) <= 104
+#if defined(OSHMPI_NUMVERSION)
+
+static void *PySHMEM_OSHMPI_shmem_calloc(size_t count, size_t size)
+{ return shmem_calloc(1, count * size); }
+#define shmem_calloc PySHMEM_OSHMPI_shmem_calloc
+
+#define PySHMEM_HAVE_shmem_team_t 1
+
+#endif
+
+/* --- */
+
+#if !defined(PySHMEM_HAVE_shmem_malloc_with_hints)
 
 #define SHMEM_MALLOC_ATOMICS_REMOTE 0
 #define SHMEM_MALLOC_SIGNAL_REMOTE 0
 #define shmem_malloc_with_hints(size, hints) shmem_malloc(size)
 
+#endif
+
+/* --- */
+
+#if !defined(PySHMEM_HAVE_shmem_put_signal)
+
 #define SHMEM_SIGNAL_SET 0
 #define SHMEM_SIGNAL_ADD 0
 
+#endif
+
+/* --- */
+
+#if !defined(PySHMEM_HAVE_SHMEM_CTX_INVALID)
+
 #define SHMEM_CTX_INVALID ((shmem_ctx_t)(SHMEM_CTX_DEFAULT?NULL:(SHMEM_CTX_DEFAULT-1)))
 
+#endif
+
+/* --- */
+
+#if !defined(PySHMEM_HAVE_shmem_team_t)
+
 typedef void *shmem_team_t;
+
 #define SHMEM_TEAM_WORLD   ((shmem_team_t)0x02)
 #define SHMEM_TEAM_SHARED  ((shmem_team_t)0x01)
 #define SHMEM_TEAM_INVALID ((shmem_team_t)NULL)
@@ -313,7 +339,7 @@ int shmem_ctx_get_team(shmem_ctx_t ctx, shmem_team_t *team)
     *team = SHMEM_TEAM_WORLD;
     return 0;
   }
-  *team = SHMEM_TEAM_WORLD;
+  *team = SHMEM_TEAM_INVALID;
   return 0;
 }
 

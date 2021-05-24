@@ -1,7 +1,12 @@
 # -*- mode: makefile-gmake -*-
 
-PYTHON = python$(py)
-SHMEMRUN = shmemrun
+python = python
+PYTHON = $(python)$(py)
+
+shmemrun ?= shmemrun oshrun mpiexec mpirun
+SHMEMRUN := $(firstword \
+            $(foreach cmd, $(shmemrun), \
+            $(if $(shell command -v $(cmd) 2>/dev/null), $(cmd))))
 n = 1
 
 testfile = $(wildcard *.py)
