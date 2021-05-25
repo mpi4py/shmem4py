@@ -1,5 +1,58 @@
 #include <shmem.h>
 
+/* --- */
+
+/* OSSS-UCX OpenSHMEM implementation */
+
+#if defined(_SHMEM_DEFS_SUBST_H)
+
+#define PySHMEM_HAVE_SHMEM_CTX_INVALID 1
+#define PySHMEM_HAVE_shmem_team_t 1
+
+static
+int shmem_team_create_ctx(shmem_team_t team, long options, shmem_ctx_t *ctx)
+{
+  if (team == SHMEM_TEAM_WORLD) {
+    return shmem_ctx_create(options, ctx);
+  }
+  *ctx = SHMEM_CTX_INVALID;
+  return -1;
+}
+
+static
+int shmem_ctx_get_team(shmem_ctx_t ctx, shmem_team_t *team)
+{
+  if (ctx == SHMEM_CTX_INVALID) {
+    *team = SHMEM_TEAM_INVALID;
+    return -1;
+  }
+  if (ctx == SHMEM_CTX_DEFAULT) {
+    *team = SHMEM_TEAM_WORLD;
+    return 0;
+  }
+  *team = SHMEM_TEAM_INVALID;
+  return -1;
+}
+
+static
+int shmem_team_sync(shmem_team_t team)
+{
+  if (team == SHMEM_TEAM_WORLD) {
+    shmem_sync_all();
+    return 0;
+  }
+  return -1;
+}
+
+static int PySHMEM_OSSS_shmem_team_get_config(shmem_team_t team, long config_mask,shmem_team_config_t *config)
+{ return shmem_team_get_config(team, config); }
+#define shmem_team_get_config PySHMEM_OSSS_shmem_team_get_config
+
+#endif
+
+
+/* --- */
+
 #if defined(OSHMEM_MAJOR_VERSION)
 
 #if INT32_MAX == INT_MAX
@@ -340,16 +393,19 @@ int shmem_ctx_get_team(shmem_ctx_t ctx, shmem_team_t *team)
     return 0;
   }
   *team = SHMEM_TEAM_INVALID;
-  return 0;
+  return -1;
 }
 
 static
 int shmem_team_sync(shmem_team_t team)
 {
-  if (team == SHMEM_TEAM_WORLD)
+  if (team == SHMEM_TEAM_WORLD) {
     shmem_sync_all();
-  if (team == SHMEM_TEAM_SHARED)
     return 0;
+  }
+  if (team == SHMEM_TEAM_SHARED) {
+    return 0;
+  }
   return -1;
 }
 
