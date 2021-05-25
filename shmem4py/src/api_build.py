@@ -11,6 +11,11 @@ with open(os.path.join(srcdir, "generate.py")) as h:
     for code in generate():
         ffi.cdef(code)
 with open(os.path.join(srcdir, "libshmem.c")) as c:
+    ffi.cdef("""
+    const  int _shmem_finalized;
+    const  int _shmem_initialized;
+    extern int _shmem_atexit_finalize;
+    """)
     ffi.set_source(
         "shmem4py.api", c.read(),
         include_dirs=[srcdir],

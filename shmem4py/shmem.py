@@ -83,17 +83,37 @@ def query_thread() -> int:
 def _initialize():
     # pylint: disable=import-outside-toplevel
     from . import rc
-    if not rc.initialize:
-        return
-    if not rc.threads:
-        init()
-    else:
-        level = rc.thread_level.upper()
-        attr = f'SHMEM_THREAD_{level}'
-        requested = getattr(lib, attr)
-        init_thread(requested)
-    # if rc.finalize is not False:
-    #     pass
+    from os import getenv
+
+    def config(rcparams, name):
+        assert hasattr(rcparams, name)
+        value = getenv(f'SHMEM4PY_RC_{name.upper()}')
+        if value:
+            value = value.lower()
+            if value in ('true',  'yes', 'on',  '1'):
+                value = True
+            if value in ('false', 'no',  'off', '0'):
+                value = False
+            setattr(rcparams, name, value)
+
+    config(rc, 'initialize')
+    config(rc, 'threads')
+    config(rc, 'thread_level')
+    config(rc, 'finalize')
+
+    if rc.initialize:
+        if rc.threads:
+            level = rc.thread_level.upper()
+            attr = f'SHMEM_THREAD_{level}'
+            requested = getattr(lib, attr)
+            init_thread(requested)
+        else:
+            init()
+        if rc.finalize is None:
+            rc.finalize = True
+    if rc.finalize:
+        # pylint: disable=protected-access
+        lib._shmem_atexit_finalize = 1
 
 
 _initialize()

@@ -15,8 +15,25 @@ EOF
 $COVERAGE run $tmpdir/cover.py
 
 cat <<EOF > $tmpdir/cover.py
+import os
+os.environ['SHMEM4PY_RC_THREAD_LEVEL'] = 'single'
+os.environ['SHMEM4PY_RC_INITIALIZE'] = 'true'
+os.environ['SHMEM4PY_RC_THREADS'] = 'false'
+from shmem4py import rc
+rc(initialize=True)
+rc(finalize=False)
+try: rc(xyz=1)
+except: pass
+repr(rc)
+from shmem4py import shmem
+shmem.finalize()
+EOF
+$COVERAGE run $tmpdir/cover.py
+
+cat <<EOF > $tmpdir/cover.py
 import shmem4py
 shmem4py.rc.initialize = False
+shmem4py.rc.finalize = True
 from shmem4py import shmem
 shmem.init()
 shmem.finalize()
