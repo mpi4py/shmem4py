@@ -483,7 +483,7 @@ _heap = _wr.WeakValueDictionary()
 
 def alloc(
     dtype: 'np.DTypeLike',
-    size: int,
+    size:  int,
     align: 'Optional[int]' = None,
     clear: bool = True,
 ) -> ffi.CData:
@@ -550,15 +550,9 @@ def new_array(
     """
     """
     dtype = np.dtype(dtype)
-    size = np.prod(shape, dtype='p')
-    cdata = alloc(dtype, size, align, clear)
-    buf = ffi.buffer(cdata)
-    a = np.frombuffer(buf, dtype)
-    tmp = a.reshape(shape, order=order)
-    a.shape = tmp.shape
-    if tmp.ndim:
-        a.strides = tmp.strides
-    return a
+    count = np.prod(shape, dtype='p')
+    cdata = alloc(dtype, count, align, clear)
+    return fromcdata(cdata, shape, dtype, order)
 
 
 def array(
