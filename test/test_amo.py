@@ -70,12 +70,12 @@ class TestAMO(unittest.TestCase):
             val = shmem.atomic_compare_swap(tgt, nxpe, 0, nxpe)
             shmem.barrier_all()
             self.assertEqual(tgt, 0)
-            self.assertEqual(val, mype)
+            self.assertEqual(val, nxpe)
             #
-            val = shmem.atomic_compare_swap(tgt, 1, 0, nxpe)
+            val = shmem.atomic_compare_swap(tgt, npes, 0, nxpe)
             shmem.barrier_all()
             self.assertEqual(tgt, 0)
-            self.assertEqual(val, mype)
+            self.assertEqual(val, 0)
 
     def testFetchOp(self):
         mype = shmem.my_pe()
