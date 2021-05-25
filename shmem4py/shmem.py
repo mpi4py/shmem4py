@@ -344,6 +344,30 @@ def addr_accessible(addr, pe: int) -> bool:
     return bool(lib.shmem_addr_accessible(addr, pe))
 
 
+def ptr(
+    target: 'ffi.CData|np.ndarray',
+    pe: int,
+) -> 'ffi.CData|Optional[np.ndarray]':
+    """
+    """
+    if isinstance(target, ffi.CData):
+        cdata = lib.shmem_ptr(target, pe)
+        csize = ffi.sizeof(target)
+        ctype = ffi.typeof(target)
+        buf = ffi.buffer(cdata, csize)
+        return ffi.from_buffer(ctype, buf)
+
+    addr = _getbuffer(target, readonly=True)[0]
+    cdata = lib.shmem_ptr(addr, pe)
+    if cdata == ffi.NULL:  # pragma: nobranch
+        return None        # pragma: nocover
+    a = fromcdata(cdata, target.size, target.dtype)
+    a.shape = target.shape
+    if target.ndim > 1:
+        a.strides = target.strides
+    return a
+
+
 # ---
 
 
@@ -535,7 +559,7 @@ def fromcdata(
     a = np.frombuffer(buf, dtype)
     tmp = a.reshape(shape, order=order)
     a.shape = tmp.shape
-    if tmp.ndim:
+    if tmp.ndim > 1:
         a.strides = tmp.strides
     return a
 
@@ -566,7 +590,7 @@ def array(
     tmp = np.array(obj, dtype, copy=False, order=order)
     a = new_array(tmp.size, tmp.dtype, align=align, clear=False)
     a.shape = tmp.shape
-    if tmp.ndim:
+    if tmp.ndim > 1:
         a.strides = tmp.strides
     np.copyto(a, tmp, casting='no')
     return a

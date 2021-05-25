@@ -37,7 +37,6 @@ clean:
 	-$(RM) -r build shmem4py/*.so shmem4py.egg-info
 	-$(RM) -r */__pycache__ */*/__pycache__
 	-$(RM) -r .coverage* htmlcov/
-	-find . -name '*.py[co]' -exec $(RM) {} ';'
 
 
 .PHONY: install uninstall

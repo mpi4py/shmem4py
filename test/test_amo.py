@@ -43,10 +43,11 @@ class TestAMO(unittest.TestCase):
         nxpe = (mype + 1) % npes
         for t in types_ext:
             tgt = shmem.array(-1, dtype=t)
+            shmem.barrier_all()
             val = shmem.atomic_swap(tgt, nxpe, nxpe)
             shmem.barrier_all()
             self.assertEqual(tgt, mype)
-            self.assertEqual(val, np.array(-1, t))
+            self.assertEqual(val, np.array(-1, dtype=t))
 
     @unittest.skipIf('open-mpi' in shmem.VENDOR_STRING, 'open-mpi')
     def testCompareSwap(self):
