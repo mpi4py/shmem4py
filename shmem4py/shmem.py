@@ -535,7 +535,8 @@ def fromcdata(
     a = np.frombuffer(buf, dtype)
     tmp = a.reshape(shape, order=order)
     a.shape = tmp.shape
-    a.strides = tmp.strides
+    if tmp.ndim:
+        a.strides = tmp.strides
     return a
 
 
@@ -555,7 +556,8 @@ def new_array(
     a = np.frombuffer(buf, dtype)
     tmp = a.reshape(shape, order=order)
     a.shape = tmp.shape
-    a.strides = tmp.strides
+    if tmp.ndim:
+        a.strides = tmp.strides
     return a
 
 
@@ -570,7 +572,8 @@ def array(
     tmp = np.array(obj, dtype, copy=False, order=order)
     a = new_array(tmp.size, tmp.dtype, align=align, clear=False)
     a.shape = tmp.shape
-    a.strides = tmp.strides
+    if tmp.ndim:
+        a.strides = tmp.strides
     np.copyto(a, tmp, casting='no')
     return a
 
