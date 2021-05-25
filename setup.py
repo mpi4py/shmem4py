@@ -18,8 +18,8 @@ sys.dont_write_bytecode = True
 class build_ext(cmd_build_ext, object):
     def build_extensions(self):
         from fficompiler import fficompiler
-        cc = fficompiler.search('SHMEMCC', ('shmemcc', 'oshcc'))
-        ld = fficompiler.search('SHMEMLD')
+        cc = fficompiler.search('OSHCC', 'oshcc')
+        ld = fficompiler.search('OSHLD')
         fficompiler(cc, ld).configure(self.compiler)
         super(build_ext, self).build_extensions()
 
