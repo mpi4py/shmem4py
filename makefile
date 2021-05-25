@@ -1,10 +1,10 @@
 python = python
 PYTHON = $(python)$(py)
 
-shmemrun ?= shmemrun oshrun mpiexec mpirun
-SHMEMRUN := $(firstword \
-            $(foreach cmd, $(shmemrun), \
-            $(if $(shell command -v $(cmd) 2>/dev/null), $(cmd))))
+oshrun ?= oshrun mpiexec mpirun prun
+OSHRUN := $(firstword \
+          $(foreach cmd, $(oshrun), \
+          $(if $(shell command -v $(cmd) 2>/dev/null), $(cmd))))
 
 .PHONY: build
 build:
@@ -16,7 +16,7 @@ test:
 
 .PHONY: test-%
 test-%:
-	$(SHMEMRUN) -n $* $(PYTHON) -m unittest discover $(opt) -s test
+	$(OSHRUN) -n $* $(PYTHON) -m unittest discover $(opt) -s test
 
 .PHONY: lint
 lint:

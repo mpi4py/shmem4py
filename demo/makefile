@@ -1,22 +1,24 @@
-# -*- mode: makefile-gmake -*-
-
 python = python
 PYTHON = $(python)$(py)
 
-shmemrun ?= shmemrun oshrun mpiexec mpirun
-SHMEMRUN := $(firstword \
-            $(foreach cmd, $(shmemrun), \
-            $(if $(shell command -v $(cmd) 2>/dev/null), $(cmd))))
-n = 1
+oshrun ?= oshrun mpiexec mpirun prun
+OSHRUN := $(firstword \
+          $(foreach cmd, $(oshrun), \
+          $(if $(shell command -v $(cmd) 2>/dev/null), $(cmd))))
 
+npes = 1
 testfile = $(wildcard *.py)
-testname = $(testfile:%.py=%)
+testlist = $(testfile:%.py=%)
+.SECONDARY:
+test:   $(foreach test,$(testlist),test-$(test));
+test-%: $(foreach test,$(testlist),test-$(test)-%);
+
 define testrule
-test: test-$1
 test-$1:
-	$$(SHMEMRUN) -n $$(n) $$(PYTHON) -u $1.py
-.PHONY: test test-$1
+	$$(OSHRUN) -n $$(npes) $$(PYTHON) -u $1.py
+test-$1-%: npes=$$*
+test-$1-%:
+	$$(OSHRUN) -n $$(npes) $$(PYTHON) -u $1.py
 endef
 
-$(foreach name, $(testname), \
-  $(eval $(call testrule,$(name))))
+$(foreach test,$(testlist),$(eval $(call testrule,$(test))))
