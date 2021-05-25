@@ -53,6 +53,8 @@ static int PySHMEM_OSSS_shmem_team_get_config(shmem_team_t team, long config_mas
 
 /* --- */
 
+/* Open MPI OpenSHMEM implementation */
+
 #if defined(OSHMEM_MAJOR_VERSION)
 
 #if INT32_MAX == INT_MAX
@@ -253,6 +255,8 @@ static int PySHMEM_OSSS_shmem_team_get_config(shmem_team_t team, long config_mas
 
 /* --- */
 
+/* OSHMPI OpenSHMEM implementation */
+
 #if defined(OSHMPI_NUMVERSION)
 
 static void *PySHMEM_OSHMPI_shmem_calloc(size_t count, size_t size)
@@ -260,6 +264,23 @@ static void *PySHMEM_OSHMPI_shmem_calloc(size_t count, size_t size)
 #define shmem_calloc PySHMEM_OSHMPI_shmem_calloc
 
 #define PySHMEM_HAVE_shmem_team_t 1
+
+#endif
+
+/* --- */
+
+/* Sandia OpenSHMEM implementation */
+
+#if defined(SHMEM_DEF_H) && defined(SHMEM_FUNCTION_ATTRIBUTES) && defined(SHMEM_ATTRIBUTE_DEPRECATED)
+
+#define PySHMEM_HAVE_shmem_malloc_with_hints 1
+#define PySHMEM_HAVE_shmem_team_t 1
+#define PySHMEM_HAVE_SHMEM_CTX_INVALID 1
+#define PySHMEM_HAVE_shmem_put_signal 1
+
+static int PySHMEM_SOS_shmem_team_get_config(shmem_team_t team, long config_mask,shmem_team_config_t *config)
+{ shmem_team_get_config(team, config); return 0; }
+#define shmem_team_get_config PySHMEM_SOS_shmem_team_get_config
 
 #endif
 
