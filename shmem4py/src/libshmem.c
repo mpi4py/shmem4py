@@ -1,10 +1,20 @@
 #include <shmem.h>
 
+#if defined(OSHMEM_MAJOR_VERSION)
+#define PySHMEM_VENDOR_OpenMPI 1
+#elif defined(OSHMPI_NUMVERSION)
+#define PySHMEM_VENDOR_OSHMPI 1
+#elif defined(SHMEM_DEF_H) && defined(SHMEM_FUNCTION_ATTRIBUTES)
+#define PySHMEM_VENDOR_Sandia 1
+#elif defined(_SHMEM_API_H) && defined(_SHMEM_DEPR_H)
+#define PySHMEM_VENDOR_OSSS 1
+#endif
+
 /* --- */
 
 /* OSSS-UCX OpenSHMEM implementation */
 
-#if defined(_SHMEM_DEFS_SUBST_H)
+#if defined(PySHMEM_VENDOR_OSSS)
 
 #define PySHMEM_HAVE_SHMEM_CTX_INVALID 1
 #define PySHMEM_HAVE_shmem_team_t 1
@@ -55,7 +65,7 @@ static int PySHMEM_OSSS_shmem_team_get_config(shmem_team_t team, long config_mas
 
 /* Open MPI OpenSHMEM implementation */
 
-#if defined(OSHMEM_MAJOR_VERSION)
+#if defined(PySHMEM_VENDOR_OpenMPI)
 
 #if INT32_MAX == INT_MAX
 #define shmem_ctx_int32_atomic_fetch            shmem_ctx_int_atomic_fetch
@@ -257,7 +267,7 @@ static int PySHMEM_OSSS_shmem_team_get_config(shmem_team_t team, long config_mas
 
 /* OSHMPI OpenSHMEM implementation */
 
-#if defined(OSHMPI_NUMVERSION)
+#if defined(PySHMEM_VENDOR_OSHMPI)
 
 static void *PySHMEM_OSHMPI_shmem_calloc(size_t count, size_t size)
 { return shmem_calloc(1, count * size); }
@@ -271,7 +281,7 @@ static void *PySHMEM_OSHMPI_shmem_calloc(size_t count, size_t size)
 
 /* Sandia OpenSHMEM implementation */
 
-#if defined(SHMEM_DEF_H) && defined(SHMEM_FUNCTION_ATTRIBUTES) && defined(SHMEM_ATTRIBUTE_DEPRECATED)
+#if defined(PySHMEM_VENDOR_Sandia)
 
 #define PySHMEM_HAVE_shmem_malloc_with_hints 1
 #define PySHMEM_HAVE_shmem_team_t 1
