@@ -15,7 +15,7 @@ class Rc:
     initialize : bool
         Automatic initialization at import (default: True).
     threads : bool
-        Request for thread support (default: True).
+        Request for thread support (default: False).
     thread_level : {'multiple', 'serialized', 'funneled', 'single'}
         Level of thread support to request (default: 'multiple').
     finalize : None or bool
@@ -24,7 +24,7 @@ class Rc:
     """
 
     initialize = True
-    threads = True
+    threads = False
     thread_level = 'multiple'
     finalize = None
 
