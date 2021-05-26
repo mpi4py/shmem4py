@@ -429,8 +429,8 @@ class _RawAlign(dict):
 
     def __missing__(self, align: int):
         return ffi.new_allocator(
-            lambda size: lib.shmem_align(align, size),
-            lib.shmem_free,
+            lambda size: lib.shmem_py_malloc_align(align, size),
+            lib.shmem_py_free,
             should_clear_after_alloc=self.clear,
         )
 
@@ -440,14 +440,14 @@ _raw_malign = _RawAlign(clear=False)
 _raw_calign = _RawAlign(clear=True)
 
 _raw_malloc = ffi.new_allocator(
-    lib.shmem_malloc,
-    lib.shmem_free,
+    lib.shmem_py_malloc,
+    lib.shmem_py_free,
     should_clear_after_alloc=False,
 )
 
 _raw_calloc = ffi.new_allocator(
-    lambda size: lib.shmem_calloc(size, 1),
-    lib.shmem_free,
+    lib.shmem_py_malloc_clear,
+    lib.shmem_py_free,
     should_clear_after_alloc=False,
 )
 

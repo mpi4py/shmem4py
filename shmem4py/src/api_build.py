@@ -12,6 +12,12 @@ with open(os.path.join(srcdir, "generate.py")) as h:
         ffi.cdef(code)
 with open(os.path.join(srcdir, "libshmem.c")) as c:
     ffi.cdef("""
+    void *shmem_py_malloc(size_t size);
+    void *shmem_py_malloc_clear(size_t size);
+    void *shmem_py_malloc_align(size_t align, size_t size);
+    void  shmem_py_free(void *ptr);
+    """)
+    ffi.cdef("""
     const  int _shmem_finalized;
     const  int _shmem_initialized;
     extern int _shmem_atexit_finalize;

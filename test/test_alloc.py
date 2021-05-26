@@ -11,7 +11,7 @@ types += [f'f{1<<i}' for i in range(2,4)]
 class TestAlloc(unittest.TestCase):
 
     def testAlloc(self):
-        for n in range(1, 4):
+        for n in range(4):
             for t in types:
                 for align in (None, 8, 64):
                     for clear in (True, False):
@@ -20,7 +20,7 @@ class TestAlloc(unittest.TestCase):
                         self.assertRaises(KeyError, shmem.free, cdata)
 
     def testFromCData(self):
-        for n in range(1, 4):
+        for n in range(4):
             for t in types:
                 size = n * np.dtype(t).itemsize
                 cdata = shmem.alloc('B', size)
@@ -43,7 +43,7 @@ class TestAlloc(unittest.TestCase):
                 self.assertTrue(array.flags.f_contiguous)
 
     def testNewArray(self):
-        for n in range(1, 4):
+        for n in range(4):
             for t in types:
                 for order in ('C', 'F'):
                     for align in (None, 8, 64):
