@@ -145,23 +145,23 @@ class Ctx:
         self.ob_ctx = ffi.new('shmem_ctx_t*', ctx)[0]
         return self
 
-    def __eq__(self, other):
+    def __eq__(self, other: 'Any') -> bool:
         if not isinstance(other, Ctx):
             return NotImplemented
         return self.ob_ctx == other.ob_ctx
 
-    def __ne__(self, other):
+    def __ne__(self, other: 'Any') -> bool:
         if not isinstance(other, Ctx):
             return NotImplemented
         return self.ob_ctx != other.ob_ctx
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.ob_ctx != lib.SHMEM_CTX_INVALID
 
-    def __enter__(self):
+    def __enter__(self) -> 'Ctx':
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, *args: 'Any') -> None:
         self.destroy()
 
     @staticmethod
@@ -243,23 +243,23 @@ class Team:
         self.ob_team = ffi.new('shmem_team_t*', team)[0]
         return self
 
-    def __eq__(self, other):
+    def __eq__(self, other: 'Any') -> bool:
         if not isinstance(other, Team):
             return NotImplemented
         return self.ob_team == other.ob_team
 
-    def __ne__(self, other):
+    def __ne__(self, other: 'Any') -> bool:
         if not isinstance(other, Team):
             return NotImplemented
         return self.ob_team != other.ob_team
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return self.ob_team != lib.SHMEM_TEAM_INVALID
 
-    def __enter__(self):
+    def __enter__(self) -> 'Team':
         return self
 
-    def __exit__(self, *args):
+    def __exit__(self, *args: 'Any') -> None:
         self.destroy()
 
     def destroy(self) -> None:
@@ -357,17 +357,21 @@ def pe_accessible(pe: int) -> bool:
     return bool(lib.shmem_pe_accessible(pe))
 
 
-def addr_accessible(addr, pe: int) -> bool:
+def addr_accessible(
+    addr: 'ffi.CData|npt.NDArray',
+    pe: int,
+) -> bool:
     """
     """
-    addr = _getbuffer(addr, readonly=True)[0]
+    if not isinstance(addr, ffi.CData):
+        addr = _getbuffer(addr, readonly=True)[0]
     return bool(lib.shmem_addr_accessible(addr, pe))
 
 
 def ptr(
-    target: 'ffi.CData|np.ndarray',
+    target: 'ffi.CData|npt.NDArray',
     pe: int,
-) -> 'ffi.CData|Optional[np.ndarray]':
+) -> 'ffi.CData|Optional[npt.NDArray]':
     """
     """
     if isinstance(target, ffi.CData):
@@ -423,11 +427,11 @@ def quiet() -> None:
 
 class _RawAlign(dict):
 
-    def __init__(self, clear: bool = True):
+    def __init__(self, clear: bool = True) -> None:
         super().__init__()
         self.clear = clear
 
-    def __missing__(self, align: int):
+    def __missing__(self, align: int) -> 'Callable[[int],ffi.CData]':
         return ffi.new_allocator(
             lambda size: lib.shmem_py_malloc_align(align, size),
             lib.shmem_py_free,
@@ -564,7 +568,7 @@ def fromcdata(
     shape: 'Optional[int|tuple[int]]' = None,
     dtype: 'Optional[np.DTypeLike]' = None,
     order: 'str' = 'C',
-) -> np.ndarray:
+) -> 'npt.NDArray':
     """
     """
     if dtype is None:
@@ -590,7 +594,7 @@ def new_array(
     order: 'str' = 'C',
     align: 'Optional[int]' = None,
     clear: 'bool' = True,
-) -> np.ndarray:
+) -> 'npt.NDArray':
     """
     """
     dtype = np.dtype(dtype)
@@ -604,7 +608,7 @@ def array(
     dtype: 'Optional[np.DTypeLike]' = None,
     order: 'str' = 'K',
     align: 'Optional[int]' = None,
-) -> np.ndarray:
+) -> 'npt.NDArray':
     """
     """
     tmp = np.array(obj, dtype, copy=False, order=order)
@@ -621,7 +625,7 @@ def empty(
     dtype: 'np.DTypeLike' = float,
     order: 'str' = 'C',
     align: 'Optional[int]' = None,
-) -> np.ndarray:
+) -> 'npt.NDArray':
     """
     """
     a = new_array(shape, dtype, order, align=align, clear=False)
@@ -633,7 +637,7 @@ def zeros(
     dtype: 'np.DTypeLike' = float,
     order: 'str' = 'C',
     align: 'Optional[int]' = None,
-) -> np.ndarray:
+) -> 'npt.NDArray':
     """
     """
     a = new_array(shape, dtype, order, align=align, clear=True)
@@ -645,7 +649,7 @@ def ones(
     dtype: 'np.DTypeLike' = float,
     order: 'str' = 'C',
     align: 'Optional[int]' = None,
-) -> np.ndarray:
+) -> 'npt.NDArray':
     """
     """
     a = new_array(shape, dtype, order, align=align, clear=True)
@@ -659,7 +663,7 @@ def full(
     dtype: 'Optional[np.DTypeLike]' = None,
     order: 'str' = 'C',
     align: 'Optional[int]' = None,
-) -> np.ndarray:
+) -> 'npt.NDArray':
     """
     """
     if dtype is None:

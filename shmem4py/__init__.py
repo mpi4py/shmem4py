@@ -23,22 +23,22 @@ class Rc:
 
     """
 
-    initialize = True
-    threads = False
-    thread_level = 'multiple'
-    finalize = None
+    initialize: bool = True
+    threads: bool = False
+    thread_level: str = 'multiple'
+    finalize: 'Optional[bool]' = None
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: 'Any') -> None:
         self(**kwargs)
 
-    def __call__(self, **kwargs):
+    def __call__(self, **kwargs: 'Any') -> None:
         for key in kwargs:
             if not hasattr(self, key):
                 raise TypeError("unexpected argument '{0}'".format(key))
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return '<{0}.rc>'.format(__name__)
 
 
