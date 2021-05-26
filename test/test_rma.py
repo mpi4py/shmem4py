@@ -3,7 +3,7 @@ import numpy as np
 import unittest
 
 
-types = list('bhilqBHILQfd')
+types = list('bhilqBHILQfdgFD')
 types += [f'i{1<<i}' for i in range(4)]
 types += [f'u{1<<i}' for i in range(4)]
 types += [f'f{1<<i}' for i in range(2,4)]
@@ -70,6 +70,7 @@ class TestRMA(unittest.TestCase):
         npes = shmem.n_pes()
         nxpe = (mype + 1) % npes
         for t in types:
+            if t in "FDG": continue
             src = np.full(12, nxpe, dtype=t)
             tgt = shmem.empty(12, dtype=t)
             val = np.array(-1, dtype=t)
@@ -97,6 +98,7 @@ class TestRMA(unittest.TestCase):
         npes = shmem.n_pes()
         nxpe = (mype + 1) % npes
         for t in types:
+            if t in "FDG": continue
             src = shmem.full(12, mype, dtype=t)
             tgt = np.empty(12, dtype=t)
             val = np.array(-1, dtype=t)

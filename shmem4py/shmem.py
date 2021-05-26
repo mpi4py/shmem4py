@@ -510,6 +510,7 @@ _numpy_to_shmem = {
     'g': 'longdouble',
     'F': 'complexf',
     'D': 'complexd',
+    'G': 'complexg',
 
     'S1': 'char',
     'i1': 'int8',
@@ -678,11 +679,17 @@ def full(
 
 def _shmem(ctx, ctype, name):
     if ctx is None:
-        attr = f'shmem_{ctype}_{name}'
-        func = getattr(lib, f'shmem_{ctype}_{name}')
+        if ctype is None:
+            attr = f'shmem_{name}'
+        else:
+            attr = f'shmem_{ctype}_{name}'
+        func = getattr(lib, attr)
         return func
     else:
-        attr = f'shmem_ctx_{ctype}_{name}'
+        if ctype is None:
+            attr = f'shmem_ctx_{name}'
+        else:
+            attr = f'shmem_ctx_{ctype}_{name}'
         func = getattr(lib, attr)
         return lambda *args: func(ctx.ob_ctx, *args)
 
@@ -729,7 +736,11 @@ def _parse_rma(target, source, size=None, tst=1, sst=1):
 
 def _shmem_rma(ctx, name, target, source, size, pe):
     ctype, target, source, size = _parse_rma(target, source, size)
-    return _shmem(ctx, ctype, name)(target, source, size, pe)
+    try:
+        return _shmem(ctx, ctype, name)(target, source, size, pe)
+    except AttributeError:
+        size *= ffi.sizeof(ctype)
+        return _shmem(ctx, None, f'{name}mem')(target, source, size, pe)
 
 
 def _shmem_irma(ctx, name, target, source, tst, sst, size, pe):
@@ -739,7 +750,11 @@ def _shmem_irma(ctx, name, target, source, tst, sst, size, pe):
 
 def _shmem_rma_nbi(ctx, name, target, source, size, pe):
     ctype, target, source, size = _parse_rma(target, source, size)
-    return _shmem(ctx, ctype, f'{name}_nbi')(target, source, size, pe)
+    try:
+        return _shmem(ctx, ctype, f'{name}_nbi')(target, source, size, pe)
+    except AttributeError:
+        size *= ffi.sizeof(ctype)
+        return _shmem(ctx, None, f'{name}mem_nbi')(target, source, size, pe)
 
 
 def put(target, source, pe, size=None, ctx=None) -> None:

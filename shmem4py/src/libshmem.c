@@ -454,6 +454,10 @@ int shmem_team_sync(shmem_team_t team)
 
 /* --- */
 
+typedef struct { long double real, imag; } complexg;
+
+/* --- */
+
 static int _py_shmem_finalized   = 0;
 static int _py_shmem_initialized = 0;
 
