@@ -54,8 +54,11 @@ int shmem_team_sync(shmem_team_t team)
   return -1;
 }
 
-static int PySHMEM_OSSS_shmem_team_get_config(shmem_team_t team, long config_mask,shmem_team_config_t *config)
-{ return shmem_team_get_config(team, config); }
+static
+int PySHMEM_OSSS_shmem_team_get_config(shmem_team_t team, long config_mask, shmem_team_config_t *config)
+{
+  return shmem_team_get_config(team, config);
+}
 #define shmem_team_get_config PySHMEM_OSSS_shmem_team_get_config
 
 #endif
@@ -269,8 +272,11 @@ static int PySHMEM_OSSS_shmem_team_get_config(shmem_team_t team, long config_mas
 
 #if defined(PySHMEM_VENDOR_OSHMPI)
 
-static void *PySHMEM_OSHMPI_shmem_calloc(size_t count, size_t size)
-{ return shmem_calloc(1, count * size); }
+static
+void *PySHMEM_OSHMPI_shmem_calloc(size_t count, size_t size)
+{
+  return shmem_calloc(1, count * size);
+}
 #define shmem_calloc PySHMEM_OSHMPI_shmem_calloc
 
 #define PySHMEM_HAVE_shmem_team_t 1
@@ -288,8 +294,12 @@ static void *PySHMEM_OSHMPI_shmem_calloc(size_t count, size_t size)
 #define PySHMEM_HAVE_SHMEM_CTX_INVALID 1
 #define PySHMEM_HAVE_shmem_put_signal 1
 
-static int PySHMEM_SOS_shmem_team_get_config(shmem_team_t team, long config_mask,shmem_team_config_t *config)
-{ shmem_team_get_config(team, config); return 0; }
+static
+int PySHMEM_SOS_shmem_team_get_config(shmem_team_t team, long config_mask, shmem_team_config_t *config)
+{
+  shmem_team_get_config(team, config);
+  return 0;
+}
 #define shmem_team_get_config PySHMEM_SOS_shmem_team_get_config
 
 #endif
