@@ -1,4 +1,5 @@
 """OpenSHMEM for Python."""
+# pylint: disable=too-many-lines
 # pylint: disable=no-else-return
 # pylint: disable=empty-docstring
 # pylint: disable=too-many-arguments
@@ -328,7 +329,9 @@ class Team:
         """
         """
         team = self.ob_team
-        lib.shmem_team_sync(team)
+        ierr = lib.shmem_team_sync(team)
+        if ierr != 0:  # pragma: nocover
+            raise RuntimeError(f"shmem_team_sync: error {ierr}")
 
 
 TEAM_WORLD:   Team = Team(lib.SHMEM_TEAM_WORLD)
@@ -407,19 +410,36 @@ def sync_all() -> None:
     lib.shmem_sync_all()
 
 
+def sync(team: 'Optional[Team]' = None) -> None:
+    """
+    """
+    if team is None:
+        lib.shmem_sync_all()
+    else:
+        ierr = lib.shmem_team_sync(team.ob_team)
+        if ierr != 0:  # pragma: nocover
+            raise RuntimeError(f"shmem_team_sync: error {ierr}")
+
+
 # ---
 
 
-def fence() -> None:
+def fence(ctx: 'Optional[Ctx]' = None) -> None:
     """
     """
-    lib.shmem_fence()
+    if ctx is None:
+        lib.shmem_fence()
+    else:
+        lib.shmem_ctx_fence(ctx.ob_ctx)
 
 
-def quiet() -> None:
+def quiet(ctx: 'Optional[Ctx]' = None) -> None:
     """
     """
-    lib.shmem_quiet()
+    if ctx is None:
+        lib.shmem_quiet()
+    else:
+        lib.shmem_ctx_quiet(ctx.ob_ctx)
 
 
 # ---

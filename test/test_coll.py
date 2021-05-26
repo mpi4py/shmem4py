@@ -9,6 +9,10 @@ class TestColl(unittest.TestCase):
 
     def testSyncAll(self):
         shmem.sync_all()
+        shmem.sync()
+
+    def testSyncTeam(self):
+        shmem.sync(shmem.TEAM_WORLD)
 
 
 if __name__ == '__main__':

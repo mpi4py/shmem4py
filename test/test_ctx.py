@@ -107,10 +107,12 @@ class TestCtx(unittest.TestCase):
     def testFence(self):
         ctx = shmem.CTX_DEFAULT
         ctx.fence()
+        shmem.fence(ctx)
 
     def testQuiet(self):
         ctx = shmem.CTX_DEFAULT
         ctx.quiet()
+        shmem.quiet(ctx)
 
 
 
