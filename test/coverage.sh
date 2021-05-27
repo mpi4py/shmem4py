@@ -39,6 +39,7 @@ import shmem4py
 shmem4py.rc.initialize = False
 from shmem4py import shmem
 shmem.init()
+shmem.finalize()
 EOF
 $COVERAGE run $tmpdir/cover.py
 
