@@ -3,9 +3,10 @@ import unittest
 
 teams = [
     shmem.TEAM_WORLD,
-    shmem.TEAM_SHARED,
     shmem.TEAM_INVALID,
 ]
+if shmem.TEAM_SHARED:
+    teams.insert(1, shmem.TEAM_SHARED)
 
 options_ctx = (
     shmem.CTX_PRIVATE,
@@ -43,7 +44,6 @@ class TestTeam(unittest.TestCase):
 
     def testBool(self):
         self.assertTrue(shmem.TEAM_WORLD)
-        self.assertTrue(shmem.TEAM_SHARED)
         self.assertFalse(shmem.TEAM_INVALID)
 
     def testWith(self):
@@ -57,7 +57,7 @@ class TestTeam(unittest.TestCase):
             #    self.assertEqual(newteam, shmem.TEAM_INVALID)
 
     def testDestroy(self):
-        for team in teams:
+        for team in teams + [shmem.TEAM_SHARED]:
             if team:
                 team.destroy()
                 self.assertTrue(team)
@@ -72,6 +72,38 @@ class TestTeam(unittest.TestCase):
                 self.assertTrue(alias)
             alias.destroy()
             self.assertFalse(alias)
+
+    def testSplit(self):
+        team = shmem.TEAM_WORLD
+        try:
+            tnew = team.split_strided()
+            tnew.destroy()
+        except RuntimeError:
+            self.skipTest('team')
+        #
+        tnew = team.split_strided()
+        self.assertTrue(tnew.n_pes(), team.n_pes())
+        conf = tnew.get_config()
+        self.assertEqual(conf['num_contexts'], 0)
+        tnew.destroy()
+        #
+        tnew = team.split_strided(
+            size=team.n_pes(),
+            config=dict(num_contexts=1),
+        )
+        self.assertTrue(tnew.n_pes(), team.n_pes())
+        conf = tnew.get_config()
+        if tnew != team:
+            if shmem.lib.SHMEM_TEAM_NUM_CONTEXTS:
+                self.assertEqual(conf['num_contexts'], 1)
+        tnew.destroy()
+        #
+        tnew = team.split_strided(num_contexts=2)
+        conf = tnew.get_config()
+        if tnew != team:
+            if shmem.lib.SHMEM_TEAM_NUM_CONTEXTS:
+                self.assertEqual(conf['num_contexts'], 2)
+        tnew.destroy()
 
     def testQuery(self):
         team = shmem.TEAM_WORLD

@@ -16,6 +16,10 @@ enum /*shmem_ctx_attrs*/ {
   SHMEM_CTX_NOSTORE,
 };
 
+enum /*shmem_config_mask*/ {
+  SHMEM_TEAM_NUM_CONTEXTS,
+};
+
 enum /*shmem_signal_ops*/ {
   SHMEM_SIGNAL_SET,
   SHMEM_SIGNAL_ADD,

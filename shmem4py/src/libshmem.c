@@ -57,6 +57,7 @@ int shmem_team_sync(shmem_team_t team)
 static
 int PySHMEM_OSSS_shmem_team_get_config(shmem_team_t team, long config_mask, shmem_team_config_t *config)
 {
+  (void)config_mask;
   return shmem_team_get_config(team, config);
 }
 #define shmem_team_get_config PySHMEM_OSSS_shmem_team_get_config
@@ -281,6 +282,10 @@ void *PySHMEM_OSHMPI_shmem_calloc(size_t count, size_t size)
 
 #define PySHMEM_HAVE_shmem_team_t 1
 
+#if !defined(SHMEM_TEAM_NUM_CONTEXTS)
+#define SHMEM_TEAM_NUM_CONTEXTS 0
+#endif
+
 static
 int PySHMEM_OSHMPI_shmem_team_sync(shmem_team_t team)
 {
@@ -312,6 +317,7 @@ int PySHMEM_OSHMPI_shmem_team_sync(shmem_team_t team)
 static
 int PySHMEM_SOS_shmem_team_get_config(shmem_team_t team, long config_mask, shmem_team_config_t *config)
 {
+  (void)config_mask;
   shmem_team_get_config(team, config);
   return 0;
 }
@@ -352,48 +358,47 @@ int PySHMEM_SOS_shmem_team_get_config(shmem_team_t team, long config_mask, shmem
 
 typedef void *shmem_team_t;
 
-#define SHMEM_TEAM_WORLD   ((shmem_team_t)0x02)
-#define SHMEM_TEAM_SHARED  ((shmem_team_t)0x01)
+#define SHMEM_TEAM_WORLD   ((shmem_team_t)0x01)
+#define SHMEM_TEAM_SHARED  ((shmem_team_t)NULL)
 #define SHMEM_TEAM_INVALID ((shmem_team_t)NULL)
 
 static
 int shmem_team_my_pe(shmem_team_t team)
 {
-  return (team == SHMEM_TEAM_WORLD) ? shmem_my_pe() : (team == SHMEM_TEAM_SHARED) ? 0 : -1;
+  return (team == SHMEM_TEAM_WORLD) ? shmem_my_pe() : -1;
 }
 
 static
 int shmem_team_n_pes(shmem_team_t team)
 {
-  return (team == SHMEM_TEAM_WORLD) ? shmem_n_pes() : (team == SHMEM_TEAM_SHARED) ? 1 : -1;
+  return (team == SHMEM_TEAM_WORLD) ? shmem_n_pes() : -1;
 }
 
 static
 int shmem_team_translate_pe(shmem_team_t src_team, int src_pe, shmem_team_t dest_team)
 {
-  if (src_team == SHMEM_TEAM_WORLD) {
+  if (src_team == SHMEM_TEAM_WORLD)
     if (dest_team == SHMEM_TEAM_WORLD)
       return (src_pe >= 0 && src_pe < shmem_n_pes()) ? src_pe : -1;
-    if (dest_team == SHMEM_TEAM_SHARED)
-      return (src_pe == shmem_my_pe()) ? 0 : -1;
-  }
-  if (src_team == SHMEM_TEAM_SHARED) {
-    if (dest_team == SHMEM_TEAM_WORLD)
-      return (src_pe == 0) ? shmem_my_pe() : -1;
-    if (dest_team == SHMEM_TEAM_SHARED)
-      return (src_pe == 0) ? 0 : -1;
-  }
   return -1;
 }
 
-typedef struct {int num_contexts;} shmem_team_config_t;
+#define SHMEM_TEAM_NUM_CONTEXTS 0
+
+typedef struct {
+  int num_contexts;
+} shmem_team_config_t;
 
 static
 int shmem_team_split_strided(shmem_team_t parent_team, int start, int stride, int size,
                              const shmem_team_config_t *config, long config_mask, shmem_team_t *new_team)
 {
-  (void)parent_team; (void)start; (void)stride; (void)size;
-  (void)config; (void)config_mask; *new_team = SHMEM_TEAM_INVALID;
+  (void)config; (void)config_mask;
+  if (parent_team == SHMEM_TEAM_WORLD) {
+    if (start == 0 && stride == 1 && size == shmem_n_pes())
+      return (*new_team = SHMEM_TEAM_WORLD, 0);
+  }
+  *new_team = SHMEM_TEAM_INVALID;
   return -1;
 }
 
@@ -411,9 +416,11 @@ int shmem_team_split_2d(shmem_team_t parent_team, int xrange,
 static
 int shmem_team_get_config(shmem_team_t team, long config_mask, shmem_team_config_t *config)
 {
-  (void)config_mask; (void)config; /* TODO */
-  if (team == SHMEM_TEAM_WORLD)   return 0;
-  if (team == SHMEM_TEAM_SHARED)  return 0;
+  (void)config_mask;
+  if (team == SHMEM_TEAM_WORLD) {
+    config->num_contexts = 0;
+    return 0;
+  }
   return -1;
 }
 
@@ -429,10 +436,6 @@ int shmem_team_create_ctx(shmem_team_t team, long options, shmem_ctx_t *ctx)
   if (team == SHMEM_TEAM_WORLD) {
     return shmem_ctx_create(options, ctx);
   }
-  if (team == SHMEM_TEAM_SHARED) {
-    *ctx = SHMEM_CTX_INVALID;
-    return -1;
-  }
   *ctx = SHMEM_CTX_INVALID;
   return -1;
 }
@@ -440,10 +443,6 @@ int shmem_team_create_ctx(shmem_team_t team, long options, shmem_ctx_t *ctx)
 static
 int shmem_ctx_get_team(shmem_ctx_t ctx, shmem_team_t *team)
 {
-  if (ctx == SHMEM_CTX_INVALID) {
-    *team = SHMEM_TEAM_INVALID;
-    return -1;
-  }
   if (ctx == SHMEM_CTX_DEFAULT) {
     *team = SHMEM_TEAM_WORLD;
     return 0;
@@ -457,9 +456,6 @@ int shmem_team_sync(shmem_team_t team)
 {
   if (team == SHMEM_TEAM_WORLD) {
     shmem_sync_all();
-    return 0;
-  }
-  if (team == SHMEM_TEAM_SHARED) {
     return 0;
   }
   return -1;

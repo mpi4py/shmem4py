@@ -226,6 +226,7 @@ CTX_INVALID: Ctx = Ctx(lib.SHMEM_CTX_INVALID)
 
 # ---
 
+
 class Team:
     """Team management."""
 
@@ -281,6 +282,47 @@ class Team:
         if team == lib.SHMEM_TEAM_INVALID:
             return
         lib.shmem_team_destroy(team)
+
+    def split_strided(
+        self,
+        start: int = 0,
+        stride: int = 1,
+        size: 'Optional[int]' = None,
+        config: 'Optional[Mapping[str, int]]' = None,
+        **kwargs: int,
+    ) -> 'Team':
+        """
+        """
+        team = self.ob_team
+        if size is None:
+            npes = lib.shmem_team_n_pes(team)
+            size = len(range(start, npes, stride))
+        if config is None:
+            config = kwargs
+        else:
+            config = dict(config)
+            config.update(kwargs)
+        conf = ffi.new('shmem_team_config_t*')
+        mask = 0
+        for attr, value in config.items():
+            setattr(conf, attr.lower(), value)
+            mask |= getattr(lib, f'SHMEM_TEAM_{attr.upper()}')
+        tnew = ffi.new('shmem_team_t*', lib.SHMEM_TEAM_INVALID)
+        ierr = lib.shmem_team_split_strided(
+            team, start, stride, size, conf, mask, tnew,
+        )
+        if ierr != 0:  # pragma: nocover
+            raise RuntimeError(f"lib.shmem_team_split_strided: error {ierr}")
+        return Team(tnew[0])
+
+    def get_config(self) -> 'dict[str, int]':
+        """
+        """
+        team = self.ob_team
+        conf = ffi.new('shmem_team_config_t*')
+        mask = lib.SHMEM_TEAM_NUM_CONTEXTS
+        lib.shmem_team_get_config(team, mask, conf)
+        return {attr: getattr(conf, attr) for attr in dir(conf)}
 
     def my_pe(self) -> int:
         """
