@@ -17,6 +17,10 @@ class TestReduce(unittest.TestCase):
             shmem.reduce(tgt, src)
         except AttributeError:
             pass
+        try:
+            shmem.reduce(tgt, src, size=1)
+        except AttributeError:
+            pass
 
     @unittest.skipIf(not has_reduce, 'shmem-reduce')
     def testReduce(self):

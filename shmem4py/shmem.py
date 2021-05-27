@@ -398,53 +398,6 @@ def ptr(
 # ---
 
 
-def barrier_all() -> None:
-    """
-    """
-    lib.shmem_barrier_all()
-
-
-def sync_all() -> None:
-    """
-    """
-    lib.shmem_sync_all()
-
-
-def sync(team: 'Optional[Team]' = None) -> None:
-    """
-    """
-    if team is None:
-        lib.shmem_sync_all()
-    else:
-        ierr = lib.shmem_team_sync(team.ob_team)
-        if ierr != 0:  # pragma: nocover
-            raise RuntimeError(f"shmem_team_sync: error {ierr}")
-
-
-# ---
-
-
-def fence(ctx: 'Optional[Ctx]' = None) -> None:
-    """
-    """
-    if ctx is None:
-        lib.shmem_fence()
-    else:
-        lib.shmem_ctx_fence(ctx.ob_ctx)
-
-
-def quiet(ctx: 'Optional[Ctx]' = None) -> None:
-    """
-    """
-    if ctx is None:
-        lib.shmem_quiet()
-    else:
-        lib.shmem_ctx_quiet(ctx.ob_ctx)
-
-
-# ---
-
-
 class _RawAlign(dict):
 
     def __init__(self, clear: bool = True) -> None:
@@ -730,6 +683,10 @@ def _getbuffer(obj, readonly=False):
     return (cdata, obj.size, ctype)
 
 
+def _ceildiv(p, q):
+    return (p + q - 1) // q
+
+
 # ---
 
 
@@ -740,11 +697,8 @@ def _parse_rma(target, source, size=None, tst=1, sst=1):
     assert ttype == stype
     ctype = ttype
 
-    def ceildiv(p, q):
-        return (p + q - 1) // q
-
-    tsize = ceildiv(tlen, tst)
-    ssize = ceildiv(slen, sst)
+    tsize = _ceildiv(tlen, tst)
+    ssize = _ceildiv(slen, sst)
     if size is None:
         size = min(tsize, ssize)
     else:
@@ -930,6 +884,150 @@ def atomic_xor(target, value, pe, ctx=None):
 # ---
 
 
+def _parse_team(team):
+    if team is None:
+        team = lib.SHMEM_TEAM_WORLD
+        npes = lib.shmem_n_pes()
+    else:
+        team = team.ob_team
+        npes = lib.shmem_team_n_pes(team)
+    return (team, npes)
+
+
+def _parse_bcast(target, source, size):
+    tdata, tsize, ttype = _getbuffer(target, readonly=False)
+    sdata, ssize, stype = _getbuffer(source, readonly=True)
+    assert ttype == stype
+    if size is None:
+        size = min(tsize, ssize)
+    else:
+        assert size <= tsize
+        assert size <= ssize
+    return (stype, tdata, sdata, size)
+
+
+def _parse_collect(target, source, size, npes=1):
+    tdata, tsize, ttype = _getbuffer(target, readonly=False)
+    sdata, ssize, stype = _getbuffer(source, readonly=True)
+    assert ttype == stype
+    if size is None:
+        size = ssize
+        assert size * npes <= tsize
+    else:
+        assert size <= ssize
+        assert size * npes <= tsize
+    return (stype, tdata, sdata, size)
+
+
+def _parse_alltoall(target, source, size, npes, tst=1, sst=1):
+    # pylint: disable=too-many-locals
+    tdata, tlen, ttype = _getbuffer(target, readonly=False)
+    sdata, slen, stype = _getbuffer(source, readonly=True)
+    assert ttype == stype
+    tsize = _ceildiv(tlen, tst)
+    ssize = _ceildiv(slen, sst)
+    if size is None:
+        minsize = min(tsize, ssize)
+        size, remainder = divmod(minsize, npes)
+        assert remainder == 0
+    else:
+        assert size * npes <= tsize
+        assert size * npes <= ssize
+    return (stype, tdata, sdata, size)
+
+
+def _parse_reduce(target, source, size):
+    tdata, tsize, ttype = _getbuffer(target, readonly=False)
+    sdata, ssize, stype = _getbuffer(source, readonly=True)
+    assert ttype == stype
+    if size is None:
+        size = min(tsize, ssize)
+    else:
+        assert size <= tsize
+        assert size <= ssize
+    return (stype, tdata, sdata, size)
+
+
+def barrier_all() -> None:
+    """
+    """
+    lib.shmem_barrier_all()
+
+
+def sync_all() -> None:
+    """
+    """
+    lib.shmem_sync_all()
+
+
+def sync(team: 'Optional[Team]' = None) -> None:
+    """
+    """
+    if team is None:
+        lib.shmem_sync_all()
+    else:
+        ierr = lib.shmem_team_sync(team.ob_team)
+        if ierr != 0:  # pragma: nocover
+            raise RuntimeError(f"shmem_team_sync: error {ierr}")
+
+
+def broadcast(target, source, root, size=None, team=None):
+    """
+    """
+    team, _ = _parse_team(team)
+    ctype, target, source, size = _parse_bcast(target, source, size)
+    size = size * ffi.sizeof(ctype)
+    ierr = lib.shmem_broadcastmem(team, target, source, size, root)
+    if ierr != 0:  # pragma: nocover
+        raise RuntimeError(f"shmem_broadcastmem: error {ierr}")
+
+
+def collect(target, source, size=None, team=None):
+    """
+    """
+    team, _ = _parse_team(team)
+    ctype, target, source, size = _parse_collect(target, source, size)
+    size = size * ffi.sizeof(ctype)
+    ierr = lib.shmem_collectmem(team, target, source, size)
+    if ierr != 0:  # pragma: nocover
+        raise RuntimeError(f"shmem_collect: error {ierr}")
+
+
+def fcollect(target, source, size=None, team=None):
+    """
+    """
+    team, npes = _parse_team(team)
+    ctype, target, source, size = _parse_collect(target, source, size, npes)
+    size = size * ffi.sizeof(ctype)
+    ierr = lib.shmem_fcollectmem(team, target, source, size)
+    if ierr != 0:  # pragma: nocover
+        raise RuntimeError(f"shmem_fcollect: error {ierr}")
+
+
+def alltoall(target, source, size=None, team=None):
+    """
+    """
+    team, npes = _parse_team(team)
+    args = (target, source, size, npes)
+    ctype, target, source, size = _parse_alltoall(*args)
+    size = size * ffi.sizeof(ctype)
+    ierr = lib.shmem_alltoallmem(team, target, source, size)
+    if ierr != 0:  # pragma: nocover
+        raise RuntimeError(f"shmem_alltoallmem: error {ierr}")
+
+
+def alltoalls(target, source, tst=1, sst=1, size=None, team=None):
+    """
+    """
+    team, npes = _parse_team(team)
+    args = (target, source, size, npes, tst, sst)
+    ctype, target, source, size = _parse_alltoall(*args)
+    eltsz = ffi.sizeof(ctype)
+    ierr = lib.shmem_py_alltoalls(team, target, source, tst, sst, size, eltsz)
+    if ierr != 0:  # pragma: nocover
+        raise RuntimeError(f"shmem_alltoalls: error {ierr}")
+
+
 OP_AND = 'and'
 OP_OR = 'or'
 OP_XOR = 'xor'
@@ -943,7 +1041,7 @@ def reduce(target, source, op='sum', size=None, team=None):
     """
     """
     team = team.ob_team if team is not None else lib.SHMEM_TEAM_WORLD
-    ctype, target, source, size = _parse_rma(target, source, size)
+    ctype, target, source, size = _parse_reduce(target, source, size)
     return _shmem(None, ctype, f'{op}_reduce')(team, target, source, size)
 
 
@@ -999,5 +1097,25 @@ def test(addr, cmp, value) -> bool:
     ctype, addr = _parse_sync(addr)
     return bool(_shmem(None, ctype, 'test')(addr, cmp, value))
 
+
+# ---
+
+
+def fence(ctx: 'Optional[Ctx]' = None) -> None:
+    """
+    """
+    if ctx is None:
+        lib.shmem_fence()
+    else:
+        lib.shmem_ctx_fence(ctx.ob_ctx)
+
+
+def quiet(ctx: 'Optional[Ctx]' = None) -> None:
+    """
+    """
+    if ctx is None:
+        lib.shmem_quiet()
+    else:
+        lib.shmem_ctx_quiet(ctx.ob_ctx)
 
 # ---

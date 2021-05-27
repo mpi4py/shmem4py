@@ -304,6 +304,10 @@ int PySHMEM_OSHMPI_shmem_team_sync(shmem_team_t team)
 #define PySHMEM_HAVE_shmem_team_t 1
 #define PySHMEM_HAVE_SHMEM_CTX_INVALID 1
 #define PySHMEM_HAVE_shmem_put_signal 1
+#define PySHMEM_HAVE_shmem_broadcastmem 1
+#define PySHMEM_HAVE_shmem_collectmem 1
+#define PySHMEM_HAVE_shmem_alltoallmem 1
+#define PySHMEM_HAVE_shmem_TYPENAME_alltoalls 1
 
 static
 int PySHMEM_SOS_shmem_team_get_config(shmem_team_t team, long config_mask, shmem_team_config_t *config)
@@ -465,6 +469,132 @@ int shmem_team_sync(shmem_team_t team)
 
 /* --- */
 
+static
+long *_py_shmem_pSync_array = NULL;
+
+static inline
+long *_py_shmem_pSync()
+{
+  (void)_py_shmem_pSync;
+  if (!_py_shmem_pSync_array) {
+    _py_shmem_pSync_array = (long *) shmem_malloc(SHMEM_SYNC_SIZE * sizeof(long));
+    for (int i = 0; i < SHMEM_SYNC_SIZE; i++)
+      _py_shmem_pSync_array[i] = SHMEM_SYNC_VALUE;
+  }
+  shmem_sync_all();
+  return _py_shmem_pSync_array;
+}
+
+#if !defined(PySHMEM_HAVE_shmem_broadcastmem)
+
+#define PySHMEM_BROADCAST(N, dest, source, nbytes, root)                \
+  do {                                                                  \
+    if (nbytes % (N>>3) == 0) {                                         \
+      shmem_broadcast##N(dest, source, (nbytes)/(N>>3), root,           \
+                         0, 0, shmem_n_pes(), _py_shmem_pSync());       \
+      return 0;                                                         \
+    }                                                                   \
+  } while(0);
+
+static
+int shmem_broadcastmem(shmem_team_t team, void *dest, const void *source, size_t nbytes, int root)
+{
+  if (team != SHMEM_TEAM_WORLD) return -1;
+  PySHMEM_BROADCAST(64, dest, source, nbytes, root);
+  PySHMEM_BROADCAST(32, dest, source, nbytes, root);
+  return -1;
+}
+
+#endif
+
+#if !defined(PySHMEM_HAVE_shmem_collectmem)
+
+#define PySHMEM_XCOLLECT(f, N, dest, source, nbytes)                    \
+  do {                                                                  \
+    if (nbytes % (N>>3) == 0) {                                         \
+      shmem_##f##collect##N(dest, source, (nbytes)/(N>>3),              \
+                            0, 0, shmem_n_pes(), _py_shmem_pSync());    \
+      return 0;                                                         \
+    }                                                                   \
+  } while(0);
+#define PySHMEM_COLLECT(N, dest, source, nbytes) \
+  PySHMEM_XCOLLECT(, N, dest, source, nbytes)
+#define PySHMEM_FCOLLECT(N, dest, source, nbytes) \
+  PySHMEM_XCOLLECT(f, N, dest, source, nbytes)
+
+static
+int shmem_collectmem(shmem_team_t team, void *dest, const void *source, size_t nbytes)
+{
+  if (team != SHMEM_TEAM_WORLD) return -1;
+  PySHMEM_COLLECT(32, dest, source, nbytes);
+  return -1;
+}
+
+static
+int shmem_fcollectmem(shmem_team_t team, void *dest, const void *source, size_t nbytes)
+{
+  if (team != SHMEM_TEAM_WORLD) return -1;
+  PySHMEM_COLLECT(64, dest, source, nbytes);
+  PySHMEM_COLLECT(32, dest, source, nbytes);
+  return -1;
+}
+
+#endif
+
+#if !defined(PySHMEM_HAVE_shmem_alltoallmem)
+
+#define PySHMEM_ALLTOALL(N, dest, source, nbytes)                       \
+  do {                                                                  \
+    if (nbytes % (N>>3) == 0) {                                         \
+      shmem_alltoall##N(dest, source, (nbytes)/(N>>3),                  \
+                        0, 0, shmem_n_pes(), _py_shmem_pSync());        \
+      return 0;                                                         \
+    }                                                                   \
+  } while(0);
+
+static
+int shmem_alltoallmem(shmem_team_t team, void *dest, const void *source, size_t nbytes)
+{
+  if (team != SHMEM_TEAM_WORLD) return -1;
+  PySHMEM_ALLTOALL(64, dest, source, nbytes);
+  PySHMEM_ALLTOALL(32, dest, source, nbytes);
+  return -1;
+}
+
+#endif
+
+static
+int shmem_py_alltoalls(shmem_team_t team, void *dest, const void *source,
+                       ptrdiff_t dst, ptrdiff_t sst, size_t size, size_t eltsize)
+{
+#if defined(PySHMEM_HAVE_shmem_TYPENAME_alltoalls)
+
+  switch (eltsize) {
+  case (1): return shmem_uint8_alltoalls (team, dest, source, dst, sst, size);
+  case (2): return shmem_uint16_alltoalls(team, dest, source, dst, sst, size);
+  case (4): return shmem_uint32_alltoalls(team, dest, source, dst, sst, size);
+  case (8): return shmem_uint64_alltoalls(team, dest, source, dst, sst, size);
+  }
+  return -1;
+
+#else
+
+#define PySHMEM_ALLTOALLS(N, dest, source, dst, sst, size)      \
+  shmem_alltoalls##N(dest, source, dst, sst, size,              \
+                     0, 0, shmem_n_pes(), _py_shmem_pSync());
+
+  if (team != SHMEM_TEAM_WORLD) return -1;
+  switch (eltsize) {
+  case (4): PySHMEM_ALLTOALLS(32, dest, source, dst, sst, size); return 0;
+  case (8): PySHMEM_ALLTOALLS(64, dest, source, dst, sst, size); return 0;
+  }
+  return -1;
+
+#endif
+}
+
+/* --- */
+
 typedef struct { long double real, imag; } complexg;
 
 /* --- */
@@ -485,8 +615,12 @@ static void _py_shmem_atexit_cb(void)
 {
   if (_py_shmem_initialized)
     if (!_py_shmem_finalized)
-      if (_py_shmem_atexit_finalize)
-        _py_shmem_finalize();
+      {
+        if (_py_shmem_pSync_array)
+          shmem_free(_py_shmem_pSync_array);
+        if (_py_shmem_atexit_finalize)
+          _py_shmem_finalize();
+      }
 }
 
 static void _py_shmem_atexit(void)

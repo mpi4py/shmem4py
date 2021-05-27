@@ -8,28 +8,29 @@ OSHRUN := $(firstword \
 
 .PHONY: build
 build:
-	$(PYTHON) setup.py build build_ext --inplace
+	$(PYTHON) setup.py $(opt) build build_ext --inplace
 
 .PHONY: test
 test:
-	$(PYTHON) -m unittest discover $(opt) -s test
+	$(PYTHON) -m unittest discover -s test $(opt)
 
 .PHONY: test-%
 test-%:
-	$(OSHRUN) -n $* $(PYTHON) -m unittest discover $(opt) -s test
+	$(OSHRUN) -n $* $(PYTHON) -m unittest discover -s test $(opt)
 
 .PHONY: lint
 lint:
 	-pycodestyle shmem4py
 	-pylint shmem4py
 
-.PHONY: cover
+.PHONY: cover cover-html
 cover:
 	$(PYTHON) -m coverage erase
 	$(PYTHON) -m coverage run -m shmem4py > /dev/null
 	$(PYTHON) -m coverage run -m unittest discover -s test
 	$(PYTHON) -m coverage combine
 	$(PYTHON) -m coverage report
+cover-html: cover
 	$(PYTHON) -m coverage html
 
 .PHONY: clean
@@ -38,10 +39,9 @@ clean:
 	-$(RM) -r */__pycache__ */*/__pycache__
 	-$(RM) -r .coverage* htmlcov/
 
-
 .PHONY: install uninstall
 install:
-	$(PYTHON) setup.py install --prefix='' --user $(INSTALLOPT)
+	$(PYTHON) setup.py $(opt) install --prefix='' --user
 uninstall:
 	-$(RM) -r $(shell $(PYTHON) -m site --user-site)/shmem4py
 	-$(RM) -r $(shell $(PYTHON) -m site --user-site)/shmem4py-*-py*.egg-info

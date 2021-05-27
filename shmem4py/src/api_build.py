@@ -15,6 +15,13 @@ with open(os.path.join(srcdir, "libshmem.c")) as c:
     typedef struct { long double real, imag; } complexg;
     """)
     ffi.cdef("""
+    int shmem_py_alltoalls(
+    shmem_team_t team,
+    void *dest, const void *source,
+    ptrdiff_t dst, ptrdiff_t sst,
+    size_t size, size_t eltsize);
+    """)
+    ffi.cdef("""
     void *shmem_py_malloc(size_t size);
     void *shmem_py_malloc_clear(size_t size);
     void *shmem_py_malloc_align(size_t align, size_t size);

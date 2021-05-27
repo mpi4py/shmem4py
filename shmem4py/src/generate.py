@@ -181,19 +181,19 @@ void shmem_ctx_{TYPENAME}_atomic_xor(shmem_ctx_t ctx, {TYPE} *dest, {TYPE} value
 """  # noqa
 
 coll_type = """
-//int shmem_{TYPENAME}_alltoall(shmem_team_t team, {TYPE} *dest, const {TYPE} *source, size_t nelems);
-//int shmem_{TYPENAME}_alltoalls(shmem_team_t team, {TYPE} *dest, const {TYPE} *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems);
 //int shmem_{TYPENAME}_broadcast(shmem_team_t team, {TYPE} *dest, const {TYPE} *source, size_t nelems, int pe_root);
 //int shmem_{TYPENAME}_collect(shmem_team_t team, {TYPE} *dest, const {TYPE} *source, size_t nelems);
 //int shmem_{TYPENAME}_fcollect(shmem_team_t team, {TYPE} *dest, const {TYPE} *source, size_t nelems);
+//int shmem_{TYPENAME}_alltoall(shmem_team_t team, {TYPE} *dest, const {TYPE} *source, size_t nelems);
+//int shmem_{TYPENAME}_alltoalls(shmem_team_t team, {TYPE} *dest, const {TYPE} *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems);
 """  # noqa
 
 coll_mem = """
-//int shmem_alltoallmem(shmem_team_t team, void *dest, const void *source, size_t nelems);
+int shmem_broadcastmem(shmem_team_t team, void *dest, const void *source, size_t nelems, int pe_root);
+int shmem_collectmem(shmem_team_t team, void *dest, const void *source, size_t nelems);
+int shmem_fcollectmem(shmem_team_t team, void *dest, const void *source, size_t nelems);
+int shmem_alltoallmem(shmem_team_t team, void *dest, const void *source, size_t nelems);
 //int shmem_alltoallsmem(shmem_team_t team, void *dest, const void *source, ptrdiff_t dst, ptrdiff_t sst, size_t nelems);
-//int shmem_broadcastmem(shmem_team_t team, void *dest, const void *source, size_t nelems, int pe_root);
-//int shmem_collectmem(shmem_team_t team, void *dest, const void *source, size_t nelems);
-//int shmem_fcollectmem(shmem_team_t team, void *dest, const void *source, size_t nelems);
 """  # noqa
 
 reduce_ops = ('and', 'or', 'xor', 'max', 'min', 'sum', 'prod')
