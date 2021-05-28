@@ -313,6 +313,7 @@ int PySHMEM_OSHMPI_shmem_team_sync(shmem_team_t team)
 #define PySHMEM_HAVE_shmem_collectmem 1
 #define PySHMEM_HAVE_shmem_alltoallmem 1
 #define PySHMEM_HAVE_shmem_TYPENAME_alltoalls 1
+#define PySHMEM_HAVE_shmem_OP_reduce 1
 
 static
 int PySHMEM_SOS_shmem_team_get_config(shmem_team_t team, long config_mask, shmem_team_config_t *config)
@@ -471,7 +472,6 @@ long *_py_shmem_pSync_array = NULL;
 static inline
 long *_py_shmem_pSync()
 {
-  (void)_py_shmem_pSync;
   if (!_py_shmem_pSync_array) {
     _py_shmem_pSync_array = (long *) shmem_malloc(SHMEM_SYNC_SIZE * sizeof(long));
     for (int i = 0; i < SHMEM_SYNC_SIZE; i++)
@@ -591,6 +591,164 @@ int shmem_py_alltoalls(shmem_team_t team, void *dest, const void *source,
 
 /* --- */
 
+size_t _py_shmem_pWrk_size  = 0;
+void  *_py_shmem_pWrk_array = NULL;
+
+#if !defined(PySHMEM_HAVE_shmem_OP_reduce)
+
+#define max(a,b) (((a)>(b))?(a):(b))
+
+static inline
+void *_py_shmem_pWrk(size_t nreduce, size_t eltsize)
+{
+  size_t min_len  = max(nreduce/2 + 1, SHMEM_REDUCE_MIN_WRKDATA_SIZE);
+  size_t wrk_size = max(min_len * eltsize, _py_shmem_pWrk_size);
+  if (_py_shmem_pWrk_size < wrk_size || !_py_shmem_pWrk_array) {
+    shmem_free(_py_shmem_pWrk_array);
+    _py_shmem_pWrk_size  = wrk_size;
+    _py_shmem_pWrk_array = shmem_malloc(wrk_size);
+  }
+  shmem_sync_all();
+  return _py_shmem_pWrk_array;
+}
+
+#define PySHMEM_REDUCE_OP(TYPENAME, TYPE, OP)                           \
+static                                                                  \
+int shmem_##TYPENAME##_##OP##_reduce(shmem_team_t team,                 \
+                                     TYPE *dest,                        \
+                                     const TYPE *source,                \
+                                     size_t nreduce)                    \
+{                                                                       \
+  TYPE *pWrk  = (TYPE *) _py_shmem_pWrk(nreduce, sizeof(TYPE));         \
+  long *pSync = _py_shmem_pSync();                                      \
+  if (nreduce > INT_MAX) return -1;                                     \
+  shmem_##TYPENAME##_##OP##_to_all(dest, source, (int) nreduce,         \
+                                   0, 0, shmem_n_pes(), pWrk, pSync);   \
+  return 0;                                                             \
+}                                                                    /**/
+
+#define PySHMEM_REDUCE_MAXMIN(TYPENAME, TYPE)    \
+  PySHMEM_REDUCE_OP(TYPENAME, TYPE, max)         \
+  PySHMEM_REDUCE_OP(TYPENAME, TYPE, min)
+
+#define PySHMEM_REDUCE_SUMPROD(TYPENAME, TYPE)   \
+  PySHMEM_REDUCE_OP(TYPENAME, TYPE, sum)         \
+  PySHMEM_REDUCE_OP(TYPENAME, TYPE, prod)
+
+#define PySHMEM_REDUCE_1(TYPENAME, TYPE) \
+  PySHMEM_REDUCE_SUMPROD(TYPENAME, TYPE)
+
+#define PySHMEM_REDUCE_2(TYPENAME, TYPE) \
+  PySHMEM_REDUCE_SUMPROD(TYPENAME, TYPE) \
+  PySHMEM_REDUCE_MAXMIN (TYPENAME, TYPE)
+
+PySHMEM_REDUCE_2(short,      short)
+PySHMEM_REDUCE_2(int,        int)
+PySHMEM_REDUCE_2(long,       long)
+PySHMEM_REDUCE_2(longlong,   long long)
+PySHMEM_REDUCE_2(float,      float)
+PySHMEM_REDUCE_2(double,     double)
+PySHMEM_REDUCE_2(longdouble, long double)
+PySHMEM_REDUCE_1(complexf,   float _Complex)
+PySHMEM_REDUCE_1(complexd,   double _Complex)
+
+#define PySHMEM_REDUCE_UINT_OP(TYPENAME, TYPE, OP)                      \
+static                                                                  \
+int shmem_u##TYPENAME##_##OP##_reduce(shmem_team_t team,                \
+                                      unsigned TYPE *dest,              \
+                                      const unsigned TYPE *source,      \
+                                      size_t nreduce)                   \
+{                                                                       \
+  TYPE *pWrk  = (TYPE *) _py_shmem_pWrk(nreduce, sizeof(TYPE));         \
+  long *pSync = _py_shmem_pSync();                                      \
+  if (team != SHMEM_TEAM_WORLD) return -1;                              \
+  if (nreduce > INT_MAX) return -1;                                     \
+  shmem_##TYPENAME##_##OP##_to_all((TYPE *) dest,                       \
+                                   (TYPE *) source,                     \
+                                   (int) nreduce,                       \
+                                   0, 0, shmem_n_pes(), pWrk, pSync);   \
+  return 0;                                                             \
+}                                                                    /**/
+
+#define PySHMEM_REDUCE_UINT_XX(TYPENAME, TYPE, OP)                      \
+static                                                                  \
+int shmem_u##TYPENAME##_##OP##_reduce(shmem_team_t team,                \
+                                      unsigned TYPE *dest,              \
+                                      const unsigned TYPE *source,      \
+                                      size_t nreduce)                   \
+{                                                                       \
+  if (team != SHMEM_TEAM_WORLD) return -1;                              \
+  if (nreduce > INT_MAX) return -1;                                     \
+  (void)dest; (void)source;                                             \
+  return -1;                                                            \
+}                                                                    /**/
+
+#define PySHMEM_REDUCE_UINT(TYPENAME, TYPE)    \
+  PySHMEM_REDUCE_UINT_OP(TYPENAME, TYPE, and)  \
+  PySHMEM_REDUCE_UINT_OP(TYPENAME, TYPE, or)   \
+  PySHMEM_REDUCE_UINT_OP(TYPENAME, TYPE, xor)  \
+  PySHMEM_REDUCE_UINT_XX(TYPENAME, TYPE, min)  \
+  PySHMEM_REDUCE_UINT_XX(TYPENAME, TYPE, max)  \
+  PySHMEM_REDUCE_UINT_XX(TYPENAME, TYPE, sum)  \
+  PySHMEM_REDUCE_UINT_XX(TYPENAME, TYPE, prod)
+
+PySHMEM_REDUCE_UINT(short,    short)
+PySHMEM_REDUCE_UINT(int,      int)
+PySHMEM_REDUCE_UINT(long,     long)
+PySHMEM_REDUCE_UINT(longlong, long long)
+
+#endif
+
+#if 0
+
+#define PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, OP)        \
+static                                                    \
+int shmem_##TYPENAME##_##OP##_reduce(shmem_team_t team,   \
+                                     TYPE *dest,          \
+                                     const TYPE *source,  \
+                                     size_t nreduce)      \
+{                                                         \
+  if (team != SHMEM_TEAM_WORLD) return -1;                \
+  if (nreduce > INT_MAX) return -1;                       \
+  (void)dest; (void)source;                               \
+  return -1;                                              \
+}                                                      /**/
+
+#define PySHMEM_REDUCE_FAIL_1(TYPENAME, TYPE)  \
+  PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, sum)  \
+  PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, prod)
+
+#define PySHMEM_REDUCE_FAIL_2(TYPENAME, TYPE)  \
+  PySHMEM_REDUCE_FAIL_1(TYPENAME, TYPE)        \
+  PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, min)  \
+  PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, max)
+
+#define PySHMEM_REDUCE_FAIL_3(TYPENAME, TYPE)  \
+  PySHMEM_REDUCE_FAIL_2(TYPENAME, TYPE)        \
+  PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, and)  \
+  PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, or)   \
+  PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, xor)
+
+PySHMEM_REDUCE_FAIL_2(char,  char)
+PySHMEM_REDUCE_FAIL_2(schar, signed char)
+PySHMEM_REDUCE_FAIL_3(uchar, unsigned char)
+
+PySHMEM_REDUCE_FAIL_2(int8,    int8_t)
+PySHMEM_REDUCE_FAIL_2(int16,   int16_t)
+PySHMEM_REDUCE_FAIL_2(int32,   int32_t)
+PySHMEM_REDUCE_FAIL_2(int64,   int64_t)
+PySHMEM_REDUCE_FAIL_2(ptrdiff, ptrdiff_t)
+
+PySHMEM_REDUCE_FAIL_3(uint8,   uint8_t)
+PySHMEM_REDUCE_FAIL_3(uint16,  uint16_t)
+PySHMEM_REDUCE_FAIL_3(uint32,  uint32_t)
+PySHMEM_REDUCE_FAIL_3(uint64,  uint64_t)
+PySHMEM_REDUCE_FAIL_3(size,    size_t)
+
+#endif
+
+/* --- */
+
 typedef struct { long double real, imag; } complexg;
 
 /* --- */
@@ -612,8 +770,12 @@ static void _py_shmem_atexit_cb(void)
   if (_py_shmem_initialized)
     if (!_py_shmem_finalized)
       {
+        if (_py_shmem_pWrk_array)
+          shmem_free(_py_shmem_pWrk_array);
+        _py_shmem_pWrk_array = NULL;
         if (_py_shmem_pSync_array)
           shmem_free(_py_shmem_pSync_array);
+        _py_shmem_pSync_array = NULL;
         if (_py_shmem_atexit_finalize)
           _py_shmem_finalize();
       }

@@ -1084,7 +1084,9 @@ def reduce(target, source, op='sum', size=None, team=None):
     """
     team = team.ob_team if team is not None else lib.SHMEM_TEAM_WORLD
     ctype, target, source, size = _parse_reduce(target, source, size)
-    return _shmem(None, ctype, f'{op}_reduce')(team, target, source, size)
+    ierr = _shmem(None, ctype, f'{op}_reduce')(team, target, source, size)
+    if ierr != 0:  # pragma: nocover
+        raise RuntimeError(f"shmem_{ctype}_{op}_reduce: error {ierr}")
 
 
 # ---
