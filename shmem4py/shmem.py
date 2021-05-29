@@ -1162,4 +1162,32 @@ def quiet(ctx: 'Optional[Ctx]' = None) -> None:
     else:
         lib.shmem_ctx_quiet(ctx.ob_ctx)
 
+
+# ---
+
+
+def new_lock() -> ffi.CData:
+    """
+    """
+    return _raw_calloc('long*')
+
+
+def set_lock(lock: ffi.CData) -> None:
+    """
+    """
+    lib.shmem_set_lock(lock)
+
+
+def test_lock(lock: ffi.CData) -> bool:
+    """
+    """
+    return bool(lib.shmem_test_lock(lock))
+
+
+def clear_lock(lock: ffi.CData) -> None:
+    """
+    """
+    lib.shmem_clear_lock(lock)
+
+
 # ---
