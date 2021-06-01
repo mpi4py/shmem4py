@@ -64,12 +64,17 @@ class TestReduce(unittest.TestCase):
         for op, types in ops.items():
             reducefn = ufunc[op].reduce
             for t in types:
-                tgt = shmem.array(-1, dtype=t)
+                ini = np.array(-1, dtype=t)
+                val = reducefn(np.arange(1, npes+1, dtype=t), dtype=t)
+                tgt = shmem.full(2, ini, dtype=t)
                 src = shmem.full(1, mype+1, dtype=t)
                 shmem.barrier_all()
                 shmem.reduce(tgt, src, op=op)
-                val = reducefn(np.arange(1, npes+1, dtype=t))
-                self.assertEqual(tgt, val)
+                if op == 'prod' and t in (types_f+types_c):
+                    self.assertTrue(np.allclose(tgt[0], val))
+                else:
+                    self.assertEqual(tgt[0], val)
+                self.assertEqual(tgt[1], ini)
 
     def testReduceOpSize(self):
         mype = shmem.my_pe()
@@ -78,13 +83,16 @@ class TestReduce(unittest.TestCase):
             reducefn = ufunc[op].reduce
             for t in types:
                 ini = np.array(-1, dtype=t)
+                val = reducefn(np.arange(1, npes+1, dtype=t), dtype=t)
                 tgt = shmem.full(npes, ini, dtype=t)
                 src = shmem.full(npes, mype+1, dtype=t)
                 for size in range(npes):
                     shmem.barrier_all()
                     shmem.reduce(tgt, src, op=op, size=size)
-                    val = reducefn(np.arange(1, npes+1, dtype=t))
-                    self.assertTrue(np.all(tgt[:size] == val))
+                    if op == 'prod' and t in (types_f+types_c):
+                        self.assertTrue(np.allclose(tgt[:size], val))
+                    else:
+                        self.assertTrue(np.all(tgt[:size] == val))
                     self.assertTrue(np.all(tgt[size:] == ini))
 
 
