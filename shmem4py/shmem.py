@@ -1190,4 +1190,32 @@ def clear_lock(lock: ffi.CData) -> None:
     lib.shmem_clear_lock(lock)
 
 
+class Lock:
+    """
+    Lock.
+    """
+
+    def __init__(self) -> None:
+        self._lock = new_lock()
+
+    def acquire(self, blocking: bool = True) -> bool:
+        """
+        """
+        if blocking:
+            set_lock(self._lock)
+            return True
+        return not test_lock(self._lock)
+
+    def release(self) -> None:
+        """
+        """
+        clear_lock(self._lock)
+
+    def __enter__(self):
+        self.acquire()
+
+    def __exit__(self, *args):
+        self.release()
+
+
 # ---
