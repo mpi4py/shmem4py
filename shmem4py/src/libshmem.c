@@ -705,7 +705,7 @@ PySHMEM_REDUCE_UINT(longlong, long long)
 
 #endif
 
-#if 0
+#if !defined(PySHMEM_HAVE_shmem_OP_reduce)
 
 #define PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, OP)                      \
 static                                                                  \
@@ -725,12 +725,12 @@ int shmem_##TYPENAME##_##OP##_reduce(shmem_team_t team,                 \
   PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, prod)
 
 #define PySHMEM_REDUCE_FAIL_2(TYPENAME, TYPE)  \
-  PySHMEM_REDUCE_FAIL_1(TYPENAME, TYPE)        \
+  PySHMEM_REDUCE_FAIL_1 (TYPENAME, TYPE)       \
   PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, min)  \
   PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, max)
 
 #define PySHMEM_REDUCE_FAIL_3(TYPENAME, TYPE)  \
-  PySHMEM_REDUCE_FAIL_2(TYPENAME, TYPE)        \
+  PySHMEM_REDUCE_FAIL_2 (TYPENAME, TYPE)       \
   PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, and)  \
   PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, or)   \
   PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, xor)
@@ -739,10 +739,10 @@ PySHMEM_REDUCE_FAIL_2(char,  char)
 PySHMEM_REDUCE_FAIL_2(schar, signed char)
 PySHMEM_REDUCE_FAIL_3(uchar, unsigned char)
 
-PySHMEM_REDUCE_FAIL_2(int8,    int8_t)
-PySHMEM_REDUCE_FAIL_2(int16,   int16_t)
-PySHMEM_REDUCE_FAIL_2(int32,   int32_t)
-PySHMEM_REDUCE_FAIL_2(int64,   int64_t)
+PySHMEM_REDUCE_FAIL_3(int8,    int8_t)
+PySHMEM_REDUCE_FAIL_3(int16,   int16_t)
+PySHMEM_REDUCE_FAIL_3(int32,   int32_t)
+PySHMEM_REDUCE_FAIL_3(int64,   int64_t)
 PySHMEM_REDUCE_FAIL_2(ptrdiff, ptrdiff_t)
 
 PySHMEM_REDUCE_FAIL_3(uint8,   uint8_t)
