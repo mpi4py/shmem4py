@@ -500,8 +500,10 @@ _numpy_to_cffi = {
     'u8': 'uint64_t',
     'f4':  'float',
     'f8':  'double',
+    'f16': 'long double',
     'c8':  'float _Complex',
     'c16': 'double _Complex',
+    'c32': 'long double _Complex',
 }
 
 _cffi_to_numpy = {
@@ -538,8 +540,10 @@ _numpy_to_shmem = {
     'u8': 'uint64',
     'f4': 'float',
     'f8': 'double',
+    'f16': 'longdouble',
     'c8': 'complexf',
     'c16': 'complexd',
+    'c32': 'complexg',
 }
 
 _heap = _wr.WeakValueDictionary()
