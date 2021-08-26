@@ -2,6 +2,6 @@
 requires = [
     "setuptools >= 40.9.0",
     "wheel",
-    "cffi >= 1.14",
+    "cffi >= 1.13",
 ]
 build-backend = "setuptools.build_meta"
