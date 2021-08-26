@@ -24,11 +24,8 @@ os.environ['SHMEM4PY_RC_THREAD_LEVEL'] = 'single'
 os.environ['SHMEM4PY_RC_INITIALIZE'] = 'true'
 os.environ['SHMEM4PY_RC_THREADS'] = 'false'
 from shmem4py import rc
-rc(initialize=True)
-rc(finalize=False)
-try: rc(xyz=1)
-except: pass
-repr(rc)
+rc.initialize = True
+rc.finalize = False
 from shmem4py import shmem
 shmem.finalize()
 EOF
