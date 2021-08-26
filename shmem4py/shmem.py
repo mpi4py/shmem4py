@@ -66,8 +66,7 @@ def init_thread(requested: int = THREAD_MULTIPLE) -> int:
     """
     provided = ffi.new('int*', lib.SHMEM_THREAD_SINGLE)
     ierr = lib.shmem_init_thread(requested, provided)
-    if ierr != 0:  # pragma: nocover
-        raise RuntimeError(f"shmem_init_thread: error {ierr}")
+    _chkerr(ierr, "shmem_init_thread")
     return provided[0]
 
 
@@ -81,7 +80,20 @@ def query_thread() -> int:
 
 # ---
 
-def _initialize():
+
+def _chkerr(ierr: int, func: str = "shmem") -> None:
+    if ierr != 0:  # pragma: nocover
+        if ierr == -1431655766:
+            raise NotImplementedError(f"{func}")
+        raise RuntimeError(f"{func}: error {ierr}")
+
+
+def _chkint(ival: int, func: str = "shmem") -> None:
+    if ival < 0:  # pragma: nocover
+        _chkerr(ival, func)
+
+
+def _initialize() -> None:
     # pylint: disable=import-outside-toplevel
     from . import rc
     from os import getenv
@@ -175,11 +187,11 @@ class Ctx:
         ctx = ffi.new('shmem_ctx_t*', lib.SHMEM_CTX_INVALID)
         if team is None:
             ierr = lib.shmem_ctx_create(options, ctx)
+            _chkerr(ierr, "shmem_ctx_create")
         else:
             team = team.ob_team
             ierr = lib.shmem_team_create_ctx(team, options, ctx)
-        if ierr != 0:  # pragma: nocover
-            raise RuntimeError(f"shmem_team_create_ctx: error {ierr}")
+            _chkerr(ierr, "shmem_team_create_ctx")
         return Ctx(ctx[0])
 
     def destroy(self) -> None:
@@ -203,8 +215,7 @@ class Ctx:
         ctx = self.ob_ctx
         team = ffi.new('shmem_team_t*', lib.SHMEM_TEAM_INVALID)
         ierr = lib.shmem_ctx_get_team(ctx, team)
-        if ierr != 0:  # pragma: nocover
-            raise RuntimeError(f"shmem_ctx_get_team: error {ierr}")
+        _chkerr(ierr, "shmem_ctx_get_team")
         return Team(team[0])
 
     def fence(self) -> None:
@@ -311,8 +322,7 @@ class Team:
         ierr = lib.shmem_team_split_strided(
             team, start, stride, size, conf, mask, tnew,
         )
-        if ierr != 0:  # pragma: nocover
-            raise RuntimeError(f"lib.shmem_team_split_strided: error {ierr}")
+        _chkerr(ierr, "shmem_team_split_strided")
         return Team(tnew[0])
 
     def get_config(self) -> 'dict[str, int]':
@@ -328,13 +338,17 @@ class Team:
         """
         """
         team = self.ob_team
-        return lib.shmem_team_my_pe(team)
+        mype = lib.shmem_team_my_pe(team)
+        _chkint(mype, "shmem_team_my_pe")
+        return mype
 
     def n_pes(self) -> int:
         """
         """
         team = self.ob_team
-        return lib.shmem_team_n_pes(team)
+        npes = lib.shmem_team_n_pes(team)
+        _chkint(npes, "shmem_team_n_pes")
+        return npes
 
     def translate_pe(
         self,
@@ -352,7 +366,9 @@ class Team:
             dest_team = lib.SHMEM_TEAM_WORLD
         else:
             dest_team = team.ob_team
-        return lib.shmem_team_translate_pe(src_team, src_pe, dest_team)
+        dest_pe = lib.shmem_team_translate_pe(src_team, src_pe, dest_team)
+        _chkint(dest_pe, "shmem_team_translate_pe")
+        return dest_pe
 
     def create_ctx(
         self,
@@ -363,8 +379,7 @@ class Team:
         team = self.ob_team
         ctx = ffi.new('shmem_ctx_t*', lib.SHMEM_CTX_INVALID)
         ierr = lib.shmem_team_create_ctx(team, options, ctx)
-        if ierr != 0:  # pragma: nocover
-            raise RuntimeError(f"shmem_team_create_ctx: error {ierr}")
+        _chkerr(ierr, "shmem_team_create_ctx")
         return Ctx(ctx[0])
 
     def sync(self) -> None:
@@ -372,8 +387,7 @@ class Team:
         """
         team = self.ob_team
         ierr = lib.shmem_team_sync(team)
-        if ierr != 0:  # pragma: nocover
-            raise RuntimeError(f"shmem_team_sync: error {ierr}")
+        _chkerr(ierr, "shmem_team_sync")
 
 
 TEAM_WORLD:   Team = Team(lib.SHMEM_TEAM_WORLD)
@@ -1013,8 +1027,7 @@ def sync(team: 'Optional[Team]' = None) -> None:
         lib.shmem_sync_all()
     else:
         ierr = lib.shmem_team_sync(team.ob_team)
-        if ierr != 0:  # pragma: nocover
-            raise RuntimeError(f"shmem_team_sync: error {ierr}")
+        _chkerr(ierr, "shmem_team_sync")
 
 
 def broadcast(target, source, root, size=None, team=None):
@@ -1024,8 +1037,7 @@ def broadcast(target, source, root, size=None, team=None):
     ctype, target, source, size = _parse_bcast(target, source, size)
     size = size * ffi.sizeof(ctype)
     ierr = lib.shmem_broadcastmem(team, target, source, size, root)
-    if ierr != 0:  # pragma: nocover
-        raise RuntimeError(f"shmem_broadcastmem: error {ierr}")
+    _chkerr(ierr, "shmem_broadcastmem")
 
 
 def collect(target, source, size=None, team=None):
@@ -1035,8 +1047,7 @@ def collect(target, source, size=None, team=None):
     ctype, target, source, size = _parse_collect(target, source, size)
     size = size * ffi.sizeof(ctype)
     ierr = lib.shmem_collectmem(team, target, source, size)
-    if ierr != 0:  # pragma: nocover
-        raise RuntimeError(f"shmem_collect: error {ierr}")
+    _chkerr(ierr, "shmem_collectmem")
 
 
 def fcollect(target, source, size=None, team=None):
@@ -1046,8 +1057,7 @@ def fcollect(target, source, size=None, team=None):
     ctype, target, source, size = _parse_collect(target, source, size, npes)
     size = size * ffi.sizeof(ctype)
     ierr = lib.shmem_fcollectmem(team, target, source, size)
-    if ierr != 0:  # pragma: nocover
-        raise RuntimeError(f"shmem_fcollect: error {ierr}")
+    _chkerr(ierr, "shmem_fcollectmem")
 
 
 def alltoall(target, source, size=None, team=None):
@@ -1058,8 +1068,7 @@ def alltoall(target, source, size=None, team=None):
     ctype, target, source, size = _parse_alltoall(*args)
     size = size * ffi.sizeof(ctype)
     ierr = lib.shmem_alltoallmem(team, target, source, size)
-    if ierr != 0:  # pragma: nocover
-        raise RuntimeError(f"shmem_alltoallmem: error {ierr}")
+    _chkerr(ierr, "shmem_alltoallmem")
 
 
 def alltoalls(target, source, tst=1, sst=1, size=None, team=None):
@@ -1070,8 +1079,7 @@ def alltoalls(target, source, tst=1, sst=1, size=None, team=None):
     ctype, target, source, size = _parse_alltoall(*args)
     eltsz = ffi.sizeof(ctype)
     ierr = lib.shmem_py_alltoalls(team, target, source, tst, sst, size, eltsz)
-    if ierr != 0:  # pragma: nocover
-        raise RuntimeError(f"shmem_alltoalls: error {ierr}")
+    _chkerr(ierr, "shmem_alltoalls")
 
 
 OP_AND = 'and'
@@ -1089,8 +1097,7 @@ def reduce(target, source, op='sum', size=None, team=None):
     team = team.ob_team if team is not None else lib.SHMEM_TEAM_WORLD
     ctype, target, source, size = _parse_reduce(target, source, size)
     ierr = _shmem(None, ctype, f'{op}_reduce')(team, target, source, size)
-    if ierr != 0:  # pragma: nocover
-        raise RuntimeError(f"shmem_{ctype}_{op}_reduce: error {ierr}")
+    _chkerr(ierr, f"shmem_{ctype}_{op}_reduce")
 
 
 # ---

@@ -10,6 +10,8 @@
 #define PySHMEM_VENDOR_OSSS 1
 #endif
 
+#define PySHMEM_UNAVAILABLE (-1431655766) /*0xAAAAAAAA*/
+
 /* --- */
 
 /* OSSS-UCX OpenSHMEM implementation */
@@ -26,7 +28,7 @@ int shmem_team_create_ctx(shmem_team_t team, long options, shmem_ctx_t *ctx)
     return shmem_ctx_create(options, ctx);
   }
   *ctx = SHMEM_CTX_INVALID;
-  return -1;
+  return PySHMEM_UNAVAILABLE;
 }
 
 static
@@ -41,7 +43,7 @@ int shmem_ctx_get_team(shmem_ctx_t ctx, shmem_team_t *team)
     return 0;
   }
   *team = SHMEM_TEAM_INVALID;
-  return -1;
+  return PySHMEM_UNAVAILABLE;
 }
 
 static
@@ -51,7 +53,7 @@ int shmem_team_sync(shmem_team_t team)
     shmem_sync_all();
     return 0;
   }
-  return -1;
+  return PySHMEM_UNAVAILABLE;
 }
 
 static
@@ -366,22 +368,24 @@ typedef void *shmem_team_t;
 static
 int shmem_team_my_pe(shmem_team_t team)
 {
-  return (team == SHMEM_TEAM_WORLD) ? shmem_my_pe() : -1;
+  if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
+  return shmem_my_pe();
 }
 
 static
 int shmem_team_n_pes(shmem_team_t team)
 {
-  return (team == SHMEM_TEAM_WORLD) ? shmem_n_pes() : -1;
+  if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
+  return shmem_n_pes();
 }
 
 static
 int shmem_team_translate_pe(shmem_team_t src_team, int src_pe, shmem_team_t dest_team)
 {
-  if (src_team == SHMEM_TEAM_WORLD)
-    if (dest_team == SHMEM_TEAM_WORLD)
-      return (src_pe >= 0 && src_pe < shmem_n_pes()) ? src_pe : -1;
-  return -1;
+  if (src_team  != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
+  if (dest_team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
+  if (src_pe < 0 || src_pe >= shmem_n_pes()) return -1;
+  return src_pe;
 }
 
 #define SHMEM_TEAM_NUM_CONTEXTS 0
@@ -400,7 +404,7 @@ int shmem_team_split_strided(shmem_team_t parent_team, int start, int stride, in
       return (*new_team = SHMEM_TEAM_WORLD, 0);
   }
   *new_team = SHMEM_TEAM_INVALID;
-  return -1;
+  return PySHMEM_UNAVAILABLE;
 }
 
 static
@@ -411,7 +415,7 @@ int shmem_team_split_2d(shmem_team_t parent_team, int xrange,
   (void)parent_team; (void)xrange;
   (void)xaxis_config; (void)xaxis_mask; *xaxis_team = SHMEM_TEAM_INVALID;
   (void)yaxis_config, (void)yaxis_mask, *yaxis_team = SHMEM_TEAM_INVALID;
-  return -1;
+  return PySHMEM_UNAVAILABLE;
 }
 
 static
@@ -422,7 +426,7 @@ int shmem_team_get_config(shmem_team_t team, long config_mask, shmem_team_config
     config->num_contexts = 0;
     return 0;
   }
-  return -1;
+  return PySHMEM_UNAVAILABLE;
 }
 
 static
@@ -438,7 +442,7 @@ int shmem_team_create_ctx(shmem_team_t team, long options, shmem_ctx_t *ctx)
     return shmem_ctx_create(options, ctx);
   }
   *ctx = SHMEM_CTX_INVALID;
-  return -1;
+  return PySHMEM_UNAVAILABLE;
 }
 
 static
@@ -449,7 +453,7 @@ int shmem_ctx_get_team(shmem_ctx_t ctx, shmem_team_t *team)
     return 0;
   }
   *team = SHMEM_TEAM_INVALID;
-  return -1;
+  return PySHMEM_UNAVAILABLE;
 }
 
 static
@@ -459,7 +463,7 @@ int shmem_team_sync(shmem_team_t team)
     shmem_sync_all();
     return 0;
   }
-  return -1;
+  return PySHMEM_UNAVAILABLE;
 }
 
 #endif
@@ -495,10 +499,10 @@ long *_py_shmem_pSync()
 static
 int shmem_broadcastmem(shmem_team_t team, void *dest, const void *source, size_t nbytes, int root)
 {
-  if (team != SHMEM_TEAM_WORLD) return -1;
+  if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
   PySHMEM_BROADCAST(64, dest, source, nbytes, root);
   PySHMEM_BROADCAST(32, dest, source, nbytes, root);
-  return -1;
+  return PySHMEM_UNAVAILABLE;
 }
 
 #endif
@@ -521,18 +525,18 @@ int shmem_broadcastmem(shmem_team_t team, void *dest, const void *source, size_t
 static
 int shmem_collectmem(shmem_team_t team, void *dest, const void *source, size_t nbytes)
 {
-  if (team != SHMEM_TEAM_WORLD) return -1;
+  if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
   PySHMEM_COLLECT(32, dest, source, nbytes);
-  return -1;
+  return PySHMEM_UNAVAILABLE;
 }
 
 static
 int shmem_fcollectmem(shmem_team_t team, void *dest, const void *source, size_t nbytes)
 {
-  if (team != SHMEM_TEAM_WORLD) return -1;
+  if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
   PySHMEM_COLLECT(64, dest, source, nbytes);
   PySHMEM_COLLECT(32, dest, source, nbytes);
-  return -1;
+  return PySHMEM_UNAVAILABLE;
 }
 
 #endif
@@ -551,10 +555,10 @@ int shmem_fcollectmem(shmem_team_t team, void *dest, const void *source, size_t 
 static
 int shmem_alltoallmem(shmem_team_t team, void *dest, const void *source, size_t nbytes)
 {
-  if (team != SHMEM_TEAM_WORLD) return -1;
+  if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
   PySHMEM_ALLTOALL(64, dest, source, nbytes);
   PySHMEM_ALLTOALL(32, dest, source, nbytes);
-  return -1;
+  return PySHMEM_UNAVAILABLE;
 }
 
 #endif
@@ -571,7 +575,7 @@ int shmem_py_alltoalls(shmem_team_t team, void *dest, const void *source,
   case (4): return shmem_uint32_alltoalls(team, dest, source, dst, sst, size);
   case (8): return shmem_uint64_alltoalls(team, dest, source, dst, sst, size);
   }
-  return -1;
+  return PySHMEM_UNAVAILABLE;
 
 #else
 
@@ -579,12 +583,12 @@ int shmem_py_alltoalls(shmem_team_t team, void *dest, const void *source,
   shmem_alltoalls##N(dest, source, dst, sst, size,              \
                      0, 0, shmem_n_pes(), _py_shmem_pSync());
 
-  if (team != SHMEM_TEAM_WORLD) return -1;
+  if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
   switch (eltsize) {
   case (4): PySHMEM_ALLTOALLS(32, dest, source, dst, sst, size); return 0;
   case (8): PySHMEM_ALLTOALLS(64, dest, source, dst, sst, size); return 0;
   }
-  return -1;
+  return PySHMEM_UNAVAILABLE;
 
 #endif
 }
@@ -621,6 +625,7 @@ int shmem_##TYPENAME##_##OP##_reduce(shmem_team_t team,                 \
 {                                                                       \
   TYPE *pWrk  = (TYPE *) _py_shmem_pWrk(nreduce, sizeof(TYPE));         \
   long *pSync = _py_shmem_pSync();                                      \
+  if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;             \
   if (nreduce > INT_MAX) return -1;                                     \
   shmem_##TYPENAME##_##OP##_to_all(dest, source, (int) nreduce,         \
                                    0, 0, shmem_n_pes(), pWrk, pSync);   \
@@ -661,7 +666,7 @@ int shmem_u##TYPENAME##_##OP##_reduce(shmem_team_t team,                \
 {                                                                       \
   TYPE *pWrk  = (TYPE *) _py_shmem_pWrk(nreduce, sizeof(TYPE));         \
   long *pSync = _py_shmem_pSync();                                      \
-  if (team != SHMEM_TEAM_WORLD) return -1;                              \
+  if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;             \
   if (nreduce > INT_MAX) return -1;                                     \
   shmem_##TYPENAME##_##OP##_to_all((TYPE *) dest,                       \
                                    (TYPE *) source,                     \
@@ -677,10 +682,10 @@ int shmem_u##TYPENAME##_##OP##_reduce(shmem_team_t team,                \
                                       const unsigned TYPE *source,      \
                                       size_t nreduce)                   \
 {                                                                       \
-  if (team != SHMEM_TEAM_WORLD) return -1;                              \
+  if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;             \
   if (nreduce > INT_MAX) return -1;                                     \
   (void)dest; (void)source;                                             \
-  return -1;                                                            \
+  return PySHMEM_UNAVAILABLE;                                           \
 }                                                                    /**/
 
 #define PySHMEM_REDUCE_UINT(TYPENAME, TYPE)    \
@@ -701,18 +706,18 @@ PySHMEM_REDUCE_UINT(longlong, long long)
 
 #if 0
 
-#define PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, OP)        \
-static                                                    \
-int shmem_##TYPENAME##_##OP##_reduce(shmem_team_t team,   \
-                                     TYPE *dest,          \
-                                     const TYPE *source,  \
-                                     size_t nreduce)      \
-{                                                         \
-  if (team != SHMEM_TEAM_WORLD) return -1;                \
-  if (nreduce > INT_MAX) return -1;                       \
-  (void)dest; (void)source;                               \
-  return -1;                                              \
-}                                                      /**/
+#define PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, OP)                      \
+static                                                                  \
+int shmem_##TYPENAME##_##OP##_reduce(shmem_team_t team,                 \
+                                     TYPE *dest,                        \
+                                     const TYPE *source,                \
+                                     size_t nreduce)                    \
+{                                                                       \
+  if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;             \
+  if (nreduce > INT_MAX) return -1;                                     \
+  (void)dest; (void)source;                                             \
+  return PySHMEM_UNAVAILABLE;                                           \
+}                                                                    /**/
 
 #define PySHMEM_REDUCE_FAIL_1(TYPENAME, TYPE)  \
   PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, sum)  \
