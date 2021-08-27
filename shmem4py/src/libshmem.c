@@ -492,6 +492,7 @@ long *_py_shmem_pSync()
     if (nbytes % (N>>3) == 0) {                                         \
       shmem_broadcast##N(dest, source, (nbytes)/(N>>3), root,           \
                          0, 0, shmem_n_pes(), _py_shmem_pSync());       \
+      if (root == shmem_my_pe()) (void) memcpy(dest, source, nbytes);   \
       return 0;                                                         \
     }                                                                   \
   } while(0);

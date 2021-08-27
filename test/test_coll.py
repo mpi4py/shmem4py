@@ -26,38 +26,34 @@ class TestColl(unittest.TestCase):
         mype = shmem.my_pe()
         npes = shmem.n_pes()
         for t in types:
-            for m in (1, 2, 3, 4):
+            for m in (0, 1, 2, 3, 4):
                 n = m * 4  // np.dtype(t).itemsize
                 tgt = shmem.empty(n, t)
                 src = shmem.full(n, mype, t)
                 for root in range(npes):
-                    tgt[...] = npes
-                    shmem.barrier_all()
-                    shmem.broadcast(tgt, src, root, team=team)
-                    if root != mype:
+                    with self.subTest(type=t, size=n, root=root):
+                        tgt[...] = npes
+                        shmem.barrier_all()
+                        shmem.broadcast(tgt, src, root, team=team)
                         self.assertTrue(np.all(tgt == root))
-                    else:
-                        self.assertTrue(np.all(tgt == npes))
 
     def testBroadcastSize(self):
         mype = shmem.my_pe()
         npes = shmem.n_pes()
         for t in types:
-            for m in (1, 2, 3, 4):
+            for m in (0, 1, 2, 3, 4):
                 n = m * 4  // np.dtype(t).itemsize
                 tgt = shmem.empty((3, n), t)
                 src = shmem.empty((5, n), t)
                 for root in range(npes):
-                    tgt[...] = npes
-                    src[...] = -1
-                    src[0, :] = mype
-                    shmem.barrier_all()
-                    shmem.broadcast(tgt, src, root, size=n)
-                    if root != mype:
+                    with self.subTest(type=t, size=n, root=root):
+                        tgt[...] = npes
+                        src[...] = -1
+                        src[0, :] = mype
+                        shmem.barrier_all()
+                        shmem.broadcast(tgt, src, root, size=n)
                         self.assertTrue(np.all(tgt[0] == root))
-                    else:
-                        self.assertTrue(np.all(tgt[0] == npes))
-                    self.assertTrue(np.all(tgt[1:, :] == npes))
+                        self.assertTrue(np.all(tgt[1:, :] == npes))
 
     def testCollect(self):
         mype = shmem.my_pe()
