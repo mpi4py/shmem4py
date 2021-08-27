@@ -1202,9 +1202,7 @@ def clear_lock(lock: ffi.CData) -> None:
 
 
 class Lock:
-    """
-    Lock.
-    """
+    """Lock object."""
 
     def __init__(self) -> None:
         self._lock = new_lock()
