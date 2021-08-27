@@ -535,8 +535,8 @@ static
 int shmem_fcollectmem(shmem_team_t team, void *dest, const void *source, size_t nbytes)
 {
   if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
-  PySHMEM_COLLECT(64, dest, source, nbytes);
-  PySHMEM_COLLECT(32, dest, source, nbytes);
+  PySHMEM_FCOLLECT(64, dest, source, nbytes);
+  PySHMEM_FCOLLECT(32, dest, source, nbytes);
   return PySHMEM_UNAVAILABLE;
 }
 
