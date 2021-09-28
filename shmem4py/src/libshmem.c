@@ -38,8 +38,9 @@ PySHMEM_Thread_local static int _shmem_error = 0;
 
 #if defined(PySHMEM_VENDOR_OSSS)
 
-#define PySHMEM_HAVE_SHMEM_CTX_INVALID 1
+#define PySHMEM_HAVE_shmem_malloc_with_hints 1
 #define PySHMEM_HAVE_shmem_team_t 1
+#define PySHMEM_HAVE_SHMEM_CTX_INVALID 1
 #define PySHMEM_HAVE_shmem_put_signal 1
 #define PySHMEM_HAVE_shmem_signal_fetch 1
 #define PySHMEM_HAVE_shmem_signal_wait_until 1
@@ -364,7 +365,13 @@ int PySHMEM_SOS_shmem_team_get_config(shmem_team_t team, long config_mask, shmem
 
 #define SHMEM_MALLOC_ATOMICS_REMOTE 0
 #define SHMEM_MALLOC_SIGNAL_REMOTE 0
-#define shmem_malloc_with_hints(size, hints) shmem_malloc(size)
+
+static
+void *shmem_malloc_with_hints(size_t size, long hints)
+{
+  (void)hints;
+  return shmem_malloc(size);
+}
 
 #endif
 
@@ -943,6 +950,11 @@ static void *shmem_py_malloc_clear(size_t size)
 static void *shmem_py_malloc_align(size_t align, size_t size)
 {
   return shmem_align(align, _py_size(size));
+}
+
+static void *shmem_py_malloc_hints(size_t size, long hints)
+{
+  return shmem_malloc_with_hints(_py_size(size), hints);
 }
 
 static void shmem_py_free(void *ptr)

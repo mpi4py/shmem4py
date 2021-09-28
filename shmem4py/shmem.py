@@ -454,23 +454,33 @@ def ptr(
 # ---
 
 
-class _RawAlign(dict):
+class _RawAllocAlign(dict):
 
     def __init__(self, clear: bool = True) -> None:
         super().__init__()
-        self.clear = clear
+        self.__clear = clear
 
     def __missing__(self, align: int) -> 'Callable[[int],ffi.CData]':
         return ffi.new_allocator(
             lambda size: lib.shmem_py_malloc_align(align, size),
             lib.shmem_py_free,
-            should_clear_after_alloc=self.clear,
+            should_clear_after_alloc=self.__clear,
         )
 
 
-_raw_malign = _RawAlign(clear=False)
+class _RawAllocHints(dict):
 
-_raw_calign = _RawAlign(clear=True)
+    def __init__(self, clear: bool = True) -> None:
+        super().__init__()
+        self.__clear = clear
+
+    def __missing__(self, hints: int) -> 'Callable[[str, int], ffi.CData]':
+        return ffi.new_allocator(
+            lambda size: lib.shmem_py_malloc_hints(size, hints),
+            lib.shmem_py_free,
+            should_clear_after_alloc=self.__clear,
+        )
+
 
 _raw_malloc = ffi.new_allocator(
     lib.shmem_py_malloc,
@@ -483,6 +493,14 @@ _raw_calloc = ffi.new_allocator(
     lib.shmem_py_free,
     should_clear_after_alloc=False,
 )
+
+_raw_malloc_align = _RawAllocAlign(clear=False)
+
+_raw_calloc_align = _RawAllocAlign(clear=True)
+
+_raw_malloc_hints = _RawAllocHints(clear=False)
+
+_raw_calloc_hints = _RawAllocHints(clear=True)
 
 _numpy_to_cffi = {
     'c': 'char',
@@ -563,27 +581,38 @@ _numpy_to_shmem = {
 _heap = _wr.WeakValueDictionary()
 
 
+MALLOC_ATOMICS_REMOTE: int = lib.SHMEM_MALLOC_ATOMICS_REMOTE
+MALLOC_SIGNAL_REMOTE: int = lib.SHMEM_MALLOC_SIGNAL_REMOTE
+
+
 def alloc(
     dtype: 'np.DTypeLike',
     size:  int,
     align: 'Optional[int]' = None,
     clear: bool = True,
+    hints: 'Optional[int]' = None,
 ) -> ffi.CData:
     """
     """
     dtype = np.dtype(dtype)
     ctype = _numpy_to_shmem[dtype.char]
     cdecl = ffi.getctype(ctype, '[]')
-    if align is None:
+    if align is not None:
         if clear:
-            cdata = _raw_calloc(cdecl, size)
+            allocator = _raw_calloc_align[align]
         else:
-            cdata = _raw_malloc(cdecl, size)
+            allocator = _raw_malloc_align[align]
+    elif hints is not None:
+        if clear:
+            allocator = _raw_calloc_hints[hints]
+        else:
+            allocator = _raw_malloc_hints[hints]
     else:
         if clear:
-            cdata = _raw_calign[align](cdecl, size)
+            allocator = _raw_calloc
         else:
-            cdata = _raw_malign[align](cdecl, size)
+            allocator = _raw_malloc
+    cdata = allocator(cdecl, size)
     _heap[ffi.cast('uintptr_t', cdata)] = cdata
     return cdata
 
@@ -628,12 +657,13 @@ def new_array(
     order: 'str' = 'C',
     align: 'Optional[int]' = None,
     clear: 'bool' = True,
+    hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
     """
     """
     dtype = np.dtype(dtype)
     count = np.prod(shape, dtype='p')
-    cdata = alloc(dtype, count, align, clear)
+    cdata = alloc(dtype, count, align, clear, hints)
     return fromcdata(cdata, shape, dtype, order)
 
 
@@ -642,11 +672,12 @@ def array(
     dtype: 'Optional[np.DTypeLike]' = None,
     order: 'str' = 'K',
     align: 'Optional[int]' = None,
+    hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
     """
     """
     tmp = np.array(obj, dtype, copy=False, order=order)
-    a = new_array(tmp.size, tmp.dtype, align=align, clear=False)
+    a = new_array(tmp.size, tmp.dtype, align=align, clear=False, hints=hints)
     a.shape = tmp.shape
     if tmp.ndim > 1:
         a.strides = tmp.strides
@@ -659,10 +690,11 @@ def empty(
     dtype: 'np.DTypeLike' = float,
     order: 'str' = 'C',
     align: 'Optional[int]' = None,
+    hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
     """
     """
-    a = new_array(shape, dtype, order, align=align, clear=False)
+    a = new_array(shape, dtype, order, align=align, clear=False, hints=hints)
     return a
 
 
@@ -671,10 +703,11 @@ def zeros(
     dtype: 'np.DTypeLike' = float,
     order: 'str' = 'C',
     align: 'Optional[int]' = None,
+    hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
     """
     """
-    a = new_array(shape, dtype, order, align=align, clear=True)
+    a = new_array(shape, dtype, order, align=align, clear=True, hints=hints)
     return a
 
 
@@ -683,10 +716,11 @@ def ones(
     dtype: 'np.DTypeLike' = float,
     order: 'str' = 'C',
     align: 'Optional[int]' = None,
+    hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
     """
     """
-    a = new_array(shape, dtype, order, align=align, clear=True)
+    a = new_array(shape, dtype, order, align=align, clear=True, hints=hints)
     np.copyto(a, 1, casting='unsafe')
     return a
 
@@ -697,12 +731,13 @@ def full(
     dtype: 'Optional[np.DTypeLike]' = None,
     order: 'str' = 'C',
     align: 'Optional[int]' = None,
+    hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
     """
     """
     if dtype is None:
         dtype = np.array(fill_value).dtype
-    a = new_array(shape, dtype, order, align=align, clear=False)
+    a = new_array(shape, dtype, order, align=align, clear=False, hints=hints)
     np.copyto(a, fill_value, casting='unsafe')
     return a
 
@@ -1009,7 +1044,8 @@ def signal_fetch(sig_addr):
 def new_signal() -> ffi.CData:
     """
     """
-    return _raw_calloc('uint64_t*')
+    hints = lib.SHMEM_MALLOC_SIGNAL_REMOTE
+    return _raw_calloc_hints[hints]('uint64_t*')
 
 
 # ---

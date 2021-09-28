@@ -11,13 +11,21 @@ types += [f'f{1<<i}' for i in range(2,4)]
 class TestAlloc(unittest.TestCase):
 
     def testAlloc(self):
+        hint_atomics = shmem.MALLOC_ATOMICS_REMOTE
+        hint_remote = shmem.MALLOC_SIGNAL_REMOTE
         for n in range(4):
             for t in types:
-                for align in (None, 8, 64):
+                for align in (None, 8, 64, 128):
                     for clear in (True, False):
-                        cdata = shmem.alloc(t, n, align, clear)
-                        shmem.free(cdata)
-                        self.assertRaises(KeyError, shmem.free, cdata)
+                        for hints in (0, hint_atomics, hint_remote):
+                            cdata = shmem.alloc(t, n, align, clear, hints)
+                            caddr = shmem.ffi.cast('uintptr_t', cdata)
+                            if align is not None:
+                                self.assertEqual(int(caddr) % align, 0)
+                            if clear and len(cdata):
+                                self.assertEqual(cdata[0], 0)
+                            shmem.free(cdata)
+                            self.assertRaises(KeyError, shmem.free, cdata)
 
     def testFromCData(self):
         for n in range(4):
