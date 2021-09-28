@@ -55,7 +55,7 @@ def finalize() -> None:
     lib.shmem_finalize()
 
 
-def global_exit(status: int = 0) -> 'NoReturn':  # pragma: nocover
+def global_exit(status: int = 0) -> 'NoReturn':  # pragma: no cover
     """
     """
     lib.shmem_global_exit(status)
@@ -82,14 +82,14 @@ def query_thread() -> int:
 
 
 def _chkerr(ierr: int, func: str = "shmem") -> None:
-    if ierr != 0:  # pragma: nocover
+    if ierr != 0:  # pragma: no cover
         if ierr == -1431655766:
             raise NotImplementedError(f"{func}")
         raise RuntimeError(f"{func}: error {ierr}")
 
 
 def _chkint(ival: int, func: str = "shmem") -> None:
-    if ival < 0:  # pragma: nocover
+    if ival < 0:  # pragma: no cover
         _chkerr(ival, func)
 
 
@@ -442,8 +442,8 @@ def ptr(
 
     addr = _getbuffer(target, readonly=True)[0]
     cdata = lib.shmem_ptr(addr, pe)
-    if cdata == ffi.NULL:  # pragma: nobranch
-        return None        # pragma: nocover
+    if cdata == ffi.NULL:  # pragma: no branch
+        return None        # pragma: no cover
     a = fromcdata(cdata, target.size, target.dtype)
     a.shape = target.shape
     if target.ndim > 1:
