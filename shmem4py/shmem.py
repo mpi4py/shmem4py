@@ -957,6 +957,64 @@ def atomic_xor(target, value, pe, ctx=None):
 # ---
 
 
+def _parse_signal(sig_addr):
+    return sig_addr
+
+
+def _shmem_rma_signal(ctx, name, nbi,
+                      target, source, size, pe,
+                      sig_addr, signal, sig_op):
+    ctype, target, source, size = _parse_rma(target, source, size)
+    sig_addr = _parse_signal(sig_addr)
+    try:
+        funcname = f'{name}_signal{nbi}'
+        shmem_rma_signal = _shmem(ctx, ctype, funcname, chkerr=True)
+    except AttributeError:
+        size *= ffi.sizeof(ctype)
+        funcname = f'{name}mem_signal{nbi}'
+        shmem_rma_signal = _shmem(ctx, None, funcname, chkerr=True)
+    return shmem_rma_signal(target, source, size, sig_addr, signal, sig_op, pe)
+
+
+SIGNAL_SET = lib.SHMEM_SIGNAL_SET
+SIGNAL_ADD = lib.SHMEM_SIGNAL_ADD
+
+
+def put_signal(target, source, pe,
+               sig_addr, signal, sig_op,
+               size=None, ctx=None) -> None:
+    """
+    """
+    return _shmem_rma_signal(ctx, 'put', '',
+                             target, source, size, pe,
+                             sig_addr, signal, sig_op)
+
+
+def put_signal_nbi(target, source, pe,
+                   sig_addr, signal, sig_op,
+                   size=None, ctx=None) -> None:
+    """
+    """
+    return _shmem_rma_signal(ctx, 'put', '_nbi',
+                             target, source, size, pe,
+                             sig_addr, signal, sig_op)
+
+
+def signal_fetch(sig_addr):
+    """
+    """
+    return lib.shmem_signal_fetch(sig_addr)
+
+
+def new_signal() -> ffi.CData:
+    """
+    """
+    return _raw_calloc('uint64_t*')
+
+
+# ---
+
+
 def _parse_team(team):
     if team is None:
         team = lib.SHMEM_TEAM_WORLD
@@ -1164,6 +1222,14 @@ def test(addr, cmp, value) -> bool:
     cmp = _parse_cmp(cmp)
     ctype, addr = _parse_sync(addr)
     return bool(_shmem(None, ctype, 'test')(addr, cmp, value))
+
+
+def signal_wait_until(signal, cmp, value) -> int:
+    """
+    """
+    cmp = _parse_cmp(cmp)
+    sig_addr = _parse_signal(signal)
+    return lib.shmem_signal_wait_until(sig_addr, cmp, value)
 
 
 # ---

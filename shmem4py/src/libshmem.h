@@ -93,6 +93,10 @@ void shmem_ctx_destroy(shmem_ctx_t ctx);
 int  shmem_ctx_get_team(shmem_ctx_t ctx, shmem_team_t *team);
 int  shmem_team_create_ctx(shmem_team_t team, long options, shmem_ctx_t *ctx);
 
+/* Signal Routines */
+uint64_t shmem_signal_fetch(const uint64_t *sig_addr);
+uint64_t shmem_signal_wait_until(uint64_t *sig_addr, int cmp, uint64_t cmp_value);
+
 /* Collective Routines */
 void shmem_barrier_all(void);
 void shmem_sync_all(void);

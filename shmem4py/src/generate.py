@@ -180,6 +180,21 @@ void shmem_ctx_{TYPENAME}_atomic_xor(shmem_ctx_t ctx, {TYPE} *dest, {TYPE} value
 //void shmem_ctx_{TYPENAME}_atomic_fetch_xor_nbi(shmem_ctx_t ctx, {TYPE} *fetch, {TYPE} *dest, {TYPE} value, int pe);
 """  # noqa
 
+sig_type = """
+void shmem_ctx_{TYPENAME}_{RMA}_signal(shmem_ctx_t ctx, {TYPE} *dest, const {TYPE} *source, size_t nelems, uint64_t *sig_addr, uint64_t signal, int sig_op, int pe);
+void shmem_ctx_{TYPENAME}_{RMA}_signal_nbi(shmem_ctx_t ctx, {TYPE} *dest, const {TYPE} *source, size_t nelems, uint64_t *sig_addr, uint64_t signal, int sig_op, int pe);
+"""
+
+sig_size = """
+void shmem_ctx_{RMA}{SIZE}_signal(shmem_ctx_t ctx, void *dest, const void *source, size_t nelems, uint64_t *sig_addr, uint64_t signal, int sig_op, int pe);
+void shmem_ctx_{RMA}{SIZE}_signal_nbi(shmem_ctx_t ctx, void *dest, const void *source, size_t nelems, uint64_t *sig_addr, uint64_t signal, int sig_op, int pe);
+"""
+
+sig_mem = """
+void shmem_ctx_{RMA}mem_signal(shmem_ctx_t ctx, void *dest, const void *source, size_t nelems, uint64_t *sig_addr, uint64_t signal, int sig_op, int pe);
+void shmem_ctx_{RMA}mem_signal_nbi(shmem_ctx_t ctx, void *dest, const void *source, size_t nelems, uint64_t *sig_addr, uint64_t signal, int sig_op, int pe);
+"""
+
 coll_type = """
 //int shmem_{TYPENAME}_broadcast(shmem_team_t team, {TYPE} *dest, const {TYPE} *source, size_t nelems, int pe_root);
 //int shmem_{TYPENAME}_collect(shmem_team_t team, {TYPE} *dest, const {TYPE} *source, size_t nelems);
@@ -260,6 +275,14 @@ def generate():
         ):
             for typename in typenames:
                 yield apigen(amo_type, ctx, TYPENAME=typename)
+
+    # SIG
+    for ctx in (True, False):
+        for typename in typenames_rma:
+            yield apigen(sig_type, ctx, TYPENAME=typename, RMA='put')
+        for size in typesizes_rma:
+            yield apigen(sig_size, ctx, SIZE=size, RMA='put')
+        yield apigen(sig_mem, ctx, RMA='put')
 
     # Collectives
     for typename in typenames_rma:

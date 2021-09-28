@@ -40,6 +40,9 @@ PySHMEM_Thread_local static int _shmem_error = 0;
 
 #define PySHMEM_HAVE_SHMEM_CTX_INVALID 1
 #define PySHMEM_HAVE_shmem_team_t 1
+#define PySHMEM_HAVE_shmem_put_signal 1
+#define PySHMEM_HAVE_shmem_signal_fetch 1
+#define PySHMEM_HAVE_shmem_signal_wait_until 1
 #define PySHMEM_HAVE_shmem_pcontrol 1
 
 static
@@ -332,12 +335,17 @@ int PySHMEM_OSHMPI_shmem_team_sync(shmem_team_t team)
 #define PySHMEM_HAVE_shmem_team_t 1
 #define PySHMEM_HAVE_SHMEM_CTX_INVALID 1
 #define PySHMEM_HAVE_shmem_put_signal 1
+#define PySHMEM_HAVE_shmem_signal_fetch 1
+#define PySHMEM_HAVE_shmem_signal_wait_until 1
 #define PySHMEM_HAVE_shmem_broadcastmem 1
 #define PySHMEM_HAVE_shmem_collectmem 1
 #define PySHMEM_HAVE_shmem_alltoallmem 1
 #define PySHMEM_HAVE_shmem_TYPENAME_alltoalls 1
 #define PySHMEM_HAVE_shmem_OP_reduce 1
 #define PySHMEM_HAVE_shmem_pcontrol 1
+
+/* https://github.com/Sandia-OpenSHMEM/SOS/issues/1015 */
+#undef PySHMEM_HAVE_shmem_signal_wait_until
 
 static
 int PySHMEM_SOS_shmem_team_get_config(shmem_team_t team, long config_mask, shmem_team_config_t *config)
@@ -366,6 +374,83 @@ int PySHMEM_SOS_shmem_team_get_config(shmem_team_t team, long config_mask, shmem
 
 #define SHMEM_SIGNAL_SET 0
 #define SHMEM_SIGNAL_ADD 0
+
+#define PySHMEM_RMA_SIGNAL_ARGS(TYPE) \
+  TYPE *d, const TYPE *s, size_t n, uint64_t *a, uint64_t v, int o, int pe
+#define PySHMEM_RMA_SIGNAL_USE_ARGS \
+  (void)d; (void)s; (void)n; (void)a; (void)v; (void)o; (void)pe
+#define PySHMEM_RMA_SIGNAL_CTXARGS(TYPE) \
+  shmem_ctx_t ctx, PySHMEM_RMA_SIGNAL_ARGS(TYPE)
+#define PySHMEM_RMA_SIGNAL_USE_CTXARGS \
+  (void)ctx; PySHMEM_RMA_SIGNAL_USE_ARGS
+#define PySHMEM_RMA_SIGNAL_UNAVAILABLE \
+  do { (void) PySHMEM_UNAVAILABLE; } while (0)
+
+#define PySHMEM_RMA_SIGNAL(NAME, TYPE)                                      \
+static void shmem_##NAME##_signal(PySHMEM_RMA_SIGNAL_ARGS(TYPE))            \
+{PySHMEM_RMA_SIGNAL_USE_ARGS; PySHMEM_RMA_SIGNAL_UNAVAILABLE;}              \
+static void shmem_##NAME##_signal_nbi(PySHMEM_RMA_SIGNAL_ARGS(TYPE))        \
+{PySHMEM_RMA_SIGNAL_USE_ARGS; PySHMEM_RMA_SIGNAL_UNAVAILABLE;}              \
+static void shmem_ctx_##NAME##_signal(PySHMEM_RMA_SIGNAL_CTXARGS(TYPE))     \
+{PySHMEM_RMA_SIGNAL_USE_CTXARGS; PySHMEM_RMA_SIGNAL_UNAVAILABLE;}           \
+static void shmem_ctx_##NAME##_signal_nbi(PySHMEM_RMA_SIGNAL_CTXARGS(TYPE)) \
+{PySHMEM_RMA_SIGNAL_USE_CTXARGS; PySHMEM_RMA_SIGNAL_UNAVAILABLE;}        /**/
+
+#define PySHMEM_RMA_SIGNAL_T(N, T) PySHMEM_RMA_SIGNAL( N##_put , T    )
+#define PySHMEM_RMA_SIGNAL_S(S)    PySHMEM_RMA_SIGNAL( put##S  , void )
+#define PySHMEM_RMA_SIGNAL_M()     PySHMEM_RMA_SIGNAL( putmem  , void )
+
+PySHMEM_RMA_SIGNAL_T( float      , float              )
+PySHMEM_RMA_SIGNAL_T( double     , double             )
+PySHMEM_RMA_SIGNAL_T( longdouble , long double        )
+PySHMEM_RMA_SIGNAL_T( char       , char               )
+PySHMEM_RMA_SIGNAL_T( schar      , signed char        )
+PySHMEM_RMA_SIGNAL_T( short      , short              )
+PySHMEM_RMA_SIGNAL_T( int        , int                )
+PySHMEM_RMA_SIGNAL_T( long       , long               )
+PySHMEM_RMA_SIGNAL_T( longlong   , long long          )
+PySHMEM_RMA_SIGNAL_T( uchar      , unsigned char      )
+PySHMEM_RMA_SIGNAL_T( ushort     , unsigned short     )
+PySHMEM_RMA_SIGNAL_T( uint       , unsigned int       )
+PySHMEM_RMA_SIGNAL_T( ulong      , unsigned long      )
+PySHMEM_RMA_SIGNAL_T( ulonglong  , unsigned long long )
+PySHMEM_RMA_SIGNAL_T( int8       , int8_t             )
+PySHMEM_RMA_SIGNAL_T( int16      , int16_t            )
+PySHMEM_RMA_SIGNAL_T( int32      , int32_t            )
+PySHMEM_RMA_SIGNAL_T( int64      , int64_t            )
+PySHMEM_RMA_SIGNAL_T( uint8      , uint8_t            )
+PySHMEM_RMA_SIGNAL_T( uint16     , uint16_t           )
+PySHMEM_RMA_SIGNAL_T( uint32     , uint32_t           )
+PySHMEM_RMA_SIGNAL_T( uint64     , uint64_t           )
+PySHMEM_RMA_SIGNAL_T( size       , size_t             )
+PySHMEM_RMA_SIGNAL_T( ptrdiff    , ptrdiff_t          )
+PySHMEM_RMA_SIGNAL_S(   8 )
+PySHMEM_RMA_SIGNAL_S(  16 )
+PySHMEM_RMA_SIGNAL_S(  32 )
+PySHMEM_RMA_SIGNAL_S(  64 )
+PySHMEM_RMA_SIGNAL_S( 128 )
+PySHMEM_RMA_SIGNAL_M()
+
+#endif
+
+#if !defined(PySHMEM_HAVE_shmem_signal_fetch)
+
+static
+uint64_t shmem_signal_fetch(const uint64_t *sig_addr)
+{
+  return shmem_uint64_atomic_fetch(sig_addr, shmem_my_pe());
+}
+
+#endif
+
+#if !defined(PySHMEM_HAVE_shmem_signal_wait_until)
+
+static
+uint64_t shmem_signal_wait_until(uint64_t *sig_addr, int cmp, uint64_t cmp_value)
+{
+  shmem_uint64_wait_until(sig_addr, cmp, cmp_value);
+  return shmem_signal_fetch(sig_addr); /* FIXME: wait and fetch is not atomic */
+}
 
 #endif
 
