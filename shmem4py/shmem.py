@@ -103,9 +103,9 @@ def _initialize() -> None:
         value = getenv(f'SHMEM4PY_RC_{name.upper()}')
         if value:
             value = value.lower()
-            if value in ('true',  'yes', 'on',  '1'):
+            if value in ('true',  'yes', 'on',  'y', '1'):
                 value = True
-            if value in ('false', 'no',  'off', '0'):
+            if value in ('false', 'no',  'off', 'n', '0'):
                 value = False
             setattr(rcparams, name, value)
 
