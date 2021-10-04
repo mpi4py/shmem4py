@@ -108,3 +108,6 @@ void shmem_quiet(void);
 void shmem_set_lock(long *lock);
 int  shmem_test_lock(long *lock);
 void shmem_clear_lock(long *lock);
+
+/* Profiling Interface */
+void shmem_pcontrol(int level, ...);

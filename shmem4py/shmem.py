@@ -1241,3 +1241,12 @@ class Lock:
 
 
 # ---
+
+
+def pcontrol(level=1):
+    """
+    """
+    lib.shmem_pcontrol(level)
+
+
+# ---

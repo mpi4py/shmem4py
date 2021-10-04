@@ -40,6 +40,7 @@ PySHMEM_Thread_local static int _shmem_error = 0;
 
 #define PySHMEM_HAVE_SHMEM_CTX_INVALID 1
 #define PySHMEM_HAVE_shmem_team_t 1
+#define PySHMEM_HAVE_shmem_pcontrol 1
 
 static
 int shmem_team_create_ctx(shmem_team_t team, long options, shmem_ctx_t *ctx)
@@ -336,6 +337,7 @@ int PySHMEM_OSHMPI_shmem_team_sync(shmem_team_t team)
 #define PySHMEM_HAVE_shmem_alltoallmem 1
 #define PySHMEM_HAVE_shmem_TYPENAME_alltoalls 1
 #define PySHMEM_HAVE_shmem_OP_reduce 1
+#define PySHMEM_HAVE_shmem_pcontrol 1
 
 static
 int PySHMEM_SOS_shmem_team_get_config(shmem_team_t team, long config_mask, shmem_team_config_t *config)
