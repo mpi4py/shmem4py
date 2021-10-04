@@ -1238,26 +1238,197 @@ def _parse_cmp(cmp):
     return cmp
 
 
-def _parse_sync(addr, readonly=True):
-    addr, size, ctype = _getbuffer(addr, readonly=readonly)
+def _parse_sync_ivar(ivar, readonly=True):
+    ivar, size, ctype = _getbuffer(ivar, readonly=readonly)
     assert size == 1
-    return (ctype, addr)
+    return (ctype, ivar)
 
 
-def wait_until(addr, cmp, value) -> None:
+def _parse_sync_ivars(ivars, readonly=True):
+    ivars, size, ctype = _getbuffer(ivars, readonly=readonly)
+    return (ctype, ivars, size)
+
+
+def _parse_sync_indices(nelems):
+    return ffi.new('size_t[]', nelems)
+
+
+def _parse_sync_status(status, nelems):
+    if status is None:
+        return ffi.NULL
+    status, size, ctype = _getbuffer(status, readonly=True)
+    assert size >= nelems
+    assert ctype == 'int'
+    return status
+
+
+def _parse_sync_values(values, nelems, vtype):
+    values, size, ctype = _getbuffer(values, readonly=True)
+    assert size >= nelems
+    assert ctype == vtype
+    return values
+
+
+def _shmem_sync(ctype, name):
+    return _shmem(None, ctype, name)
+
+
+def wait_until(ivar, cmp, value) -> None:
     """
     """
     cmp = _parse_cmp(cmp)
-    ctype, addr = _parse_sync(addr)
-    return _shmem(None, ctype, 'wait_until')(addr, cmp, value)
+    ctype, ivar = _parse_sync_ivar(ivar)
+    shmem_wait = _shmem_sync(ctype, 'wait_until')
+    return shmem_wait(ivar, cmp, value)
 
 
-def test(addr, cmp, value) -> bool:
+def wait_until_all(ivars, cmp, value, status=None) -> None:
     """
     """
     cmp = _parse_cmp(cmp)
-    ctype, addr = _parse_sync(addr)
-    return bool(_shmem(None, ctype, 'test')(addr, cmp, value))
+    ctype, ivars, nelems = _parse_sync_ivars(ivars)
+    status = _parse_sync_status(status, nelems)
+    shmem_wait = _shmem_sync(ctype, 'wait_until_all')
+    return shmem_wait(ivars, nelems, status, cmp, value)
+
+
+def wait_until_any(ivars, cmp, value, status=None) -> 'Optional[int]':
+    """
+    """
+    cmp = _parse_cmp(cmp)
+    ctype, ivars, nelems = _parse_sync_ivars(ivars)
+    status = _parse_sync_status(status, nelems)
+    shmem_wait = _shmem_sync(ctype, 'wait_until_any')
+    index = shmem_wait(ivars, nelems, status, cmp, value)
+    return index if index < nelems else None
+
+
+def wait_until_some(ivars, cmp, value, status=None) -> 'List[int]':
+    """
+    """
+    cmp = _parse_cmp(cmp)
+    ctype, ivars, nelems = _parse_sync_ivars(ivars)
+    indices = _parse_sync_indices(nelems)
+    status = _parse_sync_status(status, nelems)
+    shmem_wait = _shmem_sync(ctype, 'wait_until_some')
+    num = shmem_wait(ivars, nelems, indices, status, cmp, value)
+    return list(indices[0:num])
+
+
+def wait_until_all_vector(ivars, cmp, values, status=None) -> None:
+    """
+    """
+    cmp = _parse_cmp(cmp)
+    ctype, ivars, nelems = _parse_sync_ivars(ivars)
+    status = _parse_sync_status(status, nelems)
+    values = _parse_sync_values(values, nelems, ctype)
+    shmem_wait = _shmem_sync(ctype, 'wait_until_all_vector')
+    return shmem_wait(ivars, nelems, status, cmp, values)
+
+
+def wait_until_any_vector(ivars, cmp, values, status=None) -> 'Optional[int]':
+    """
+    """
+    cmp = _parse_cmp(cmp)
+    ctype, ivars, nelems = _parse_sync_ivars(ivars)
+    status = _parse_sync_status(status, nelems)
+    values = _parse_sync_values(values, nelems, ctype)
+    shmem_wait = _shmem_sync(ctype, 'wait_until_any_vector')
+    index = shmem_wait(ivars, nelems, status, cmp, values)
+    return index if index < nelems else None
+
+
+def wait_until_some_vector(ivars, cmp, values, status=None) -> 'List[int]':
+    """
+    """
+    cmp = _parse_cmp(cmp)
+    ctype, ivars, nelems = _parse_sync_ivars(ivars)
+    indices = _parse_sync_indices(nelems)
+    status = _parse_sync_status(status, nelems)
+    values = _parse_sync_values(values, nelems, ctype)
+    shmem_wait = _shmem_sync(ctype, 'wait_until_some_vector')
+    num = shmem_wait(ivars, nelems, indices, status, cmp, values)
+    return list(indices[0:num])
+
+
+def test(ivar, cmp, value) -> bool:
+    """
+    """
+    cmp = _parse_cmp(cmp)
+    ctype, ivar = _parse_sync_ivar(ivar)
+    shmem_test = _shmem_sync(ctype, 'test')
+    flag = shmem_test(ivar, cmp, value)
+    return bool(flag)
+
+
+def test_all(ivars, cmp, value, status=None) -> bool:
+    """
+    """
+    cmp = _parse_cmp(cmp)
+    ctype, ivars, nelems = _parse_sync_ivars(ivars)
+    status = _parse_sync_status(status, nelems)
+    shmem_test = _shmem_sync(ctype, 'test_all')
+    flag = shmem_test(ivars, nelems, status, cmp, value)
+    return bool(flag)
+
+
+def test_any(ivars, cmp, value, status=None) -> 'Optional[int]':
+    """
+    """
+    cmp = _parse_cmp(cmp)
+    ctype, ivars, nelems = _parse_sync_ivars(ivars)
+    status = _parse_sync_status(status, nelems)
+    shmem_test = _shmem_sync(ctype, 'test_any')
+    index = shmem_test(ivars, nelems, status, cmp, value)
+    return index if index < nelems else None
+
+
+def test_some(ivars, cmp, value, status=None) -> 'List[int]':
+    """
+    """
+    cmp = _parse_cmp(cmp)
+    ctype, ivars, nelems = _parse_sync_ivars(ivars)
+    indices = _parse_sync_indices(nelems)
+    status = _parse_sync_status(status, nelems)
+    shmem_test = _shmem_sync(ctype, 'test_some')
+    num = shmem_test(ivars, nelems, indices, status, cmp, value)
+    return list(indices[0:num])
+
+
+def test_all_vector(ivars, cmp, values, status=None) -> None:
+    """
+    """
+    cmp = _parse_cmp(cmp)
+    ctype, ivars, nelems = _parse_sync_ivars(ivars)
+    status = _parse_sync_status(status, nelems)
+    values = _parse_sync_values(values, nelems, ctype)
+    shmem_test = _shmem_sync(ctype, 'test_all_vector')
+    return bool(shmem_test(ivars, nelems, status, cmp, values))
+
+
+def test_any_vector(ivars, cmp, values, status=None) -> 'Optional[int]':
+    """
+    """
+    cmp = _parse_cmp(cmp)
+    ctype, ivars, nelems = _parse_sync_ivars(ivars)
+    status = _parse_sync_status(status, nelems)
+    values = _parse_sync_values(values, nelems, ctype)
+    shmem_test = _shmem_sync(ctype, 'test_any_vector')
+    index = shmem_test(ivars, nelems, status, cmp, values)
+    return index if index < nelems else None
+
+
+def test_some_vector(ivars, cmp, values, status=None) -> 'List[int]':
+    """
+    """
+    cmp = _parse_cmp(cmp)
+    ctype, ivars, nelems = _parse_sync_ivars(ivars)
+    indices = _parse_sync_indices(nelems)
+    status = _parse_sync_status(status, nelems)
+    values = _parse_sync_values(values, nelems, ctype)
+    shmem_test = _shmem_sync(ctype, 'test_some_vector')
+    num = shmem_test(ivars, nelems, indices, status, cmp, values)
+    return list(indices[0:num])
 
 
 def signal_wait_until(signal, cmp, value) -> int:

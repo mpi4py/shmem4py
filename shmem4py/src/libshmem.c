@@ -44,6 +44,7 @@ PySHMEM_Thread_local static int _shmem_error = 0;
 #define PySHMEM_HAVE_shmem_put_signal 1
 #define PySHMEM_HAVE_shmem_signal_fetch 1
 #define PySHMEM_HAVE_shmem_signal_wait_until 1
+#define PySHMEM_HAVE_shmem_wait_test_AASV 1
 #define PySHMEM_HAVE_shmem_pcontrol 1
 
 static
@@ -343,6 +344,7 @@ int PySHMEM_OSHMPI_shmem_team_sync(shmem_team_t team)
 #define PySHMEM_HAVE_shmem_alltoallmem 1
 #define PySHMEM_HAVE_shmem_TYPENAME_alltoalls 1
 #define PySHMEM_HAVE_shmem_OP_reduce 1
+#define PySHMEM_HAVE_shmem_wait_test_AASV 1
 #define PySHMEM_HAVE_shmem_pcontrol 1
 
 /* https://github.com/Sandia-OpenSHMEM/SOS/issues/1015 */
@@ -864,6 +866,194 @@ PySHMEM_REDUCE_FAIL_3(uint16,  uint16_t)
 PySHMEM_REDUCE_FAIL_3(uint32,  uint32_t)
 PySHMEM_REDUCE_FAIL_3(uint64,  uint64_t)
 PySHMEM_REDUCE_FAIL_3(size,    size_t)
+
+#endif
+
+/* --- */
+
+#if !defined(PySHMEM_HAVE_shmem_wait_test_AASV)
+
+static
+int PySHMEM_is_empty_set(size_t nelems, const int *status)
+{
+  size_t i;
+  if (nelems == 0)
+    return 1;
+  if (status == NULL)
+    return 0;
+  for (i = 0; i < nelems; i++)
+    if (status[i] == 0)
+      return 0;
+  return 1;
+}
+
+#define PySHMEM_SYNC_SLEEP() do { /* use nanosleep? */ } while(0)
+
+#define PySHMEM_WAIT_ALL(TYPENAME, TYPE, cmp_value, cmp_value_i, suffix)       \
+static                                                                         \
+void shmem_##TYPENAME##_wait_until_all##suffix(TYPE *ivars, size_t nelems,     \
+                                               const int *status,              \
+                                               int cmp, TYPE cmp_value)        \
+{                                                                              \
+  size_t i;                                                                    \
+  for (i = 0; i < nelems; i++) {                                               \
+    if (status && status[i]) continue;                                         \
+    shmem_##TYPENAME##_wait_until(ivars + i, cmp, cmp_value_i);                \
+  }                                                                            \
+}                                                                           /**/
+
+#define PySHMEM_WAIT_ANY(TYPENAME, TYPE, cmp_value, cmp_value_i, suffix)       \
+static                                                                         \
+size_t shmem_##TYPENAME##_wait_until_any##suffix(TYPE *ivars, size_t nelems,   \
+                                                 const int *status,            \
+                                                 int cmp, TYPE cmp_value)      \
+{                                                                              \
+  if (PySHMEM_is_empty_set(nelems, status)) return SIZE_MAX;                   \
+  while (1) {                                                                  \
+    size_t i; int done;                                                        \
+    size_t idx = SIZE_MAX;                                                     \
+    for (i = 0; i < nelems; i++) {                                             \
+      if (status && status[i]) continue;                                       \
+      done = shmem_##TYPENAME##_test(ivars + i, cmp, cmp_value_i);             \
+      if (done) { idx = i; break; }                                            \
+    }                                                                          \
+    if (idx != SIZE_MAX) return idx;                                           \
+    PySHMEM_SYNC_SLEEP();                                                      \
+  }                                                                            \
+}                                                                           /**/
+
+#define PySHMEM_WAIT_SOME(TYPENAME, TYPE, cmp_value, cmp_value_i, suffix)      \
+static                                                                         \
+size_t shmem_##TYPENAME##_wait_until_some##suffix(TYPE *ivars, size_t nelems,  \
+                                                  size_t *indices,             \
+                                                  const int *status,           \
+                                                  int cmp, TYPE cmp_value)     \
+{                                                                              \
+  if (PySHMEM_is_empty_set(nelems, status)) return 0;                          \
+  while (1) {                                                                  \
+    size_t i; int done;                                                        \
+    size_t num = 0;                                                            \
+    for (i = 0; i < nelems; i++) {                                             \
+      if (status && status[i]) continue;                                       \
+      done = shmem_##TYPENAME##_test(ivars + i, cmp, cmp_value_i);             \
+      if (done) { indices[num++] = i; }                                        \
+    }                                                                          \
+    if (num != 0) return num;                                                  \
+    PySHMEM_SYNC_SLEEP();                                                      \
+  }                                                                            \
+}                                                                           /**/
+
+#define PySHMEM_TEST_ALL(TYPENAME, TYPE, cmp_value, cmp_value_i, suffix)       \
+static                                                                         \
+int shmem_##TYPENAME##_test_all##suffix(TYPE *ivars, size_t nelems,            \
+                                        const int *status,                     \
+                                        int cmp, TYPE cmp_value)               \
+{                                                                              \
+  size_t i; int done;                                                          \
+  int flag = 1;                                                                \
+  if (PySHMEM_is_empty_set(nelems, status)) return 1;                          \
+  for (i = 0; i < nelems; i++) {                                               \
+    if (status && status[i]) continue;                                         \
+    done = shmem_##TYPENAME##_test(ivars + i, cmp, cmp_value_i);               \
+    flag = flag && done;                                                       \
+  }                                                                            \
+  return flag;                                                                 \
+}                                                                           /**/
+
+#define PySHMEM_TEST_ANY(TYPENAME, TYPE, cmp_value, cmp_value_i, suffix)       \
+static                                                                         \
+size_t shmem_##TYPENAME##_test_any##suffix(TYPE *ivars, size_t nelems,         \
+                                           const int *status,                  \
+                                           int cmp, TYPE cmp_value)            \
+{                                                                              \
+  size_t i; int done;                                                          \
+  size_t idx = SIZE_MAX;                                                       \
+  if (PySHMEM_is_empty_set(nelems, status)) return SIZE_MAX;                   \
+  for (i = 0; i < nelems; i++) {                                               \
+    if (status && status[i]) continue;                                         \
+    done = shmem_##TYPENAME##_test(ivars + i, cmp, cmp_value_i);               \
+    if (done) { idx = i; break; }                                              \
+  }                                                                            \
+  return idx;                                                                  \
+}                                                                           /**/
+
+#define PySHMEM_TEST_SOME(TYPENAME, TYPE, cmp_value, cmp_value_i, suffix)      \
+static                                                                         \
+size_t shmem_##TYPENAME##_test_some##suffix(TYPE *ivars, size_t nelems,        \
+                                            size_t *indices,                   \
+                                            const int *status,                 \
+                                            int cmp, TYPE cmp_value)           \
+{                                                                              \
+  size_t i; int done;                                                          \
+  size_t num = 0;                                                              \
+  if (PySHMEM_is_empty_set(nelems, status)) return 0;                          \
+  for (i = 0; i < nelems; i++) {                                               \
+    if (status && status[i]) continue;                                         \
+    done = shmem_##TYPENAME##_test(ivars + i, cmp, cmp_value_i);               \
+    if (done) { indices[num++] = i; }                                          \
+  }                                                                            \
+  return num;                                                                  \
+}                                                                           /**/
+
+
+#define PySHMEM_SYNC_WAIT(SYNC, TYPENAME, TYPE) \
+  SYNC(PySHMEM_WAIT_ALL,  TYPENAME, TYPE) \
+  SYNC(PySHMEM_WAIT_ANY,  TYPENAME, TYPE) \
+  SYNC(PySHMEM_WAIT_SOME, TYPENAME, TYPE)
+
+#define PySHMEM_SYNC_TEST(SYNC, TYPENAME, TYPE) \
+  SYNC(PySHMEM_TEST_ALL,  TYPENAME, TYPE) \
+  SYNC(PySHMEM_TEST_ANY,  TYPENAME, TYPE) \
+  SYNC(PySHMEM_TEST_SOME, TYPENAME, TYPE)
+
+#define PySHMEM_SYNC_SCALAR(SYNC, TYPENAME, TYPE) \
+  SYNC(TYPENAME, TYPE, cmp_value, cmp_value, /**/)
+
+#define PySHMEM_SYNC_VECTOR(SYNC, TYPENAME, TYPE) \
+  SYNC(TYPENAME, TYPE, cmp_value[], cmp_value[i], _vector)
+
+#define PySHMEM_WAIT_SCALAR(TYPENAME, TYPE) \
+  PySHMEM_SYNC_WAIT(PySHMEM_SYNC_SCALAR, TYPENAME, TYPE)
+
+#define PySHMEM_WAIT_VECTOR(TYPENAME, TYPE) \
+  PySHMEM_SYNC_WAIT(PySHMEM_SYNC_VECTOR, TYPENAME, TYPE)
+
+#define PySHMEM_TEST_SCALAR(TYPENAME, TYPE) \
+  PySHMEM_SYNC_TEST(PySHMEM_SYNC_SCALAR, TYPENAME, TYPE)
+
+#define PySHMEM_TEST_VECTOR(TYPENAME, TYPE) \
+  PySHMEM_SYNC_TEST(PySHMEM_SYNC_VECTOR, TYPENAME, TYPE)
+
+#define PySHMEM_SYNC(TYPENAME, TYPE)  \
+  PySHMEM_WAIT_SCALAR(TYPENAME, TYPE) \
+  PySHMEM_WAIT_VECTOR(TYPENAME, TYPE) \
+  PySHMEM_TEST_SCALAR(TYPENAME, TYPE) \
+  PySHMEM_TEST_VECTOR(TYPENAME, TYPE)
+
+PySHMEM_SYNC( int,        int                )
+PySHMEM_SYNC( long,       long               )
+PySHMEM_SYNC( longlong,   long long          )
+PySHMEM_SYNC( uint,       unsigned int       )
+PySHMEM_SYNC( ulong,      unsigned long      )
+PySHMEM_SYNC( ulonglong,  unsigned long long )
+PySHMEM_SYNC( int32,      int32_t            )
+PySHMEM_SYNC( int64,      int64_t            )
+PySHMEM_SYNC( uint32,     uint32_t           )
+PySHMEM_SYNC( uint64,     uint64_t           )
+PySHMEM_SYNC( size,       size_t             )
+PySHMEM_SYNC( ptrdiff,    ptrdiff_t          )
+
+#endif
+
+/* --- */
+
+#if !defined(PySHMEM_HAVE_shmem_pcontrol)
+
+static
+void shmem_pcontrol(int level, ...)
+{
+  (void)level;
+}
 
 #endif
 

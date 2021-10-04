@@ -218,22 +218,22 @@ int shmem_{TYPENAME}_{OP}_reduce(shmem_team_t team, {TYPE} *dest, const {TYPE} *
 
 wait = """
 void shmem_{TYPENAME}_wait_until({TYPE} *ivar, int cmp, {TYPE} cmp_value);
-//void shmem_{TYPENAME}_wait_until_all({TYPE} *ivars, size_t nelems, const int *status, int cmp, {TYPE} cmp_value);
-//size_t shmem_{TYPENAME}_wait_until_any({TYPE} *ivars, size_t nelems, const int *status, int cmp, {TYPE} cmp_value);
-//size_t shmem_{TYPENAME}_wait_until_some({TYPE} *ivars, size_t nelems, size_t *indices, const int *status, int cmp, {TYPE} cmp_value);
-//void shmem_{TYPENAME}_wait_until_all_vector({TYPE} *ivars, size_t nelems, const int *status, int cmp, {TYPE} *cmp_values);
-//size_t shmem_{TYPENAME}_wait_until_any_vector({TYPE} *ivars, size_t nelems, const int *status, int cmp, {TYPE} *cmp_values);
-//size_t shmem_{TYPENAME}_wait_until_some_vector({TYPE} *ivars, size_t nelems, size_t *indices, const int *status, int cmp, {TYPE} *cmp_values);
+void shmem_{TYPENAME}_wait_until_all({TYPE} *ivars, size_t nelems, const int *status, int cmp, {TYPE} cmp_value);
+size_t shmem_{TYPENAME}_wait_until_any({TYPE} *ivars, size_t nelems, const int *status, int cmp, {TYPE} cmp_value);
+size_t shmem_{TYPENAME}_wait_until_some({TYPE} *ivars, size_t nelems, size_t *indices, const int *status, int cmp, {TYPE} cmp_value);
+void shmem_{TYPENAME}_wait_until_all_vector({TYPE} *ivars, size_t nelems, const int *status, int cmp, {TYPE} *cmp_values);
+size_t shmem_{TYPENAME}_wait_until_any_vector({TYPE} *ivars, size_t nelems, const int *status, int cmp, {TYPE} *cmp_values);
+size_t shmem_{TYPENAME}_wait_until_some_vector({TYPE} *ivars, size_t nelems, size_t *indices, const int *status, int cmp, {TYPE} *cmp_values);
 """  # noqa
 
 test = """
 int shmem_{TYPENAME}_test({TYPE} *ivar, int cmp, {TYPE} cmp_value);
-//int shmem_{TYPENAME}_test_all({TYPE} *ivars, size_t nelems, const int *status, int cmp, {TYPE} cmp_value);
-//size_t shmem_{TYPENAME}_test_any({TYPE} *ivars, size_t nelems, const int *status, int cmp, {TYPE} cmp_value);
-//size_t shmem_{TYPENAME}_test_some({TYPE} *ivars, size_t nelems, size_t *indices, const int *status, int cmp, {TYPE} cmp_value);
-//int shmem_{TYPENAME}_test_all_vector({TYPE} *ivars, size_t nelems, const int *status, int cmp, {TYPE} *cmp_values);
-//size_t shmem_{TYPENAME}_test_any_vector({TYPE} *ivars, size_t nelems, const int *status, int cmp, {TYPE} *cmp_values);
-//size_t shmem_{TYPENAME}_test_some_vector({TYPE} *ivars, size_t nelems, size_t *indices, const int *status, int cmp, {TYPE} *cmp_values);
+int shmem_{TYPENAME}_test_all({TYPE} *ivars, size_t nelems, const int *status, int cmp, {TYPE} cmp_value);
+size_t shmem_{TYPENAME}_test_any({TYPE} *ivars, size_t nelems, const int *status, int cmp, {TYPE} cmp_value);
+size_t shmem_{TYPENAME}_test_some({TYPE} *ivars, size_t nelems, size_t *indices, const int *status, int cmp, {TYPE} cmp_value);
+int shmem_{TYPENAME}_test_all_vector({TYPE} *ivars, size_t nelems, const int *status, int cmp, {TYPE} *cmp_values);
+size_t shmem_{TYPENAME}_test_any_vector({TYPE} *ivars, size_t nelems, const int *status, int cmp, {TYPE} *cmp_values);
+size_t shmem_{TYPENAME}_test_some_vector({TYPE} *ivars, size_t nelems, size_t *indices, const int *status, int cmp, {TYPE} *cmp_values);
 """  # noqa
 
 
@@ -296,6 +296,7 @@ def generate():
                 yield apigen(reduce_team, False, TYPENAME=typename, OP=op)
 
     # P2P synchronization
+    yield 'const size_t SIZE_MAX;';
     for typename in typenames_amo_std:
         yield apigen(wait, TYPENAME=typename)
         yield apigen(test, TYPENAME=typename)
