@@ -889,6 +889,14 @@ def _shmem_amo(ctx, name, remote, *args, readonly=False):
     return _shmem(ctx, ctype, f'atomic_{name}')(remote, *args)
 
 
+def _shmem_amo_nbi(ctx, name, fetch, remote, *args, readonly=False):
+    ftype, fetch = _parse_amo(fetch, readonly=False)
+    ctype, remote = _parse_amo(remote, readonly=readonly)
+    assert ctype == ftype
+    shmem_amo_nbi = _shmem(ctx, ctype, f'atomic_{name}_nbi', chkerr=True)
+    return shmem_amo_nbi(fetch, remote, *args)
+
+
 def atomic_fetch(source, pe, ctx=None):
     """
     """
@@ -918,7 +926,8 @@ def atomic_fetch_op(target, op, value, pe, ctx=None):
     """
     if op == 'inc':
         return _shmem_amo(ctx, f'fetch_{op}', target, pe)
-    return _shmem_amo(ctx, f'fetch_{op}', target, value, pe)
+    else:
+        return _shmem_amo(ctx, f'fetch_{op}', target, value, pe)
 
 
 def atomic_op(target, op, value, pe, ctx=None):
@@ -926,7 +935,8 @@ def atomic_op(target, op, value, pe, ctx=None):
     """
     if op == 'inc':
         return _shmem_amo(ctx, op, target, pe)
-    return _shmem_amo(ctx, op, target, value, pe)
+    else:
+        return _shmem_amo(ctx, op, target, value, pe)
 
 
 def atomic_fetch_inc(target, pe, ctx=None):
@@ -987,6 +997,63 @@ def atomic_xor(target, value, pe, ctx=None):
     """
     """
     return _shmem_amo(ctx, 'xor', target, value, pe)
+
+
+def atomic_fetch_nbi(fetch, source, pe, ctx=None) -> None:
+    """
+    """
+    _shmem_amo_nbi(ctx, 'fetch', fetch, source, pe, readonly=True)
+
+
+def atomic_swap_nbi(fetch, target, value, pe, ctx=None) -> None:
+    """
+    """
+    _shmem_amo_nbi(ctx, 'swap', fetch, target, value, pe)
+
+
+def atomic_compare_swap_nbi(fetch, target, cond, value, pe, ctx=None) -> None:
+    """
+    """
+    _shmem_amo_nbi(ctx, 'compare_swap', fetch, target, cond, value, pe)
+
+
+def atomic_fetch_op_nbi(fetch, target, op, value, pe, ctx=None) -> None:
+    """
+    """
+    if op == 'inc':
+        _shmem_amo_nbi(ctx, f'fetch_{op}', fetch, target, pe)
+    else:
+        _shmem_amo_nbi(ctx, f'fetch_{op}', fetch, target, value, pe)
+
+
+def atomic_fetch_inc_nbi(fetch, target, pe, ctx=None) -> None:
+    """
+    """
+    _shmem_amo_nbi(ctx, 'fetch_inc', fetch, target, pe)
+
+
+def atomic_fetch_add_nbi(fetch, target, value, pe, ctx=None) -> None:
+    """
+    """
+    _shmem_amo_nbi(ctx, 'fetch_add', fetch, target, value, pe)
+
+
+def atomic_fetch_and_nbi(fetch, target, value, pe, ctx=None) -> None:
+    """
+    """
+    _shmem_amo_nbi(ctx, 'fetch_and', fetch, target, value, pe)
+
+
+def atomic_fetch_or_nbi(fetch, target, value, pe, ctx=None) -> None:
+    """
+    """
+    _shmem_amo_nbi(ctx, 'fetch_or', fetch, target, value, pe)
+
+
+def atomic_fetch_xor_nbi(fetch, target, value, pe, ctx=None) -> None:
+    """
+    """
+    _shmem_amo_nbi(ctx, 'fetch_xor', fetch, target, value, pe)
 
 
 # ---

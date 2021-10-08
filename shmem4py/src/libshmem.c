@@ -41,6 +41,7 @@ PySHMEM_Thread_local static int _shmem_error = 0;
 #define PySHMEM_HAVE_shmem_malloc_with_hints 1
 #define PySHMEM_HAVE_shmem_team_t 1
 #define PySHMEM_HAVE_SHMEM_CTX_INVALID 1
+#define PySHMEM_HAVE_shmem_amo_nbi 1
 #define PySHMEM_HAVE_shmem_put_signal 1
 #define PySHMEM_HAVE_shmem_signal_fetch 1
 #define PySHMEM_HAVE_shmem_signal_wait_until 1
@@ -336,6 +337,7 @@ int PySHMEM_OSHMPI_shmem_team_sync(shmem_team_t team)
 #define PySHMEM_HAVE_shmem_malloc_with_hints 1
 #define PySHMEM_HAVE_shmem_team_t 1
 #define PySHMEM_HAVE_SHMEM_CTX_INVALID 1
+#define PySHMEM_HAVE_shmem_amo_nbi 1
 #define PySHMEM_HAVE_shmem_put_signal 1
 #define PySHMEM_HAVE_shmem_signal_fetch 1
 #define PySHMEM_HAVE_shmem_signal_wait_until 1
@@ -376,6 +378,87 @@ void *shmem_malloc_with_hints(size_t size, long hints)
 }
 
 #endif
+
+/* --- */
+
+#if !defined(PySHMEM_HAVE_shmem_amo_nbi)
+
+#define PySHMEM_AMONBI_STD(TYPENAME, TYPE) \
+static void shmem_##TYPENAME##_atomic_compare_swap_nbi(TYPE *fetch, TYPE *dest, TYPE cond, TYPE value, int pe) \
+{(void)fetch; (void)dest; (void)cond; (void)value; (void)pe; PySHMEM_UNAVAILABLE;} \
+static void shmem_##TYPENAME##_atomic_fetch_inc_nbi(TYPE *fetch, TYPE *dest, int pe) \
+{(void)fetch; (void)dest; (void)pe; PySHMEM_UNAVAILABLE;} \
+static void shmem_##TYPENAME##_atomic_fetch_add_nbi(TYPE *fetch, TYPE *dest, TYPE value, int pe) \
+{(void)fetch; (void)dest; (void)value; (void)pe; PySHMEM_UNAVAILABLE;} \
+static void shmem_ctx_##TYPENAME##_atomic_compare_swap_nbi(shmem_ctx_t ctx, TYPE *fetch, TYPE *dest, TYPE cond, TYPE value, int pe) \
+{(void)ctx; (void)fetch; (void)dest; (void)cond; (void)value; (void)pe; PySHMEM_UNAVAILABLE;} \
+static void shmem_ctx_##TYPENAME##_atomic_fetch_inc_nbi(shmem_ctx_t ctx, TYPE *fetch, TYPE *dest, int pe) \
+{(void)ctx; (void)fetch; (void)dest; (void)pe; PySHMEM_UNAVAILABLE;} \
+static void shmem_ctx_##TYPENAME##_atomic_fetch_add_nbi(shmem_ctx_t ctx, TYPE *fetch, TYPE *dest, TYPE value, int pe) \
+{(void)ctx; (void)fetch; (void)dest; (void)value; (void)pe; PySHMEM_UNAVAILABLE;} /**/
+
+#define PySHMEM_AMONBI_EXT(TYPENAME, TYPE) \
+static void shmem_##TYPENAME##_atomic_fetch_nbi(TYPE *fetch, const TYPE *source, int pe) \
+{(void)fetch; (void)source; (void)pe; PySHMEM_UNAVAILABLE;} \
+static void shmem_##TYPENAME##_atomic_swap_nbi(TYPE *fetch, TYPE *dest, TYPE value, int pe) \
+{(void)fetch; (void)dest; (void)value; (void)pe; PySHMEM_UNAVAILABLE;} \
+static void shmem_ctx_##TYPENAME##_atomic_fetch_nbi(shmem_ctx_t ctx, TYPE *fetch, const TYPE *source, int pe) \
+{(void)ctx; (void)fetch; (void)source; (void)pe; PySHMEM_UNAVAILABLE;} \
+static void shmem_ctx_##TYPENAME##_atomic_swap_nbi(shmem_ctx_t ctx, TYPE *fetch, TYPE *dest, TYPE value, int pe) \
+{(void)ctx; (void)fetch; (void)dest; (void)value; (void)pe; PySHMEM_UNAVAILABLE;} /**/
+
+#define PySHMEM_AMONBI_BIT(TYPENAME, TYPE) \
+static void shmem_##TYPENAME##_atomic_fetch_and_nbi(TYPE *fetch, TYPE *dest, TYPE value, int pe) \
+{(void)fetch; (void)dest; (void)value; (void)pe; PySHMEM_UNAVAILABLE; PySHMEM_UNAVAILABLE;} \
+static void shmem_##TYPENAME##_atomic_fetch_or_nbi (TYPE *fetch, TYPE *dest, TYPE value, int pe) \
+{(void)fetch; (void)dest; (void)value; (void)pe; PySHMEM_UNAVAILABLE; PySHMEM_UNAVAILABLE;} \
+static void shmem_##TYPENAME##_atomic_fetch_xor_nbi(TYPE *fetch, TYPE *dest, TYPE value, int pe) \
+{(void)fetch; (void)dest; (void)value; (void)pe; PySHMEM_UNAVAILABLE; PySHMEM_UNAVAILABLE;} \
+static void shmem_ctx_##TYPENAME##_atomic_fetch_and_nbi(shmem_ctx_t ctx, TYPE *fetch, TYPE *dest, TYPE value, int pe) \
+{(void)ctx; (void)fetch; (void)dest; (void)value; (void)pe; PySHMEM_UNAVAILABLE; PySHMEM_UNAVAILABLE;} \
+static void shmem_ctx_##TYPENAME##_atomic_fetch_or_nbi (shmem_ctx_t ctx, TYPE *fetch, TYPE *dest, TYPE value, int pe) \
+{(void)ctx; (void)fetch; (void)dest; (void)value; (void)pe; PySHMEM_UNAVAILABLE; PySHMEM_UNAVAILABLE;} \
+static void shmem_ctx_##TYPENAME##_atomic_fetch_xor_nbi(shmem_ctx_t ctx, TYPE *fetch, TYPE *dest, TYPE value, int pe) \
+{(void)ctx; (void)fetch; (void)dest; (void)value; (void)pe; PySHMEM_UNAVAILABLE; PySHMEM_UNAVAILABLE;} /**/
+
+PySHMEM_AMONBI_STD( int       , int                )
+PySHMEM_AMONBI_STD( long      , long               )
+PySHMEM_AMONBI_STD( longlong  , long long          )
+PySHMEM_AMONBI_STD( uint      , unsigned int       )
+PySHMEM_AMONBI_STD( ulong     , unsigned long      )
+PySHMEM_AMONBI_STD( ulonglong , unsigned long long )
+PySHMEM_AMONBI_STD( int32     , int32_t            )
+PySHMEM_AMONBI_STD( int64     , int64_t            )
+PySHMEM_AMONBI_STD( uint32    , uint32_t           )
+PySHMEM_AMONBI_STD( uint64    , uint64_t           )
+PySHMEM_AMONBI_STD( size      , size_t             )
+PySHMEM_AMONBI_STD( ptrdiff   , ptrdiff_t          )
+
+PySHMEM_AMONBI_EXT( int       , int                )
+PySHMEM_AMONBI_EXT( long      , long               )
+PySHMEM_AMONBI_EXT( longlong  , long long          )
+PySHMEM_AMONBI_EXT( uint      , unsigned int       )
+PySHMEM_AMONBI_EXT( ulong     , unsigned long      )
+PySHMEM_AMONBI_EXT( ulonglong , unsigned long long )
+PySHMEM_AMONBI_EXT( int32     , int32_t            )
+PySHMEM_AMONBI_EXT( int64     , int64_t            )
+PySHMEM_AMONBI_EXT( uint32    , uint32_t           )
+PySHMEM_AMONBI_EXT( uint64    , uint64_t           )
+PySHMEM_AMONBI_EXT( size      , size_t             )
+PySHMEM_AMONBI_EXT( ptrdiff   , ptrdiff_t          )
+PySHMEM_AMONBI_EXT( float     , float              )
+PySHMEM_AMONBI_EXT( double    , double             )
+
+PySHMEM_AMONBI_BIT( uint      , unsigned int       )
+PySHMEM_AMONBI_BIT( ulong     , unsigned long      )
+PySHMEM_AMONBI_BIT( ulonglong , unsigned long long )
+PySHMEM_AMONBI_BIT( int32     , int32_t            )
+PySHMEM_AMONBI_BIT( int64     , int64_t            )
+PySHMEM_AMONBI_BIT( uint32    , uint32_t           )
+PySHMEM_AMONBI_BIT( uint64    , uint64_t           )
+
+#endif
+
 
 /* --- */
 

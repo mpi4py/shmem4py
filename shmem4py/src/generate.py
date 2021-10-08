@@ -155,17 +155,17 @@ amo_type_std = """
 void shmem_ctx_{TYPENAME}_atomic_inc(shmem_ctx_t ctx, {TYPE} *dest, int pe);
 {TYPE} shmem_ctx_{TYPENAME}_atomic_fetch_add(shmem_ctx_t ctx, {TYPE} *dest, {TYPE} value, int pe);
 void shmem_ctx_{TYPENAME}_atomic_add(shmem_ctx_t ctx, {TYPE} *dest, {TYPE} value, int pe);
-//void shmem_ctx_{TYPENAME}_atomic_compare_swap_nbi(shmem_ctx_t ctx, {TYPE} *fetch, {TYPE} *dest, {TYPE} cond, {TYPE} value, int pe);
-//void shmem_ctx_{TYPENAME}_atomic_fetch_inc_nbi(shmem_ctx_t ctx, {TYPE} *fetch, {TYPE} *dest, int pe);
-//void shmem_ctx_{TYPENAME}_atomic_fetch_add_nbi(shmem_ctx_t ctx, {TYPE} *fetch, {TYPE} *dest, {TYPE} value, int pe);
+void shmem_ctx_{TYPENAME}_atomic_compare_swap_nbi(shmem_ctx_t ctx, {TYPE} *fetch, {TYPE} *dest, {TYPE} cond, {TYPE} value, int pe);
+void shmem_ctx_{TYPENAME}_atomic_fetch_inc_nbi(shmem_ctx_t ctx, {TYPE} *fetch, {TYPE} *dest, int pe);
+void shmem_ctx_{TYPENAME}_atomic_fetch_add_nbi(shmem_ctx_t ctx, {TYPE} *fetch, {TYPE} *dest, {TYPE} value, int pe);
 """  # noqa
 
 amo_type_ext = """
 {TYPE} shmem_ctx_{TYPENAME}_atomic_fetch(shmem_ctx_t ctx, const {TYPE} *source, int pe);
 void shmem_ctx_{TYPENAME}_atomic_set(shmem_ctx_t ctx, {TYPE} *dest, {TYPE} value, int pe);
 {TYPE} shmem_ctx_{TYPENAME}_atomic_swap(shmem_ctx_t ctx, {TYPE} *dest, {TYPE} value, int pe);
-//void shmem_ctx_{TYPENAME}_atomic_fetch_nbi(shmem_ctx_t ctx, {TYPE} *fetch, const {TYPE} *source, int pe);
-//void shmem_ctx_{TYPENAME}_atomic_swap_nbi(shmem_ctx_t ctx, {TYPE} *fetch, {TYPE} *dest, {TYPE} value, int pe);
+void shmem_ctx_{TYPENAME}_atomic_fetch_nbi(shmem_ctx_t ctx, {TYPE} *fetch, const {TYPE} *source, int pe);
+void shmem_ctx_{TYPENAME}_atomic_swap_nbi(shmem_ctx_t ctx, {TYPE} *fetch, {TYPE} *dest, {TYPE} value, int pe);
 """  # noqa
 
 amo_type_bit = """
@@ -175,9 +175,9 @@ void shmem_ctx_{TYPENAME}_atomic_and(shmem_ctx_t ctx, {TYPE} *dest, {TYPE} value
 void shmem_ctx_{TYPENAME}_atomic_or(shmem_ctx_t ctx, {TYPE} *dest, {TYPE} value, int pe);
 {TYPE} shmem_ctx_{TYPENAME}_atomic_fetch_xor(shmem_ctx_t ctx, {TYPE} *dest, {TYPE} value, int pe);
 void shmem_ctx_{TYPENAME}_atomic_xor(shmem_ctx_t ctx, {TYPE} *dest, {TYPE} value, int pe);
-//void shmem_ctx_{TYPENAME}_atomic_fetch_and_nbi(shmem_ctx_t ctx, {TYPE} *fetch, {TYPE} *dest, {TYPE} value, int pe);
-//void shmem_ctx_{TYPENAME}_atomic_fetch_or_nbi (shmem_ctx_t ctx, {TYPE} *fetch, {TYPE} *dest, {TYPE} value, int pe);
-//void shmem_ctx_{TYPENAME}_atomic_fetch_xor_nbi(shmem_ctx_t ctx, {TYPE} *fetch, {TYPE} *dest, {TYPE} value, int pe);
+void shmem_ctx_{TYPENAME}_atomic_fetch_and_nbi(shmem_ctx_t ctx, {TYPE} *fetch, {TYPE} *dest, {TYPE} value, int pe);
+void shmem_ctx_{TYPENAME}_atomic_fetch_or_nbi (shmem_ctx_t ctx, {TYPE} *fetch, {TYPE} *dest, {TYPE} value, int pe);
+void shmem_ctx_{TYPENAME}_atomic_fetch_xor_nbi(shmem_ctx_t ctx, {TYPE} *fetch, {TYPE} *dest, {TYPE} value, int pe);
 """  # noqa
 
 sig_type = """
