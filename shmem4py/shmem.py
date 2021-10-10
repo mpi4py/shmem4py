@@ -710,21 +710,34 @@ def full(
 # ---
 
 
-def _shmem(ctx, ctype, name):
+def _shmem(ctx, ctype, name, chkerr=False):
     if ctx is None:
         if ctype is None:
-            attr = f'shmem_{name}'
+            funcname = f'shmem_{name}'
         else:
-            attr = f'shmem_{ctype}_{name}'
-        func = getattr(lib, attr)
-        return func
+            funcname = f'shmem_{ctype}_{name}'
+        function = getattr(lib, funcname)
     else:
         if ctype is None:
-            attr = f'shmem_ctx_{name}'
+            funcname = f'shmem_ctx_{name}'
         else:
-            attr = f'shmem_ctx_{ctype}_{name}'
-        func = getattr(lib, attr)
-        return lambda *args: func(ctx.ob_ctx, *args)
+            funcname = f'shmem_ctx_{ctype}_{name}'
+        ctx_func = getattr(lib, funcname)
+
+        def function(*args):
+            return ctx_func(ctx.ob_ctx, *args)
+
+    if not chkerr:
+        return function
+
+    def wrapper(*args):
+        lib._shmem_error = 0
+        result = function(*args)
+        ierr = lib._shmem_error
+        _chkerr(ierr, funcname)
+        return result
+
+    return wrapper
 
 
 def _getbuffer(obj, readonly=False):

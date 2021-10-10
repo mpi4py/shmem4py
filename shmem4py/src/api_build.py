@@ -28,6 +28,7 @@ with open(os.path.join(srcdir, "libshmem.c")) as c:
     void  shmem_py_free(void *ptr);
     """)
     ffi.cdef("""
+    extern int _shmem_error;
     const  int _shmem_finalized;
     const  int _shmem_initialized;
     extern int _shmem_atexit_finalize;
