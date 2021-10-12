@@ -183,17 +183,17 @@ void shmem_ctx_{TYPENAME}_atomic_fetch_xor_nbi(shmem_ctx_t ctx, {TYPE} *fetch, {
 sig_type = """
 void shmem_ctx_{TYPENAME}_{RMA}_signal(shmem_ctx_t ctx, {TYPE} *dest, const {TYPE} *source, size_t nelems, uint64_t *sig_addr, uint64_t signal, int sig_op, int pe);
 void shmem_ctx_{TYPENAME}_{RMA}_signal_nbi(shmem_ctx_t ctx, {TYPE} *dest, const {TYPE} *source, size_t nelems, uint64_t *sig_addr, uint64_t signal, int sig_op, int pe);
-"""
+"""  # noqa: E501
 
 sig_size = """
 void shmem_ctx_{RMA}{SIZE}_signal(shmem_ctx_t ctx, void *dest, const void *source, size_t nelems, uint64_t *sig_addr, uint64_t signal, int sig_op, int pe);
 void shmem_ctx_{RMA}{SIZE}_signal_nbi(shmem_ctx_t ctx, void *dest, const void *source, size_t nelems, uint64_t *sig_addr, uint64_t signal, int sig_op, int pe);
-"""
+"""  # noqa
 
 sig_mem = """
 void shmem_ctx_{RMA}mem_signal(shmem_ctx_t ctx, void *dest, const void *source, size_t nelems, uint64_t *sig_addr, uint64_t signal, int sig_op, int pe);
 void shmem_ctx_{RMA}mem_signal_nbi(shmem_ctx_t ctx, void *dest, const void *source, size_t nelems, uint64_t *sig_addr, uint64_t signal, int sig_op, int pe);
-"""
+"""  # noqa
 
 coll_type = """
 //int shmem_{TYPENAME}_broadcast(shmem_team_t team, {TYPE} *dest, const {TYPE} *source, size_t nelems, int pe_root);
@@ -296,7 +296,7 @@ def generate():
                 yield apigen(reduce_team, False, TYPENAME=typename, OP=op)
 
     # P2P synchronization
-    yield 'const size_t SIZE_MAX;';
+    yield 'const size_t SIZE_MAX;'
     for typename in typenames_amo_std:
         yield apigen(wait, TYPENAME=typename)
         yield apigen(test, TYPENAME=typename)

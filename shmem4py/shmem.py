@@ -559,7 +559,7 @@ _numpy_to_shmem = {
     'g': 'longdouble',
     'F': 'complexf',
     'D': 'complexd',
-    'G': 'complexg',
+    'G': 'complexl',
 
     'S1': 'char',
     'i1': 'int8',
@@ -575,7 +575,7 @@ _numpy_to_shmem = {
     'f16': 'longdouble',
     'c8': 'complexf',
     'c16': 'complexd',
-    'c32': 'complexg',
+    'c32': 'complexl',
 }
 
 _heap = _wr.WeakValueDictionary()
@@ -766,6 +766,7 @@ def _shmem(ctx, ctype, name, chkerr=False):
         return function
 
     def wrapper(*args):
+        # pylint: disable=protected-access
         lib._shmem_error = 0
         result = function(*args)
         ierr = lib._shmem_error

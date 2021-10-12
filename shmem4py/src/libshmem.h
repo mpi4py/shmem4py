@@ -71,7 +71,7 @@ void* shmem_malloc_with_hints(size_t size, long hints);
 void* shmem_calloc(size_t count, size_t size);
 
 /* Team Management Routines */
-typedef ... *shmem_team_t;
+typedef <shmem_team_t> shmem_team_t;
 const shmem_team_t SHMEM_TEAM_WORLD;
 const shmem_team_t SHMEM_TEAM_SHARED;
 const shmem_team_t SHMEM_TEAM_INVALID;
@@ -85,7 +85,7 @@ int  shmem_team_get_config(shmem_team_t team, long config_mask, shmem_team_confi
 void shmem_team_destroy(shmem_team_t team);
 
 /* Communication Management Routines */
-typedef ... *shmem_ctx_t;
+typedef <shmem_ctx_t> shmem_ctx_t;
 const shmem_ctx_t SHMEM_CTX_INVALID;
 const shmem_ctx_t SHMEM_CTX_DEFAULT;
 int  shmem_ctx_create(long options, shmem_ctx_t *ctx);
