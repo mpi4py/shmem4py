@@ -13,13 +13,13 @@ if shmem.info_get_version() < (1, 5):
     types_u.remove('B')
 
 ops = {
-    'and'  : types_u,
-    'or'   : types_u,
-    'xor'  : types_u,
-    'max'  : types_i+types_u+types_f,
-    'min'  : types_i+types_u+types_f,
-    'sum'  : types_i+types_u+types_f+types_c,
-    'prod' : types_i+types_u+types_f+types_c,
+    shmem.OP_AND  : types_u,
+    shmem.OP_OR   : types_u,
+    shmem.OP_XOR  : types_u,
+    shmem.OP_MAX  : types_i+types_u+types_f,
+    shmem.OP_MIN  : types_i+types_u+types_f,
+    shmem.OP_SUM  : types_i+types_u+types_f+types_c,
+    shmem.OP_PROD : types_i+types_u+types_f+types_c,
 }
 
 ufunc = {

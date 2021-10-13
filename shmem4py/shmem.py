@@ -5,6 +5,7 @@
 # pylint: disable=too-many-arguments
 # ---
 
+import enum as _enum
 import weakref as _wr
 import functools as _ft
 
@@ -56,10 +57,19 @@ def info_get_name() -> str:
 # ---
 
 
-THREAD_SINGLE:     int = lib.SHMEM_THREAD_SINGLE
-THREAD_FUNNELED:   int = lib.SHMEM_THREAD_FUNNELED
-THREAD_SERIALIZED: int = lib.SHMEM_THREAD_SERIALIZED
-THREAD_MULTIPLE:   int = lib.SHMEM_THREAD_MULTIPLE
+class THREAD(_enum.IntEnum):
+    """
+    """
+    SINGLE:     int = lib.SHMEM_THREAD_SINGLE
+    FUNNELED:   int = lib.SHMEM_THREAD_FUNNELED
+    SERIALIZED: int = lib.SHMEM_THREAD_SERIALIZED
+    MULTIPLE:   int = lib.SHMEM_THREAD_MULTIPLE
+
+
+THREAD_SINGLE:     THREAD = THREAD.SINGLE
+THREAD_FUNNELED:   THREAD = THREAD.FUNNELED
+THREAD_SERIALIZED: THREAD = THREAD.SERIALIZED
+THREAD_MULTIPLE:   THREAD = THREAD.MULTIPLE
 
 
 def init() -> None:
@@ -80,21 +90,21 @@ def global_exit(status: int = 0) -> 'NoReturn':  # pragma: no cover
     lib.shmem_global_exit(status)
 
 
-def init_thread(requested: int = THREAD_MULTIPLE) -> int:
+def init_thread(requested: THREAD = THREAD_MULTIPLE) -> THREAD:
     """
     """
     provided = ffi.new('int*', lib.SHMEM_THREAD_SINGLE)
     ierr = lib.shmem_init_thread(requested, provided)
     _chkerr(ierr, "shmem_init_thread")
-    return provided[0]
+    return THREAD(provided[0])
 
 
-def query_thread() -> int:
+def query_thread() -> THREAD:
     """
     """
     provided = ffi.new('int*', lib.SHMEM_THREAD_SINGLE)
     lib.shmem_query_thread(provided)
-    return provided[0]
+    return THREAD(provided[0])
 
 
 # ---
@@ -124,8 +134,7 @@ def _initialize() -> None:
     if rc.initialize:
         if rc.threads:
             level = rc.thread_level.upper()
-            attr = f'SHMEM_THREAD_{level}'
-            requested = getattr(lib, attr)
+            requested = getattr(THREAD, level)
             init_thread(requested)
         else:
             init()
@@ -142,9 +151,17 @@ _initialize()
 # ---
 
 
-CTX_PRIVATE:    int = lib.SHMEM_CTX_PRIVATE
-CTX_SERIALIZED: int = lib.SHMEM_CTX_SERIALIZED
-CTX_NOSTORE:    int = lib.SHMEM_CTX_NOSTORE
+class CTX(_enum.IntFlag):
+    """
+    """
+    PRIVATE:    int = lib.SHMEM_CTX_PRIVATE
+    SERIALIZED: int = lib.SHMEM_CTX_SERIALIZED
+    NOSTORE:    int = lib.SHMEM_CTX_NOSTORE
+
+
+CTX_PRIVATE:    CTX = CTX.PRIVATE
+CTX_SERIALIZED: CTX = CTX.SERIALIZED
+CTX_NOSTORE:    CTX = CTX.NOSTORE
 
 
 class Ctx:
@@ -562,8 +579,15 @@ def _get_allocator(
     )
 
 
-MALLOC_ATOMICS_REMOTE: int = lib.SHMEM_MALLOC_ATOMICS_REMOTE
-MALLOC_SIGNAL_REMOTE: int = lib.SHMEM_MALLOC_SIGNAL_REMOTE
+class MALLOC(_enum.IntFlag):
+    """
+    """
+    ATOMICS_REMOTE: int = lib.SHMEM_MALLOC_ATOMICS_REMOTE
+    SIGNAL_REMOTE:  int = lib.SHMEM_MALLOC_SIGNAL_REMOTE
+
+
+MALLOC_ATOMICS_REMOTE: MALLOC = MALLOC.ATOMICS_REMOTE
+MALLOC_SIGNAL_REMOTE:  MALLOC = MALLOC.SIGNAL_REMOTE
 
 
 def alloc(
@@ -1028,12 +1052,23 @@ def atomic_fetch_xor_nbi(fetch, target, value, pe, ctx=None) -> None:
     _shmem_amo_nbi(ctx, 'fetch_xor', fetch, target, value, pe)
 
 
-AMO_SET: str = 'set'
-AMO_INC: str = 'inc'
-AMO_ADD: str = 'add'
-AMO_AND: str = 'and'
-AMO_OR:  str = 'or'
-AMO_XOR: str = 'xor'
+class AMO(str, _enum.Enum):
+    """
+    """
+    SET: str = 'set'
+    INC: str = 'inc'
+    ADD: str = 'add'
+    AND: str = 'and'
+    OR:  str = 'or'
+    XOR: str = 'xor'
+
+
+AMO_SET: AMO = AMO.SET
+AMO_INC: AMO = AMO.INC
+AMO_ADD: AMO = AMO.ADD
+AMO_AND: AMO = AMO.AND
+AMO_OR:  AMO = AMO.OR
+AMO_XOR: AMO = AMO.XOR
 
 
 def atomic_op(target, op, value, pe, ctx=None):
@@ -1079,8 +1114,15 @@ def _shmem_rma_signal(ctx, name, nbi,
     return shmem_rma_signal(target, source, size, sig_addr, signal, sig_op, pe)
 
 
-SIGNAL_SET = lib.SHMEM_SIGNAL_SET
-SIGNAL_ADD = lib.SHMEM_SIGNAL_ADD
+class SIGNAL(_enum.IntEnum):
+    """
+    """
+    SET: int = lib.SHMEM_SIGNAL_SET
+    ADD: int = lib.SHMEM_SIGNAL_ADD
+
+
+SIGNAL_SET: SIGNAL = SIGNAL.SET
+SIGNAL_ADD: SIGNAL = SIGNAL.ADD
 
 
 def put_signal(target, source, pe,
@@ -1284,13 +1326,25 @@ def alltoalls(target, source, tst=1, sst=1, size=None, team=None) -> None:
         shmem_alltoalls(team, target, source, tst, sst, size, itemsize)
 
 
-OP_AND = 'and'
-OP_OR = 'or'
-OP_XOR = 'xor'
-OP_MAX = 'max'
-OP_MIN = 'min'
-OP_SUM = 'sum'
-OP_PROD = 'prod'
+class OP(str, _enum.Enum):
+    """
+    """
+    AND:  str = 'and'
+    OR:   str = 'or'
+    XOR:  str = 'xor'
+    MAX:  str = 'max'
+    MIN:  str = 'min'
+    SUM:  str = 'sum'
+    PROD: str = 'prod'
+
+
+OP_AND:  OP = OP.AND
+OP_OR:   OP = OP.OR
+OP_XOR:  OP = OP.XOR
+OP_MAX:  OP = OP.MAX
+OP_MIN:  OP = OP.MIN
+OP_SUM:  OP = OP.SUM
+OP_PROD: OP = OP.PROD
 
 
 def reduce(target, source, op='sum', size=None, team=None):
@@ -1349,12 +1403,23 @@ def prod_reduce(target, source, size=None, team=None):
 # ---
 
 
-CMP_EQ = lib.SHMEM_CMP_EQ
-CMP_NE = lib.SHMEM_CMP_NE
-CMP_GT = lib.SHMEM_CMP_GT
-CMP_LE = lib.SHMEM_CMP_LE
-CMP_LT = lib.SHMEM_CMP_LT
-CMP_GE = lib.SHMEM_CMP_GE
+class CMP(_enum.IntEnum):
+    """
+    """
+    EQ: int = lib.SHMEM_CMP_EQ
+    NE: int = lib.SHMEM_CMP_NE
+    GT: int = lib.SHMEM_CMP_GT
+    LE: int = lib.SHMEM_CMP_LE
+    LT: int = lib.SHMEM_CMP_LT
+    GE: int = lib.SHMEM_CMP_GE
+
+
+CMP_EQ: CMP = CMP.EQ
+CMP_NE: CMP = CMP.NE
+CMP_GT: CMP = CMP.GT
+CMP_LE: CMP = CMP.LE
+CMP_LT: CMP = CMP.LT
+CMP_GE: CMP = CMP.GE
 
 
 _str_to_cmp = {
