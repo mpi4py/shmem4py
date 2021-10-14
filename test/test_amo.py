@@ -86,11 +86,13 @@ class TestAMO(unittest.TestCase):
             tgt = shmem.array(0, dtype=t)
             shmem.barrier_all()
             for i in range(3):
-                val = shmem.atomic_fetch_op(tgt, 'inc', None, nxpe)
+                op = shmem.AMO_INC
+                val = shmem.atomic_fetch_op(tgt, op, None, nxpe)
                 shmem.barrier_all()
                 self.assertEqual(val, i)
             for i in range(3):
-                val = shmem.atomic_fetch_op(tgt, 'add', 1, nxpe)
+                op = shmem.AMO_ADD
+                val = shmem.atomic_fetch_op(tgt, op, 1, nxpe)
                 shmem.barrier_all()
                 self.assertEqual(val, 3 + i)
 
@@ -102,13 +104,15 @@ class TestAMO(unittest.TestCase):
             tgt = shmem.array(0, dtype=t)
             for i in range(3):
                 shmem.barrier_all()
+                op = shmem.AMO_INC
                 val = shmem.atomic_fetch(tgt, nxpe)
-                shmem.atomic_op(tgt, 'inc', None, nxpe)
+                shmem.atomic_op(tgt, op, None, nxpe)
                 self.assertEqual(val, i)
             for i in range(3):
                 shmem.barrier_all()
+                op = shmem.AMO_ADD
                 val = shmem.atomic_fetch(tgt, nxpe)
-                shmem.atomic_op(tgt, 'add', 1, nxpe)
+                shmem.atomic_op(tgt, op, 1, nxpe)
                 self.assertEqual(val, 3 + i)
 
     def testFetchIncAdd(self):
@@ -266,11 +270,13 @@ class TestAMONBI(unittest.TestCase):
             tgt = shmem.array(0, dtype=t)
             shmem.barrier_all()
             for i in range(3):
-                shmem.atomic_fetch_op_nbi(val, tgt, 'inc', None, nxpe)
+                op = shmem.AMO_INC
+                shmem.atomic_fetch_op_nbi(val, tgt, op, None, nxpe)
                 shmem.quiet()
                 self.assertEqual(val, i)
             for i in range(3):
-                shmem.atomic_fetch_op_nbi(val, tgt, 'add', 1, nxpe)
+                op = shmem.AMO_ADD
+                shmem.atomic_fetch_op_nbi(val, tgt, op, 1, nxpe)
                 shmem.quiet()
                 self.assertEqual(val, 3 + i)
 

@@ -922,24 +922,6 @@ def atomic_compare_swap(target, cond, value, pe, ctx=None):
     return _shmem_amo(ctx, 'compare_swap', target, cond, value, pe)
 
 
-def atomic_fetch_op(target, op, value, pe, ctx=None):
-    """
-    """
-    if op == 'inc':
-        return _shmem_amo(ctx, f'fetch_{op}', target, pe)
-    else:
-        return _shmem_amo(ctx, f'fetch_{op}', target, value, pe)
-
-
-def atomic_op(target, op, value, pe, ctx=None):
-    """
-    """
-    if op == 'inc':
-        return _shmem_amo(ctx, op, target, pe)
-    else:
-        return _shmem_amo(ctx, op, target, value, pe)
-
-
 def atomic_fetch_inc(target, pe, ctx=None):
     """
     """
@@ -1018,15 +1000,6 @@ def atomic_compare_swap_nbi(fetch, target, cond, value, pe, ctx=None) -> None:
     _shmem_amo_nbi(ctx, 'compare_swap', fetch, target, cond, value, pe)
 
 
-def atomic_fetch_op_nbi(fetch, target, op, value, pe, ctx=None) -> None:
-    """
-    """
-    if op == 'inc':
-        _shmem_amo_nbi(ctx, f'fetch_{op}', fetch, target, pe)
-    else:
-        _shmem_amo_nbi(ctx, f'fetch_{op}', fetch, target, value, pe)
-
-
 def atomic_fetch_inc_nbi(fetch, target, pe, ctx=None) -> None:
     """
     """
@@ -1055,6 +1028,43 @@ def atomic_fetch_xor_nbi(fetch, target, value, pe, ctx=None) -> None:
     """
     """
     _shmem_amo_nbi(ctx, 'fetch_xor', fetch, target, value, pe)
+
+
+AMO_INC: str = 'inc'
+AMO_ADD: str = 'add'
+AMO_AND: str = 'and'
+AMO_OR:  str = 'or'
+AMO_XOR: str = 'xor'
+
+
+def atomic_op(target, op, value, pe, ctx=None):
+    """
+    """
+    op = str(op).lower()
+    if op == 'inc':
+        return _shmem_amo(ctx, op, target, pe)
+    else:
+        return _shmem_amo(ctx, op, target, value, pe)
+
+
+def atomic_fetch_op(target, op, value, pe, ctx=None):
+    """
+    """
+    op = str(op).lower()
+    if op == 'inc':
+        return _shmem_amo(ctx, f'fetch_{op}', target, pe)
+    else:
+        return _shmem_amo(ctx, f'fetch_{op}', target, value, pe)
+
+
+def atomic_fetch_op_nbi(fetch, target, op, value, pe, ctx=None) -> None:
+    """
+    """
+    op = str(op).lower()
+    if op == 'inc':
+        _shmem_amo_nbi(ctx, f'fetch_{op}', fetch, target, pe)
+    else:
+        _shmem_amo_nbi(ctx, f'fetch_{op}', fetch, target, value, pe)
 
 
 # ---
