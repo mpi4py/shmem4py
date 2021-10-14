@@ -1,4 +1,5 @@
 import os
+import glob
 import cffi
 
 srcdir = os.path.abspath(os.path.dirname(__file__))
@@ -51,10 +52,15 @@ def api_build(
     source = f"#include <{shmem_h}>\n"
     source += f"#include <{libshmem_c}>\n"
     source += cmplxl
+    depends = glob.glob(
+        os.path.join(srcdir, '**', '*.[hc]'),
+        recursive=True,
+    )
 
     ffi.set_source(
         f"shmem4py.{module}", source,
         include_dirs=[srcdir],
+        depends=depends,
     )
 
     return ffi
