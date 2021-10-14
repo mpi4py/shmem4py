@@ -306,7 +306,7 @@ int shmem_team_sync(shmem_team_t team)
 static
 long *_py_shmem_pSync_array = NULL;
 
-static inline
+static
 long *_py_shmem_pSync()
 {
   if (!_py_shmem_pSync_array) {
@@ -436,7 +436,7 @@ void  *_py_shmem_pWrk_array = NULL;
 
 #define max(a,b) (((a)>(b))?(a):(b))
 
-static inline
+static
 void *_py_shmem_pWrk(size_t nreduce, size_t eltsize)
 {
   size_t min_len  = max(nreduce/2 + 1, SHMEM_REDUCE_MIN_WRKDATA_SIZE);
@@ -604,7 +604,7 @@ int PySHMEM_is_empty_set(size_t nelems, const int *status)
   return 1;
 }
 
-#define PySHMEM_SYNC_SLEEP() do { /* use nanosleep? */ } while(0)
+#define PySHMEM_YIELD() do { } while(0)
 
 #define PySHMEM_WAIT_ALL(TYPENAME, TYPE, cmp_value, cmp_value_i, suffix)       \
 static                                                                         \
@@ -627,15 +627,14 @@ size_t shmem_##TYPENAME##_wait_until_any##suffix(TYPE *ivars, size_t nelems,   \
 {                                                                              \
   if (PySHMEM_is_empty_set(nelems, status)) return SIZE_MAX;                   \
   while (1) {                                                                  \
-    size_t i; int done;                                                        \
-    size_t idx = SIZE_MAX;                                                     \
+    size_t i; int done; size_t idx = SIZE_MAX;                                 \
     for (i = 0; i < nelems; i++) {                                             \
       if (status && status[i]) continue;                                       \
       done = shmem_##TYPENAME##_test(ivars + i, cmp, cmp_value_i);             \
       if (done) { idx = i; break; }                                            \
     }                                                                          \
     if (idx != SIZE_MAX) return idx;                                           \
-    PySHMEM_SYNC_SLEEP();                                                      \
+    PySHMEM_YIELD();                                                           \
   }                                                                            \
 }                                                                           /**/
 
@@ -648,15 +647,14 @@ size_t shmem_##TYPENAME##_wait_until_some##suffix(TYPE *ivars, size_t nelems,  \
 {                                                                              \
   if (PySHMEM_is_empty_set(nelems, status)) return 0;                          \
   while (1) {                                                                  \
-    size_t i; int done;                                                        \
-    size_t num = 0;                                                            \
+    size_t i; int done; size_t num = 0;                                        \
     for (i = 0; i < nelems; i++) {                                             \
       if (status && status[i]) continue;                                       \
       done = shmem_##TYPENAME##_test(ivars + i, cmp, cmp_value_i);             \
       if (done) { indices[num++] = i; }                                        \
     }                                                                          \
     if (num != 0) return num;                                                  \
-    PySHMEM_SYNC_SLEEP();                                                      \
+    PySHMEM_YIELD();                                                           \
   }                                                                            \
 }                                                                           /**/
 
@@ -666,8 +664,7 @@ int shmem_##TYPENAME##_test_all##suffix(TYPE *ivars, size_t nelems,            \
                                         const int *status,                     \
                                         int cmp, TYPE cmp_value)               \
 {                                                                              \
-  size_t i; int done;                                                          \
-  int flag = 1;                                                                \
+  size_t i; int done; int flag = 1;                                            \
   if (PySHMEM_is_empty_set(nelems, status)) return 1;                          \
   for (i = 0; i < nelems; i++) {                                               \
     if (status && status[i]) continue;                                         \
@@ -683,8 +680,7 @@ size_t shmem_##TYPENAME##_test_any##suffix(TYPE *ivars, size_t nelems,         \
                                            const int *status,                  \
                                            int cmp, TYPE cmp_value)            \
 {                                                                              \
-  size_t i; int done;                                                          \
-  size_t idx = SIZE_MAX;                                                       \
+  size_t i; int done; size_t idx = SIZE_MAX;                                   \
   if (PySHMEM_is_empty_set(nelems, status)) return SIZE_MAX;                   \
   for (i = 0; i < nelems; i++) {                                               \
     if (status && status[i]) continue;                                         \
@@ -701,8 +697,7 @@ size_t shmem_##TYPENAME##_test_some##suffix(TYPE *ivars, size_t nelems,        \
                                             const int *status,                 \
                                             int cmp, TYPE cmp_value)           \
 {                                                                              \
-  size_t i; int done;                                                          \
-  size_t num = 0;                                                              \
+  size_t i; int done; size_t num = 0;                                          \
   if (PySHMEM_is_empty_set(nelems, status)) return 0;                          \
   for (i = 0; i < nelems; i++) {                                               \
     if (status && status[i]) continue;                                         \
