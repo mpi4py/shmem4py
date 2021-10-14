@@ -1279,6 +1279,7 @@ OP_PROD = 'prod'
 def reduce(target, source, op='sum', size=None, team=None):
     """
     """
+    op = str(op).lower()
     team = team.ob_team if team is not None else lib.SHMEM_TEAM_WORLD
     ctype, target, source, size = _parse_reduce(target, source, size)
     ierr = _shmem(None, ctype, f'{op}_reduce')(team, target, source, size)
