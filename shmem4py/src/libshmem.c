@@ -10,6 +10,8 @@
 #define PySHMEM_VENDOR_OSSS 1
 #elif defined(SHMEM_DEF_H) && defined(SHMEM_FUNCTION_ATTRIBUTES)
 #define PySHMEM_VENDOR_Sandia 1
+#elif defined(_NVSHMEM_H_)
+#define PySHMEM_VENDOR_NVIDIA 1
 #endif
 
 /* --- */
@@ -46,6 +48,12 @@
 #if defined(PySHMEM_VENDOR_Sandia)
 #include "libshmem/config/sandia.h"
 #include "libshmem/compat/sandia.h"
+#endif
+
+/* NVIDIA's NVSHMEM */
+#if defined(PySHMEM_VENDOR_NVIDIA)
+#include "libshmem/config/nvidia.h"
+#include "libshmem/compat/nvidia.h"
 #endif
 
 /* --- */

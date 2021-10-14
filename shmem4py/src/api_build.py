@@ -55,18 +55,20 @@ def api_build(
     ffi.set_source(
         f"shmem4py.{module}", source,
         include_dirs=[srcdir],
+        extra_compile_args=["-forward-unknown-to-host-compiler","-x c++"],
+        extra_link_args=["-L/home/rogowsm/opt/nvshmem/lib","-lnvshmem","-lcuda"],
     )
 
     return ffi
 
 
 def ffibuilder():
-    return api_build()
+    return api_build(shmem_h="nvshmem.h",shmem_team_t="int")
 
 
 if __name__ == '__main__':
     from fficompiler import fficompiler
-    cc = fficompiler.search('OSHCC', 'oshcc')
-    ld = fficompiler.search('OSHLD')
+    cc = fficompiler.search('nvcc')
+    ld = fficompiler.search('nvcc')
     with fficompiler(cc, ld):
         ffibuilder().compile()

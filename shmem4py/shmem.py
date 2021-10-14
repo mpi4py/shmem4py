@@ -247,6 +247,8 @@ class Team:
         if isinstance(team, ffi.CData):
             if ffi.typeof(team) is not ffi.typeof('shmem_team_t'):
                 raise TypeError
+        elif isinstance(team, int):
+            team = ffi.cast('shmem_team_t', team)
         elif isinstance(team, cls):
             team = team.ob_team
         elif team is None:

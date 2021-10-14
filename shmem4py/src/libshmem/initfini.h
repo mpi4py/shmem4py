@@ -50,6 +50,9 @@ static int _py_shmem_init_thread(int requested, int *provided)
   return ierr;
 }
 
+#undef shmem_init
+#undef shmem_finalize
+#undef shmem_init_thread
 #define shmem_init _py_shmem_init
 #define shmem_finalize _py_shmem_finalize
 #define shmem_init_thread _py_shmem_init_thread
