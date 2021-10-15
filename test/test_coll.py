@@ -36,6 +36,8 @@ class TestColl(unittest.TestCase):
                         shmem.barrier_all()
                         shmem.broadcast(tgt, src, root, team=team)
                         self.assertTrue(np.all(tgt == root))
+                shmem.free(tgt)
+                shmem.free(src)
 
     def testBroadcastSize(self):
         mype = shmem.my_pe()
@@ -54,6 +56,8 @@ class TestColl(unittest.TestCase):
                         shmem.broadcast(tgt, src, root, size=n)
                         self.assertTrue(np.all(tgt[0] == root))
                         self.assertTrue(np.all(tgt[1:, :] == npes))
+                shmem.free(tgt)
+                shmem.free(src)
 
     def testCollect(self):
         mype = shmem.my_pe()
@@ -68,6 +72,8 @@ class TestColl(unittest.TestCase):
                 shmem.collect(tgt, src)
                 for i in range(npes):
                     self.assertTrue(np.all(tgt[i] == i))
+                shmem.free(tgt)
+                shmem.free(src)
 
     def testCollectSize(self):
         mype = shmem.my_pe()
@@ -87,6 +93,8 @@ class TestColl(unittest.TestCase):
                     self.assertTrue(np.all(tgt[a*n:b*n] == i))
                 a = npes*(npes+1)//2
                 self.assertTrue(np.all(tgt[a*n:] == npes))
+                shmem.free(tgt)
+                shmem.free(src)
 
     def testFCollect(self):
         mype = shmem.my_pe()
@@ -101,6 +109,8 @@ class TestColl(unittest.TestCase):
                 shmem.fcollect(tgt, src)
                 for i in range(npes):
                     self.assertTrue(np.all(tgt[i] == i))
+                shmem.free(tgt)
+                shmem.free(src)
 
     def testFCollectSize(self):
         mype = shmem.my_pe()
@@ -118,6 +128,8 @@ class TestColl(unittest.TestCase):
                 for i in range(npes):
                     self.assertTrue(np.all(tgt[0, i, :] == i))
                     self.assertTrue(np.all(tgt[1:, i, :] == npes))
+                shmem.free(tgt)
+                shmem.free(src)
 
     def testAllToAll(self):
         mype = shmem.my_pe()
@@ -134,6 +146,8 @@ class TestColl(unittest.TestCase):
                 for i in range(npes):
                     chk = np.arange(mype, mype+n, dtype=t)
                     self.assertTrue(np.all(tgt[i] == chk))
+                shmem.free(tgt)
+                shmem.free(src)
 
     def testAllToAllStride(self):
         mype = shmem.my_pe()
@@ -153,6 +167,8 @@ class TestColl(unittest.TestCase):
                 self.assertTrue(np.all(tgt[i, 0] == i))
                 for j in range(1, tst):
                     self.assertTrue(np.all(tgt[i, j] == npes))
+            shmem.free(tgt)
+            shmem.free(src)
 
     def testAllToAllStrideSize(self):
         mype = shmem.my_pe()
@@ -173,6 +189,8 @@ class TestColl(unittest.TestCase):
                 for j in range(1, tst):
                     self.assertTrue(np.all(tgt[0, i, j] == npes))
             self.assertTrue(np.all(tgt[1:, :, :] == npes))
+            shmem.free(tgt)
+            shmem.free(src)
 
 
 if __name__ == '__main__':

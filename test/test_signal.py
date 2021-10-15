@@ -39,6 +39,8 @@ class TestSignal(unittest.TestCase):
                         self.assertEqual(dst[0], mype)
                         self.assertEqual(dst[1], mype)
                         self.assertEqual(value, result)
+                        shmem.free(dst)
+                shmem.del_signal(sig_addr)
 
     def testPutSignalNBI(self):
         mype = shmem.my_pe()
@@ -58,11 +60,14 @@ class TestSignal(unittest.TestCase):
                             dst, src, nxpe,
                             sig_addr, signal, op,
                             ctx=ctx)
+                        shmem.quiet()
                         shmem.barrier_all()
                         value = shmem.signal_fetch(sig_addr)
                         self.assertEqual(dst[0], mype)
                         self.assertEqual(dst[1], mype)
                         self.assertEqual(value, result)
+                        shmem.free(dst)
+                shmem.del_signal(sig_addr)
 
 
 if __name__ == '__main__':

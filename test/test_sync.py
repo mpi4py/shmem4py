@@ -29,6 +29,7 @@ class TestWait(unittest.TestCase):
                     for cmp, val in zip(cmps, vals):
                         for pe in range(npes):
                             shmem.wait_until(ivar[..., pe], cmp, val)
+                shmem.free(ivar)
 
     @unittest.skipIf('osss-ucx' in shmem.VENDOR_STRING, 'osss-ucx')
     def testAll(self):
@@ -47,6 +48,7 @@ class TestWait(unittest.TestCase):
                         shmem.wait_until_all_vector(
                             ivars, '==', values,
                         )
+                        shmem.free(ivars)
                         #
                         shmem.barrier_all()
                         ivars = shmem.zeros(3, t)
@@ -59,6 +61,7 @@ class TestWait(unittest.TestCase):
                         shmem.wait_until_all_vector(
                             ivars, '==', values, status=status,
                         )
+                        shmem.free(ivars)
                         continue
                     #
                     shmem.barrier_all()
@@ -91,6 +94,7 @@ class TestWait(unittest.TestCase):
                         v2vec = np.full(n, v2, t)
                         shmem.wait_until_all_vector(ivars, cmp, v1vec)
                         shmem.wait_until_all_vector(ivars, cmp, v2vec)
+                    shmem.free(ivars)
 
     @unittest.skipIf('osss-ucx' in shmem.VENDOR_STRING, 'osss-ucx')
     def testAny(self):
@@ -109,6 +113,7 @@ class TestWait(unittest.TestCase):
                         self.assertEqual(index, None)
                         index = shmem.wait_until_any_vector(ivars, '==', values)
                         self.assertEqual(index, None)
+                        shmem.free(ivars)
                         #
                         shmem.barrier_all()
                         ivars = shmem.zeros(3, t)
@@ -123,6 +128,7 @@ class TestWait(unittest.TestCase):
                             ivars, '==', values, status=status,
                         )
                         self.assertEqual(index, None)
+                        shmem.free(ivars)
                         continue
                     #
                     shmem.barrier_all()
@@ -173,6 +179,7 @@ class TestWait(unittest.TestCase):
                         self.assertNotEqual(index, None)
                         index = shmem.wait_until_any_vector(ivars, cmp, v2vec)
                         self.assertNotEqual(index, None)
+                    shmem.free(ivars)
 
     @unittest.skipIf('osss-ucx' in shmem.VENDOR_STRING, 'osss-ucx')
     def testSome(self):
@@ -191,6 +198,7 @@ class TestWait(unittest.TestCase):
                         self.assertEqual(index, [])
                         index = shmem.wait_until_some_vector(ivars, '==', values)
                         self.assertEqual(index, [])
+                        shmem.free(ivars)
                         #
                         shmem.barrier_all()
                         ivars = shmem.zeros(3, t)
@@ -205,6 +213,7 @@ class TestWait(unittest.TestCase):
                             ivars, '==', values, status=status,
                         )
                         self.assertEqual(index, [])
+                        shmem.free(ivars)
                         continue
                     #
                     shmem.barrier_all()
@@ -236,6 +245,7 @@ class TestWait(unittest.TestCase):
                     self.assertNotEqual(index, [])
                     index = shmem.wait_until_some_vector(ivars, shmem.CMP_NE, z)
                     self.assertNotEqual(index, [])
+                    shmem.free(ivars)
                     #
                     shmem.barrier_all()
                     n = min(n, 2)
@@ -257,6 +267,7 @@ class TestWait(unittest.TestCase):
                         self.assertNotEqual(index, [])
                         index = shmem.wait_until_some_vector(ivars, cmp, v2vec)
                         self.assertNotEqual(index, [])
+                    shmem.free(ivars)
 
 
 class TestTest(unittest.TestCase):
@@ -286,6 +297,7 @@ class TestTest(unittest.TestCase):
                         for pe in range(npes):
                             flag = shmem.test(ivar[..., pe], cmp, val)
                             self.assertTrue(flag)
+                shmem.free(ivar)
 
     @unittest.skipIf('osss-ucx' in shmem.VENDOR_STRING, 'osss-ucx')
     def testAll(self):
@@ -307,6 +319,7 @@ class TestTest(unittest.TestCase):
                             ivars, '==', values,
                         )
                         self.assertTrue(flag)
+                        shmem.free(ivars)
                         #
                         shmem.barrier_all()
                         ivars = shmem.zeros(3, t)
@@ -321,6 +334,7 @@ class TestTest(unittest.TestCase):
                             ivars, '==', values, status=status,
                         )
                         self.assertTrue(flag)
+                        shmem.free(ivars)
                         continue
                     #
                     shmem.barrier_all()
@@ -359,6 +373,7 @@ class TestTest(unittest.TestCase):
                         self.assertTrue(flag)
                         flag = shmem.test_all_vector(ivars, cmp, v2vec)
                         self.assertTrue(flag)
+                    shmem.free(ivars)
 
     @unittest.skipIf('osss-ucx' in shmem.VENDOR_STRING, 'osss-ucx')
     def testAny(self):
@@ -377,6 +392,7 @@ class TestTest(unittest.TestCase):
                         self.assertEqual(index, None)
                         index = shmem.test_any_vector(ivars, '==', values)
                         self.assertEqual(index, None)
+                        shmem.free(ivars)
                         #
                         shmem.barrier_all()
                         ivars = shmem.zeros(3, t)
@@ -391,6 +407,7 @@ class TestTest(unittest.TestCase):
                             ivars, '==', values, status=status,
                         )
                         self.assertEqual(index, None)
+                        shmem.free(ivars)
                         continue
                     #
                     shmem.barrier_all()
@@ -439,6 +456,7 @@ class TestTest(unittest.TestCase):
                         self.assertNotEqual(index, None)
                         index = shmem.test_any_vector(ivars, cmp, v2vec)
                         self.assertNotEqual(index, None)
+                    shmem.free(ivars)
 
     @unittest.skipIf('osss-ucx' in shmem.VENDOR_STRING, 'osss-ucx')
     def testSome(self):
@@ -457,6 +475,7 @@ class TestTest(unittest.TestCase):
                         self.assertEqual(index, [])
                         index = shmem.test_some_vector(ivars, '==', values)
                         self.assertEqual(index, [])
+                        shmem.free(ivars)
                         #
                         shmem.barrier_all()
                         ivars = shmem.zeros(3, t)
@@ -471,6 +490,7 @@ class TestTest(unittest.TestCase):
                             ivars, '==', values, status=status,
                         )
                         self.assertEqual(index, [])
+                        shmem.free(ivars)
                         continue
                     #
                     shmem.barrier_all()
@@ -519,6 +539,7 @@ class TestTest(unittest.TestCase):
                         self.assertNotEqual(index, [])
                         index = shmem.test_some_vector(ivars, cmp, v2vec)
                         self.assertNotEqual(index, [])
+                    shmem.free(ivars)
 
 
 class TestSignal(unittest.TestCase):
@@ -537,6 +558,7 @@ class TestSignal(unittest.TestCase):
         for cmp, val in zip(cmps, vals):
             sig = shmem.signal_wait_until(signal, cmp, val)
             self.assertEqual(sig, 1)
+        shmem.del_signal(signal)
 
 
 if __name__ == '__main__':

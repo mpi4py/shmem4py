@@ -50,6 +50,8 @@ class TestReduce(unittest.TestCase):
                 shmem.barrier_all()
                 shmem.reduce(tgt, src)
                 self.assertEqual(tgt, ((npes-1)*npes)//2)
+                shmem.free(tgt)
+                shmem.free(src)
 
     def testReduceTeam(self):
         team = shmem.TEAM_WORLD
@@ -62,6 +64,8 @@ class TestReduce(unittest.TestCase):
                 shmem.barrier_all()
                 shmem.reduce(tgt, src, team=team)
                 self.assertEqual(tgt, ((npes-1)*npes)//2)
+                shmem.free(tgt)
+                shmem.free(src)
 
     def testReduceOp(self):
         mype = shmem.my_pe()
@@ -81,6 +85,8 @@ class TestReduce(unittest.TestCase):
                     else:
                         self.assertEqual(tgt[0], val)
                     self.assertEqual(tgt[1], ini)
+                    shmem.free(tgt)
+                    shmem.free(src)
 
     def testReduceOpSize(self):
         mype = shmem.my_pe()
@@ -101,6 +107,8 @@ class TestReduce(unittest.TestCase):
                         else:
                             self.assertTrue(np.all(tgt[:size] == val))
                         self.assertTrue(np.all(tgt[size:] == ini))
+                shmem.free(tgt)
+                shmem.free(src)
 
 
 if __name__ == '__main__':

@@ -26,6 +26,7 @@ class TestAMO(unittest.TestCase):
             shmem.barrier_all()
             val = shmem.atomic_fetch(src, nxpe)
             self.assertEqual(val, nxpe)
+            shmem.free(src)
 
     def testSet(self):
         mype = shmem.my_pe()
@@ -36,6 +37,7 @@ class TestAMO(unittest.TestCase):
             shmem.atomic_set(tgt, nxpe, nxpe)
             shmem.barrier_all()
             self.assertEqual(tgt, mype)
+            shmem.free(tgt)
 
     def testSwap(self):
         mype = shmem.my_pe()
@@ -48,6 +50,7 @@ class TestAMO(unittest.TestCase):
             shmem.barrier_all()
             self.assertEqual(tgt, mype)
             self.assertEqual(val, np.array(-1, dtype=t))
+            shmem.free(tgt)
 
     @unittest.skipIf('open-mpi' in shmem.VENDOR_STRING, 'open-mpi')
     def testCompareSwap(self):
@@ -77,6 +80,8 @@ class TestAMO(unittest.TestCase):
             shmem.barrier_all()
             self.assertEqual(tgt, 0)
             self.assertEqual(val, 0)
+            #
+            shmem.free(tgt)
 
     def testFetchOp(self):
         mype = shmem.my_pe()
@@ -95,6 +100,7 @@ class TestAMO(unittest.TestCase):
                 val = shmem.atomic_fetch_op(tgt, op, 1, nxpe)
                 shmem.barrier_all()
                 self.assertEqual(val, 3 + i)
+            shmem.free(tgt)
 
     def testOp(self):
         mype = shmem.my_pe()
@@ -114,6 +120,7 @@ class TestAMO(unittest.TestCase):
                 val = shmem.atomic_fetch(tgt, nxpe)
                 shmem.atomic_op(tgt, op, 1, nxpe)
                 self.assertEqual(val, 3 + i)
+            shmem.free(tgt)
 
     def testFetchIncAdd(self):
         mype = shmem.my_pe()
@@ -130,6 +137,7 @@ class TestAMO(unittest.TestCase):
                 val = shmem.atomic_fetch_add(tgt, 1, nxpe)
                 shmem.barrier_all()
                 self.assertEqual(val, 3 + i)
+            shmem.free(tgt)
 
     def testIncAdd(self):
         mype = shmem.my_pe()
@@ -147,6 +155,7 @@ class TestAMO(unittest.TestCase):
                 val = shmem.atomic_fetch(tgt, nxpe)
                 shmem.atomic_add(tgt, 1, nxpe)
                 self.assertEqual(val, 3 + i)
+            shmem.free(tgt)
 
     def testFetchBitwise(self):
         mype = shmem.my_pe()
@@ -169,6 +178,7 @@ class TestAMO(unittest.TestCase):
                 val = shmem.atomic_fetch_and(tgt, 2**i-1, nxpe)
                 shmem.barrier_all()
                 self.assertEqual(val, 2**(i+1)-1)
+            shmem.free(tgt)
 
     def testBitwise(self):
         mype = shmem.my_pe()
@@ -193,6 +203,7 @@ class TestAMO(unittest.TestCase):
                 val = shmem.atomic_fetch(tgt, nxpe)
                 shmem.atomic_and(tgt, 2**i-1, nxpe)
                 self.assertEqual(val, 2**(i+1)-1)
+            shmem.free(tgt)
 
 
 class TestAMONBI(unittest.TestCase):
@@ -205,6 +216,8 @@ class TestAMONBI(unittest.TestCase):
             shmem.atomic_fetch_nbi(val, src, shmem.my_pe())
         except NotImplementedError:
             raise unittest.SkipTest('amo-nbi')
+        finally:
+            shmem.free(src)
 
     def testFetch(self):
         mype = shmem.my_pe()
@@ -217,6 +230,7 @@ class TestAMONBI(unittest.TestCase):
             shmem.atomic_fetch_nbi(val, src, nxpe)
             shmem.quiet()
             self.assertEqual(val, nxpe)
+            shmem.free(src)
 
     def testSwap(self):
         mype = shmem.my_pe()
@@ -230,6 +244,7 @@ class TestAMONBI(unittest.TestCase):
             shmem.quiet()
             self.assertEqual(tgt, mype)
             self.assertEqual(val, np.array(-1, dtype=t))
+            shmem.free(tgt)
 
     @unittest.skipIf('open-mpi' in shmem.VENDOR_STRING, 'open-mpi')
     def testCompareSwap(self):
@@ -260,6 +275,8 @@ class TestAMONBI(unittest.TestCase):
             shmem.quiet()
             self.assertEqual(tgt, 0)
             self.assertEqual(val, 0)
+            #
+            shmem.free(tgt)
 
     def testFetchOp(self):
         mype = shmem.my_pe()
@@ -279,6 +296,7 @@ class TestAMONBI(unittest.TestCase):
                 shmem.atomic_fetch_op_nbi(val, tgt, op, 1, nxpe)
                 shmem.quiet()
                 self.assertEqual(val, 3 + i)
+            shmem.free(tgt)
 
     def testFetchIncAdd(self):
         mype = shmem.my_pe()
@@ -296,6 +314,7 @@ class TestAMONBI(unittest.TestCase):
                 shmem.atomic_fetch_add_nbi(val, tgt, 1, nxpe)
                 shmem.quiet()
                 self.assertEqual(val, 3 + i)
+            shmem.free(tgt)
 
     def testFetchBitwise(self):
         mype = shmem.my_pe()
@@ -319,6 +338,7 @@ class TestAMONBI(unittest.TestCase):
                 shmem.atomic_fetch_and_nbi(val, tgt, 2**i-1, nxpe)
                 shmem.quiet()
                 self.assertEqual(val, 2**(i+1)-1)
+            shmem.free(tgt)
 
 
 if __name__ == '__main__':

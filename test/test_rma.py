@@ -25,6 +25,7 @@ class TestRMA(unittest.TestCase):
             shmem.barrier_all()
             self.assertEqual(dst[0], mype)
             self.assertEqual(dst[1], init)
+            shmem.free(dst)
 
     def testGetSizeCtx(self):
         mype = shmem.my_pe()
@@ -40,6 +41,7 @@ class TestRMA(unittest.TestCase):
             shmem.barrier_all()
             self.assertEqual(dst[0], nxpe)
             self.assertEqual(dst[1], init)
+            shmem.free(src)
 
     def testPut(self):
         mype = shmem.my_pe()
@@ -53,6 +55,7 @@ class TestRMA(unittest.TestCase):
             shmem.barrier_all()
             self.assertEqual(dst[0], mype)
             self.assertEqual(dst[1], mype)
+            shmem.free(dst)
 
     def testGet(self):
         mype = shmem.my_pe()
@@ -64,6 +67,7 @@ class TestRMA(unittest.TestCase):
             shmem.barrier_all()
             shmem.get(dst, src, nxpe)
             self.assertEqual(dst[0], nxpe)
+            shmem.free(src)
 
     def testIPut(self):
         mype = shmem.my_pe()
@@ -92,6 +96,7 @@ class TestRMA(unittest.TestCase):
                     n = src[::sst].size
                     self.assertTrue(np.all(tgt[:n]==mype))
                     self.assertTrue(np.all(tgt[n:]==val))
+            shmem.free(tgt)
 
     def testIGet(self):
         mype = shmem.my_pe()
@@ -120,6 +125,7 @@ class TestRMA(unittest.TestCase):
                     n = src[::sst].size
                     self.assertTrue(np.all(tgt[:n]==nxpe))
                     self.assertTrue(np.all(tgt[n:]==val))
+            shmem.free(src)
 
     def testPutNBI(self):
         mype = shmem.my_pe()
@@ -134,6 +140,7 @@ class TestRMA(unittest.TestCase):
             shmem.quiet()
             shmem.barrier_all()
             self.assertEqual(dst[0], mype)
+            shmem.free(dst)
 
     def testGetNBI(self):
         mype = shmem.my_pe()
@@ -147,6 +154,7 @@ class TestRMA(unittest.TestCase):
             shmem.fence()
             shmem.quiet()
             self.assertEqual(dst[0], nxpe)
+            shmem.free(src)
 
 
 if __name__ == '__main__':

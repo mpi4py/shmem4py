@@ -79,6 +79,7 @@ class TestPtr(unittest.TestCase):
                         loc[...] = mype
                         shmem.barrier_all()
                         self.assertTrue(np.all(sym == nxpe))
+                    shmem.free(sym.base)
 
 
 if __name__ == '__main__':
