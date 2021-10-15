@@ -460,7 +460,7 @@ class _RawAllocAlign(dict):
         super().__init__()
         self.__clear = clear
 
-    def __missing__(self, align: int) -> 'Callable[[int],ffi.CData]':
+    def __missing__(self, align: int) -> 'Callable[[str, int], ffi.CData]':
         return ffi.new_allocator(
             lambda size: lib.shmem_py_malloc_align(align, size),
             lib.shmem_py_free,
