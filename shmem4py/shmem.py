@@ -1596,6 +1596,8 @@ class Lock:
         self._lock = new_lock()
 
     def destroy(self) -> None:
+        """
+        """
         lock = self._lock
         self._lock = None
         if lock is not None:

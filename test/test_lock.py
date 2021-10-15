@@ -101,6 +101,12 @@ class TestLockClass(unittest.TestCase):
         shmem.free(counter)
         lock.destroy()
 
+    def testDestroy(self):
+        lock = shmem.Lock()
+        lock.destroy()
+        lock.destroy()
+        lock.destroy()
+
 
 if __name__ == '__main__':
     unittest.main()
