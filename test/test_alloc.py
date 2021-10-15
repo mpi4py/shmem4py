@@ -18,7 +18,7 @@ class TestAlloc(unittest.TestCase):
                 for align in (None, 8, 64, 128):
                     for clear in (True, False):
                         for hints in (0, hint_atomics, hint_remote):
-                            cdata = shmem.alloc(t, n, align, clear, hints)
+                            cdata = shmem.alloc(t, n, align, hints, clear)
                             caddr = shmem.ffi.cast('uintptr_t', cdata)
                             if align is not None:
                                 self.assertEqual(int(caddr) % align, 0)
@@ -68,7 +68,7 @@ class TestAlloc(unittest.TestCase):
                                 self.assertTrue(array.flags.c_contiguous)
                             if order == 'F':
                                 self.assertTrue(array.flags.f_contiguous)
-                            shmem.free(array.base)
+                            shmem.del_array(array)
                             array = shmem.new_array(
                                 (n, n), t, order=order,
                                 align=align, clear=clear
@@ -78,7 +78,7 @@ class TestAlloc(unittest.TestCase):
                                 self.assertTrue(array.flags.c_contiguous)
                             if order == 'F':
                                 self.assertTrue(array.flags.f_contiguous)
-                            shmem.free(array.base)
+                            shmem.del_array(array)
 
     def testArray(self):
         arglist = (

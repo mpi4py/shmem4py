@@ -29,10 +29,7 @@ def api_build(
         size_t size, size_t eltsize);
     """)
     ffi.cdef("""
-    void *shmem_py_malloc(size_t size);
-    void *shmem_py_malloc_clear(size_t size);
-    void *shmem_py_malloc_align(size_t align, size_t size);
-    void *shmem_py_malloc_hints(size_t size, long hints);
+    void *shmem_py_alloc(size_t size, size_t align, long hints, int clear);
     void  shmem_py_free(void *ptr);
     """)
     ffi.cdef("""

@@ -6,6 +6,10 @@
 # ---
 
 import weakref as _wr
+import functools as _ft
+
+# ---
+
 import numpy as np
 from .api import ffi, lib
 
@@ -454,54 +458,6 @@ def ptr(
 # ---
 
 
-class _RawAllocAlign(dict):
-
-    def __init__(self, clear: bool = True) -> None:
-        super().__init__()
-        self.__clear = clear
-
-    def __missing__(self, align: int) -> 'Callable[[str, int], ffi.CData]':
-        return ffi.new_allocator(
-            lambda size: lib.shmem_py_malloc_align(align, size),
-            lib.shmem_py_free,
-            should_clear_after_alloc=self.__clear,
-        )
-
-
-class _RawAllocHints(dict):
-
-    def __init__(self, clear: bool = True) -> None:
-        super().__init__()
-        self.__clear = clear
-
-    def __missing__(self, hints: int) -> 'Callable[[str, int], ffi.CData]':
-        return ffi.new_allocator(
-            lambda size: lib.shmem_py_malloc_hints(size, hints),
-            lib.shmem_py_free,
-            should_clear_after_alloc=self.__clear,
-        )
-
-
-_raw_malloc = ffi.new_allocator(
-    lib.shmem_py_malloc,
-    lib.shmem_py_free,
-    should_clear_after_alloc=False,
-)
-
-_raw_calloc = ffi.new_allocator(
-    lib.shmem_py_malloc_clear,
-    lib.shmem_py_free,
-    should_clear_after_alloc=False,
-)
-
-_raw_malloc_align = _RawAllocAlign(clear=False)
-
-_raw_calloc_align = _RawAllocAlign(clear=True)
-
-_raw_malloc_hints = _RawAllocHints(clear=False)
-
-_raw_calloc_hints = _RawAllocHints(clear=True)
-
 _numpy_to_cffi = {
     'c': 'char',
     'b': 'signed char',
@@ -583,6 +539,22 @@ _numpy_to_shmem = {
 _heap = _wr.WeakValueDictionary()
 
 
+@_ft.lru_cache(maxsize=None)
+def _get_allocator(
+    align: 'Optional[int]' = None,
+    hints: 'Optional[int]' = None,
+    clear: bool = True,
+) -> 'Callable[[str, int], ffi.CData]':
+    align = align if align is not None else 0
+    hints = hints if hints is not None else 0
+    assert align >= 0 and hints >= 0
+    return ffi.new_allocator(
+        lambda size: lib.shmem_py_alloc(size, align, hints, clear),
+        lib.shmem_py_free,
+        should_clear_after_alloc=False,
+    )
+
+
 MALLOC_ATOMICS_REMOTE: int = lib.SHMEM_MALLOC_ATOMICS_REMOTE
 MALLOC_SIGNAL_REMOTE: int = lib.SHMEM_MALLOC_SIGNAL_REMOTE
 
@@ -591,29 +563,15 @@ def alloc(
     dtype: 'np.DTypeLike',
     size:  int,
     align: 'Optional[int]' = None,
-    clear: bool = True,
     hints: 'Optional[int]' = None,
+    clear: bool = True,
 ) -> ffi.CData:
     """
     """
     dtype = np.dtype(dtype)
     ctype = _numpy_to_shmem[dtype.char]
     cdecl = ffi.getctype(ctype, '[]')
-    if align is not None:
-        if clear:
-            allocator = _raw_calloc_align[align]
-        else:
-            allocator = _raw_malloc_align[align]
-    elif hints is not None:
-        if clear:
-            allocator = _raw_calloc_hints[hints]
-        else:
-            allocator = _raw_malloc_hints[hints]
-    else:
-        if clear:
-            allocator = _raw_calloc
-        else:
-            allocator = _raw_malloc
+    allocator = _get_allocator(align, hints, clear)
     cdata = allocator(cdecl, size)
     caddr = ffi.cast('uintptr_t', cdata)
     _heap[caddr] = cdata
@@ -645,7 +603,8 @@ def fromcdata(
     itemsize = dtype.itemsize
     if shape is None:
         shape = ffi.sizeof(cdata) // itemsize
-    nbytes = np.prod(shape, dtype='p') * itemsize
+    count = np.prod(shape, dtype='p')
+    nbytes = count * itemsize
     buf = ffi.buffer(cdata, nbytes)
     a = np.frombuffer(buf, dtype)
     tmp = a.reshape(shape, order=order)
@@ -660,15 +619,22 @@ def new_array(
     dtype: 'np.DTypeLike' = float,
     order: 'str' = 'C',
     align: 'Optional[int]' = None,
-    clear: 'bool' = True,
     hints: 'Optional[int]' = None,
+    clear: 'bool' = True,
 ) -> 'npt.NDArray':
     """
     """
     dtype = np.dtype(dtype)
     count = np.prod(shape, dtype='p')
-    cdata = alloc(dtype, count, align, clear, hints)
+    cdata = alloc(dtype, count, align, hints, clear)
     return fromcdata(cdata, shape, dtype, order)
+
+
+def del_array(a: 'npt.NDArray') -> None:
+    """
+    """
+    assert isinstance(a, np.ndarray)
+    free(a.base)
 
 
 def array(
@@ -681,11 +647,12 @@ def array(
     """
     """
     tmp = np.array(obj, dtype, copy=False, order=order)
-    a = new_array(tmp.size, tmp.dtype, align=align, clear=False, hints=hints)
+    a = new_array(tmp.size, tmp.dtype, align=align, hints=hints, clear=False)
     a.shape = tmp.shape
     if tmp.ndim > 1:
         a.strides = tmp.strides
     np.copyto(a, tmp, casting='no')
+    lib.shmem_sync_all()
     return a
 
 
@@ -698,7 +665,7 @@ def empty(
 ) -> 'npt.NDArray':
     """
     """
-    a = new_array(shape, dtype, order, align=align, clear=False, hints=hints)
+    a = new_array(shape, dtype, order, align=align, hints=hints, clear=False)
     return a
 
 
@@ -711,7 +678,7 @@ def zeros(
 ) -> 'npt.NDArray':
     """
     """
-    a = new_array(shape, dtype, order, align=align, clear=True, hints=hints)
+    a = new_array(shape, dtype, order, align=align, hints=hints, clear=True)
     return a
 
 
@@ -724,8 +691,9 @@ def ones(
 ) -> 'npt.NDArray':
     """
     """
-    a = new_array(shape, dtype, order, align=align, clear=True, hints=hints)
+    a = new_array(shape, dtype, order, align=align, hints=hints, clear=True)
     np.copyto(a, 1, casting='unsafe')
+    lib.shmem_sync_all()
     return a
 
 
@@ -741,8 +709,9 @@ def full(
     """
     if dtype is None:
         dtype = np.array(fill_value).dtype
-    a = new_array(shape, dtype, order, align=align, clear=False, hints=hints)
+    a = new_array(shape, dtype, order, align=align, hints=hints, clear=False)
     np.copyto(a, fill_value, casting='unsafe')
+    lib.shmem_sync_all()
     return a
 
 
@@ -1130,7 +1099,8 @@ def new_signal() -> ffi.CData:
     """
     """
     hints = lib.SHMEM_MALLOC_SIGNAL_REMOTE
-    return _raw_calloc_hints[hints](_signal_type)
+    allocator = _get_allocator(hints=hints)
+    return allocator(_signal_type)
 
 
 def del_signal(signal: ffi.CData) -> None:
@@ -1138,7 +1108,6 @@ def del_signal(signal: ffi.CData) -> None:
     """
     assert ffi.typeof(signal) is _signal_type
     ffi.release(signal)
-
 
 
 # ---
@@ -1563,7 +1532,8 @@ _lock_type = ffi.typeof('long*')
 def new_lock() -> ffi.CData:
     """
     """
-    return _raw_calloc(_lock_type)
+    allocator = _get_allocator()
+    return allocator(_lock_type)
 
 
 def del_lock(lock: ffi.CData) -> None:
