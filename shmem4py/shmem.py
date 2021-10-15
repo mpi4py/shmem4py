@@ -613,7 +613,8 @@ def alloc(
         else:
             allocator = _raw_malloc
     cdata = allocator(cdecl, size)
-    _heap[ffi.cast('uintptr_t', cdata)] = cdata
+    caddr = ffi.cast('uintptr_t', cdata)
+    _heap[caddr] = cdata
     return cdata
 
 
@@ -622,7 +623,8 @@ def free(cdata: 'ffi.CData|Buffer') -> None:
     """
     if not isinstance(cdata, ffi.CData):
         cdata = ffi.from_buffer(cdata)
-    cdata = _heap.pop(ffi.cast('uintptr_t', cdata))
+    caddr = ffi.cast('uintptr_t', cdata)
+    cdata = _heap.pop(caddr)
     ffi.release(cdata)
 
 
@@ -1119,11 +1121,22 @@ def signal_fetch(sig_addr):
     return lib.shmem_signal_fetch(sig_addr)
 
 
+_signal_type = ffi.typeof('uint64_t*')
+
+
 def new_signal() -> ffi.CData:
     """
     """
     hints = lib.SHMEM_MALLOC_SIGNAL_REMOTE
-    return _raw_calloc_hints[hints]('uint64_t*')
+    return _raw_calloc_hints[hints](_signal_type)
+
+
+def del_signal(signal: ffi.CData) -> None:
+    """
+    """
+    assert ffi.typeof(signal) is _signal_type
+    ffi.release(signal)
+
 
 
 # ---
@@ -1542,10 +1555,20 @@ def quiet(ctx: 'Optional[Ctx]' = None) -> None:
 # ---
 
 
+_lock_type = ffi.typeof('long*')
+
+
 def new_lock() -> ffi.CData:
     """
     """
-    return _raw_calloc('long*')
+    return _raw_calloc(_lock_type)
+
+
+def del_lock(lock: ffi.CData) -> None:
+    """
+    """
+    assert ffi.typeof(lock) is _lock_type
+    ffi.release(lock)
 
 
 def set_lock(lock: ffi.CData) -> None:
@@ -1572,18 +1595,28 @@ class Lock:
     def __init__(self) -> None:
         self._lock = new_lock()
 
+    def destroy(self) -> None:
+        lock = self._lock
+        self._lock = None
+        if lock is not None:
+            del_lock(lock)
+
     def acquire(self, blocking: bool = True) -> bool:
         """
         """
+        lock = self._lock
+        assert lock is not None
         if blocking:
-            set_lock(self._lock)
+            set_lock(lock)
             return True
-        return not test_lock(self._lock)
+        return not test_lock(lock)
 
     def release(self) -> None:
         """
         """
-        clear_lock(self._lock)
+        lock = self._lock
+        assert lock is not None
+        clear_lock(lock)
 
     def __enter__(self):
         self.acquire()
