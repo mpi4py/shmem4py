@@ -303,20 +303,37 @@ int shmem_team_sync(shmem_team_t team)
 
 /* --- */
 
-static
-long *_py_shmem_pSync_array = NULL;
+static long *_py_shmem_pSync_array = NULL;
 
-static
-long *_py_shmem_pSync()
+static inline long *_py_shmem_pSync()
 {
   if (!_py_shmem_pSync_array) {
     _py_shmem_pSync_array = (long *) shmem_malloc(SHMEM_SYNC_SIZE * sizeof(long));
     for (int i = 0; i < SHMEM_SYNC_SIZE; i++)
       _py_shmem_pSync_array[i] = SHMEM_SYNC_VALUE;
+    shmem_sync_all();
   }
-  shmem_sync_all();
   return _py_shmem_pSync_array;
 }
+
+static size_t _py_shmem_pWrk_size  = 0;
+static void  *_py_shmem_pWrk_array = NULL;
+
+static inline void *_py_shmem_pWrk(size_t nreduce, size_t eltsize)
+{
+# define max(a,b) (((a)>(b))?(a):(b))
+  size_t min_len  = max(nreduce/2 + 1, SHMEM_REDUCE_MIN_WRKDATA_SIZE);
+  size_t wrk_size = max(min_len * eltsize, _py_shmem_pWrk_size);
+  if (!_py_shmem_pWrk_array || _py_shmem_pWrk_size < wrk_size) {
+    shmem_free(_py_shmem_pWrk_array);
+    _py_shmem_pWrk_size  = wrk_size;
+    _py_shmem_pWrk_array = shmem_malloc(wrk_size);
+    shmem_sync_all();
+  }
+  return _py_shmem_pWrk_array;
+}
+
+/* --- */
 
 #if !defined(PySHMEM_HAVE_shmem_broadcastmem)
 
@@ -429,26 +446,7 @@ int shmem_py_alltoalls(shmem_team_t team, void *dest, const void *source,
 
 /* --- */
 
-size_t _py_shmem_pWrk_size  = 0;
-void  *_py_shmem_pWrk_array = NULL;
-
 #if !defined(PySHMEM_HAVE_shmem_OP_reduce)
-
-#define max(a,b) (((a)>(b))?(a):(b))
-
-static
-void *_py_shmem_pWrk(size_t nreduce, size_t eltsize)
-{
-  size_t min_len  = max(nreduce/2 + 1, SHMEM_REDUCE_MIN_WRKDATA_SIZE);
-  size_t wrk_size = max(min_len * eltsize, _py_shmem_pWrk_size);
-  if (_py_shmem_pWrk_size < wrk_size || !_py_shmem_pWrk_array) {
-    shmem_free(_py_shmem_pWrk_array);
-    _py_shmem_pWrk_size  = wrk_size;
-    _py_shmem_pWrk_array = shmem_malloc(wrk_size);
-  }
-  shmem_sync_all();
-  return _py_shmem_pWrk_array;
-}
 
 #define PySHMEM_REDUCE_OP(TYPENAME, TYPE, OP)                           \
 static                                                                  \
