@@ -222,28 +222,48 @@ class TestAMONBI(unittest.TestCase):
     def testFetch(self):
         mype = shmem.my_pe()
         npes = shmem.n_pes()
+        prpe = (mype - 1) % npes
         nxpe = (mype + 1) % npes
         for t in types_ext:
             val = np.array(0, dtype=t)
             src = shmem.array(mype, dtype=t)
             shmem.barrier_all()
+            #
             shmem.atomic_fetch_nbi(val, src, nxpe)
             shmem.quiet()
             self.assertEqual(val, nxpe)
+            #
+            shmem.sync_all()
+            src[...] = np.array(prpe, dtype=t)
+            shmem.sync_all()
+            shmem.atomic_fetch_nbi(val, src, nxpe)
+            shmem.quiet()
+            self.assertEqual(val, mype)
+            #
             shmem.free(src)
 
     def testSwap(self):
         mype = shmem.my_pe()
         npes = shmem.n_pes()
+        prpe = (mype - 1) % npes
         nxpe = (mype + 1) % npes
         for t in types_ext:
             val = np.array(0, dtype=t)
             tgt = shmem.array(-1, dtype=t)
             shmem.barrier_all()
+            #
             shmem.atomic_swap_nbi(val, tgt, nxpe, nxpe)
             shmem.quiet()
-            self.assertEqual(tgt, mype)
             self.assertEqual(val, np.array(-1, dtype=t))
+            shmem.sync_all()
+            self.assertEqual(tgt, mype)
+            #
+            shmem.atomic_swap_nbi(val, tgt, mype, nxpe)
+            shmem.quiet()
+            self.assertEqual(val, np.array(nxpe, dtype=t))
+            shmem.sync_all()
+            self.assertEqual(tgt, prpe)
+            #
             shmem.free(tgt)
 
     @unittest.skipIf('open-mpi' in shmem.VENDOR_STRING, 'open-mpi')
@@ -258,23 +278,27 @@ class TestAMONBI(unittest.TestCase):
             #
             shmem.atomic_compare_swap_nbi(val, tgt, 1, nxpe, nxpe)
             shmem.quiet()
-            self.assertEqual(tgt, 0)
             self.assertEqual(val, 0)
+            shmem.sync_all()
+            self.assertEqual(tgt, 0)
             #
             shmem.atomic_compare_swap_nbi(val, tgt, 0, nxpe, nxpe)
             shmem.quiet()
-            self.assertEqual(tgt, mype)
             self.assertEqual(val, 0)
+            shmem.sync_all()
+            self.assertEqual(tgt, mype)
             #
             shmem.atomic_compare_swap_nbi(val, tgt, nxpe, 0, nxpe)
             shmem.quiet()
-            self.assertEqual(tgt, 0)
             self.assertEqual(val, nxpe)
+            shmem.sync_all()
+            self.assertEqual(tgt, 0)
             #
             shmem.atomic_compare_swap_nbi(val, tgt, npes, 0, nxpe)
             shmem.quiet()
-            self.assertEqual(tgt, 0)
             self.assertEqual(val, 0)
+            shmem.sync_all()
+            self.assertEqual(tgt, 0)
             #
             shmem.free(tgt)
 
