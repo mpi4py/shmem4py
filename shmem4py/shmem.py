@@ -530,12 +530,13 @@ _numpy_to_cffi = {
     'u2': 'uint16_t',
     'u4': 'uint32_t',
     'u8': 'uint64_t',
-    'f4':  'float',
-    'f8':  'double',
-    'f16': 'long double',
-    'c8':  'float _Complex',
-    'c16': 'double _Complex',
-    'c32': 'long double _Complex',
+
+    f'f{np.dtype("f").itemsize}': 'float',
+    f'f{np.dtype("d").itemsize}': 'double',
+    f'f{np.dtype("g").itemsize}': 'long double',
+    f'c{np.dtype("F").itemsize}': 'float _Complex',
+    f'c{np.dtype("D").itemsize}': 'double _Complex',
+    f'c{np.dtype("G").itemsize}': 'long double _Complex',
 }
 
 _cffi_to_numpy = {
@@ -570,12 +571,13 @@ _numpy_to_shmem = {
     'u2': 'uint16',
     'u4': 'uint32',
     'u8': 'uint64',
-    'f4': 'float',
-    'f8': 'double',
-    'f16': 'longdouble',
-    'c8': 'complexf',
-    'c16': 'complexd',
-    'c32': 'complexl',
+
+    f'f{np.dtype("f").itemsize}': 'float',
+    f'f{np.dtype("d").itemsize}': 'double',
+    f'f{np.dtype("g").itemsize}': 'longdouble',
+    f'c{np.dtype("F").itemsize}': 'complexf',
+    f'c{np.dtype("D").itemsize}': 'complexd',
+    f'c{np.dtype("G").itemsize}': 'complexl',
 }
 
 _heap = _wr.WeakValueDictionary()
