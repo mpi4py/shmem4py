@@ -560,7 +560,7 @@ MALLOC_SIGNAL_REMOTE: int = lib.SHMEM_MALLOC_SIGNAL_REMOTE
 
 
 def alloc(
-    dtype: 'np.DTypeLike',
+    dtype: 'npt.DTypeLike',
     size:  int,
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
@@ -591,8 +591,8 @@ def free(cdata: 'ffi.CData|Buffer') -> None:
 def fromcdata(
     cdata: ffi.CData,
     shape: 'Optional[int|tuple[int]]' = None,
-    dtype: 'Optional[np.DTypeLike]' = None,
-    order: 'str' = 'C',
+    dtype: 'Optional[npt.DTypeLike]' = None,
+    order: str = 'C',
 ) -> 'npt.NDArray':
     """
     """
@@ -616,11 +616,11 @@ def fromcdata(
 
 def new_array(
     shape: 'int|tuple[int]',
-    dtype: 'np.DTypeLike' = float,
-    order: 'str' = 'C',
+    dtype: 'npt.DTypeLike' = float,
+    order: str = 'C',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
-    clear: 'bool' = True,
+    clear: bool = True,
 ) -> 'npt.NDArray':
     """
     """
@@ -639,8 +639,8 @@ def del_array(a: 'npt.NDArray') -> None:
 
 def array(
     obj: 'Any',
-    dtype: 'Optional[np.DTypeLike]' = None,
-    order: 'str' = 'K',
+    dtype: 'Optional[npt.DTypeLike]' = None,
+    order: str = 'K',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
@@ -658,8 +658,8 @@ def array(
 
 def empty(
     shape: 'int|tuple[int]',
-    dtype: 'np.DTypeLike' = float,
-    order: 'str' = 'C',
+    dtype: 'npt.DTypeLike' = float,
+    order: str = 'C',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
@@ -671,8 +671,8 @@ def empty(
 
 def zeros(
     shape: 'int|tuple[int]',
-    dtype: 'np.DTypeLike' = float,
-    order: 'str' = 'C',
+    dtype: 'npt.DTypeLike' = float,
+    order: str = 'C',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
@@ -684,8 +684,8 @@ def zeros(
 
 def ones(
     shape: 'int|tuple[int]',
-    dtype: 'np.DTypeLike' = float,
-    order: 'str' = 'C',
+    dtype: 'npt.DTypeLike' = float,
+    order: str = 'C',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
@@ -700,8 +700,8 @@ def ones(
 def full(
     shape: 'int|tuple[int]',
     fill_value: 'int|float',
-    dtype: 'Optional[np.DTypeLike]' = None,
-    order: 'str' = 'C',
+    dtype: 'Optional[npt.DTypeLike]' = None,
+    order: str = 'C',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
@@ -1602,7 +1602,7 @@ class Lock:
 # ---
 
 
-def pcontrol(level=1):
+def pcontrol(level: int = 1):
     """
     """
     lib.shmem_pcontrol(level)
