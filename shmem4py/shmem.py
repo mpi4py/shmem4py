@@ -16,6 +16,21 @@ from .api import ffi, lib
 # ---
 
 
+def _chkerr(ierr: int, func: str = "shmem") -> None:
+    if ierr != 0:  # pragma: no cover
+        if ierr == -1431655766:
+            raise NotImplementedError(f"{func}")
+        raise RuntimeError(f"{func}: error {ierr}")
+
+
+def _chkint(ival: int, func: str = "shmem") -> None:
+    if ival < 0:  # pragma: no cover
+        _chkerr(ival, func)
+
+
+# ---
+
+
 MAJOR_VERSION: int = lib.SHMEM_MAJOR_VERSION
 MINOR_VERSION: int = lib.SHMEM_MINOR_VERSION
 VENDOR_STRING: str = ffi.string(lib.SHMEM_VENDOR_STRING).decode()
@@ -83,18 +98,6 @@ def query_thread() -> int:
 
 
 # ---
-
-
-def _chkerr(ierr: int, func: str = "shmem") -> None:
-    if ierr != 0:  # pragma: no cover
-        if ierr == -1431655766:
-            raise NotImplementedError(f"{func}")
-        raise RuntimeError(f"{func}: error {ierr}")
-
-
-def _chkint(ival: int, func: str = "shmem") -> None:
-    if ival < 0:  # pragma: no cover
-        _chkerr(ival, func)
 
 
 def _initialize() -> None:
@@ -718,7 +721,7 @@ def full(
 # ---
 
 
-def _shmem(ctx, ctype, name, chkerr=False):
+def _shmem(ctx, ctype, name, chkerr=0):
     if ctx is None:
         if ctype is None:
             funcname = f'shmem_{name}'
@@ -744,6 +747,8 @@ def _shmem(ctx, ctype, name, chkerr=False):
         result = function(*args)
         ierr = lib._shmem_error
         _chkerr(ierr, funcname)
+        if chkerr > 1:
+            _chkerr(result, funcname)
         return result
 
     return wrapper
@@ -867,7 +872,7 @@ def _shmem_amo_nbi(ctx, name, fetch, remote, *args, readonly=False):
     ftype, fetch = _parse_amo(fetch, readonly=False)
     ctype, remote = _parse_amo(remote, readonly=readonly)
     assert ctype == ftype
-    shmem_amo_nbi = _shmem(ctx, ctype, f'atomic_{name}_nbi', chkerr=True)
+    shmem_amo_nbi = _shmem(ctx, ctype, f'atomic_{name}_nbi', chkerr=1)
     return shmem_amo_nbi(fetch, remote, *args)
 
 
@@ -1054,11 +1059,11 @@ def _shmem_rma_signal(ctx, name, nbi,
     sig_addr = _parse_signal(sig_addr)
     try:
         funcname = f'{name}_signal{nbi}'
-        shmem_rma_signal = _shmem(ctx, ctype, funcname, chkerr=True)
+        shmem_rma_signal = _shmem(ctx, ctype, funcname, chkerr=1)
     except AttributeError:
         size *= ffi.sizeof(ctype)
         funcname = f'{name}mem_signal{nbi}'
-        shmem_rma_signal = _shmem(ctx, None, funcname, chkerr=True)
+        shmem_rma_signal = _shmem(ctx, None, funcname, chkerr=1)
     return shmem_rma_signal(target, source, size, sig_addr, signal, sig_op, pe)
 
 
@@ -1177,6 +1182,17 @@ def _parse_reduce(target, source, size):
     return (stype, tdata, sdata, size)
 
 
+def _shmem_collective(ctype, name, size):
+    try:
+        funcname = f'{name}'
+        shmem_collective = _shmem(None, ctype, funcname, chkerr=2)
+    except AttributeError:
+        funcname = f'{name}mem'
+        shmem_collective = _shmem(None, None, funcname, chkerr=2)
+        size *= ffi.sizeof(ctype)
+    return shmem_collective, size
+
+
 def barrier_all() -> None:
     """
     """
@@ -1199,56 +1215,56 @@ def sync(team: 'Optional[Team]' = None) -> None:
         _chkerr(ierr, "shmem_team_sync")
 
 
-def broadcast(target, source, root, size=None, team=None):
+def broadcast(target, source, root, size=None, team=None) -> None:
     """
     """
     team, _ = _parse_team(team)
     ctype, target, source, size = _parse_bcast(target, source, size)
-    size = size * ffi.sizeof(ctype)
-    ierr = lib.shmem_broadcastmem(team, target, source, size, root)
-    _chkerr(ierr, "shmem_broadcastmem")
+    shmem_broadcast, size = _shmem_collective(ctype, 'broadcast', size)
+    shmem_broadcast(team, target, source, size, root)
 
 
-def collect(target, source, size=None, team=None):
+def collect(target, source, size=None, team=None) -> None:
     """
     """
     team, _ = _parse_team(team)
     ctype, target, source, size = _parse_collect(target, source, size)
-    size = size * ffi.sizeof(ctype)
-    ierr = lib.shmem_collectmem(team, target, source, size)
-    _chkerr(ierr, "shmem_collectmem")
+    shmem_collect, size = _shmem_collective(ctype, 'collect', size)
+    shmem_collect(team, target, source, size)
 
 
-def fcollect(target, source, size=None, team=None):
+def fcollect(target, source, size=None, team=None) -> None:
     """
     """
     team, npes = _parse_team(team)
     ctype, target, source, size = _parse_collect(target, source, size, npes)
-    size = size * ffi.sizeof(ctype)
-    ierr = lib.shmem_fcollectmem(team, target, source, size)
-    _chkerr(ierr, "shmem_fcollectmem")
+    shmem_fcollect, size = _shmem_collective(ctype, 'fcollect', size)
+    shmem_fcollect(team, target, source, size)
 
 
-def alltoall(target, source, size=None, team=None):
+def alltoall(target, source, size=None, team=None) -> None:
     """
     """
     team, npes = _parse_team(team)
     args = (target, source, size, npes)
     ctype, target, source, size = _parse_alltoall(*args)
-    size = size * ffi.sizeof(ctype)
-    ierr = lib.shmem_alltoallmem(team, target, source, size)
-    _chkerr(ierr, "shmem_alltoallmem")
+    shmem_alltoall, size = _shmem_collective(ctype, 'alltoall', size)
+    shmem_alltoall(team, target, source, size)
 
 
-def alltoalls(target, source, tst=1, sst=1, size=None, team=None):
+def alltoalls(target, source, tst=1, sst=1, size=None, team=None) -> None:
     """
     """
     team, npes = _parse_team(team)
     args = (target, source, size, npes, tst, sst)
     ctype, target, source, size = _parse_alltoall(*args)
-    eltsz = ffi.sizeof(ctype)
-    ierr = lib.shmem_py_alltoalls(team, target, source, tst, sst, size, eltsz)
-    _chkerr(ierr, "shmem_alltoalls")
+    shmem_alltoalls, memsize = _shmem_collective(ctype, 'alltoalls', size)
+    if size == memsize:
+        shmem_alltoalls(team, target, source, tst, sst, size)
+    else:
+        itemsize = ffi.sizeof(ctype)
+        shmem_alltoalls = _shmem(None, None, 'alltoallsmem_x', chkerr=2)
+        shmem_alltoalls(team, target, source, tst, sst, size, itemsize)
 
 
 OP_AND = 'and'

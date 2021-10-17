@@ -22,7 +22,7 @@ def api_build(
     for code in generate():
         ffi.cdef(code)
     ffi.cdef("""
-    int shmem_py_alltoalls(
+    int shmem_alltoallsmem_x(
         shmem_team_t team,
         void *dest, const void *source,
         ptrdiff_t dst, ptrdiff_t sst,

@@ -333,11 +333,37 @@ static inline void *_py_shmem_pWrk(size_t nreduce, size_t eltsize)
   return _py_shmem_pWrk_array;
 }
 
+#define PySHMEM_APPLY_STD_RMA_TYPES(PySHMEM_FN_MACRO)  \
+    PySHMEM_FN_MACRO( float,      float              ) \
+    PySHMEM_FN_MACRO( double,     double             ) \
+    PySHMEM_FN_MACRO( longdouble, long double        ) \
+    PySHMEM_FN_MACRO( char,       char               ) \
+    PySHMEM_FN_MACRO( short,      short              ) \
+    PySHMEM_FN_MACRO( schar,      signed char        ) \
+    PySHMEM_FN_MACRO( int,        int                ) \
+    PySHMEM_FN_MACRO( long,       long               ) \
+    PySHMEM_FN_MACRO( longlong,   long long          ) \
+    PySHMEM_FN_MACRO( uchar,      unsigned char      ) \
+    PySHMEM_FN_MACRO( ushort,     unsigned short     ) \
+    PySHMEM_FN_MACRO( uint,       unsigned int       ) \
+    PySHMEM_FN_MACRO( ulong,      unsigned long      ) \
+    PySHMEM_FN_MACRO( ulonglong,  unsigned long long ) \
+    PySHMEM_FN_MACRO( int8,       int8_t             ) \
+    PySHMEM_FN_MACRO( int16,      int16_t            ) \
+    PySHMEM_FN_MACRO( int32,      int32_t            ) \
+    PySHMEM_FN_MACRO( int64,      int64_t            ) \
+    PySHMEM_FN_MACRO( uint8,      uint8_t            ) \
+    PySHMEM_FN_MACRO( uint16,     uint16_t           ) \
+    PySHMEM_FN_MACRO( uint32,     uint32_t           ) \
+    PySHMEM_FN_MACRO( uint64,     uint64_t           ) \
+    PySHMEM_FN_MACRO( size,       size_t             ) \
+    PySHMEM_FN_MACRO( ptrdiff,    ptrdiff_t          )
+
 /* --- */
 
 #if !defined(PySHMEM_HAVE_shmem_broadcastmem)
 
-#define PySHMEM_BROADCAST(N, dest, source, nbytes, root)                \
+#define PySHMEM_BROADCAST_BIT(N, dest, source, nbytes, root)            \
   do {                                                                  \
     if (nbytes % (N>>3) == 0) {                                         \
       shmem_broadcast##N(dest, source, (nbytes)/(N>>3), root,           \
@@ -348,19 +374,39 @@ static inline void *_py_shmem_pWrk(size_t nreduce, size_t eltsize)
   } while(0);
 
 static
-int shmem_broadcastmem(shmem_team_t team, void *dest, const void *source, size_t nbytes, int root)
+int shmem_broadcastmem(shmem_team_t team,
+                       void *dest, const void *source, size_t nbytes, int root)
 {
+#if defined(PySHMEM_HAVE_shmem_broadcast)
+  unsigned char *_dest = (unsigned char *) dest;
+  const unsigned char * _source = (const unsigned char *) source;
+  return shmem_uchar_broadcast(team, _dest, _source, nbytes, root);
+#else
   if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
-  PySHMEM_BROADCAST(64, dest, source, nbytes, root);
-  PySHMEM_BROADCAST(32, dest, source, nbytes, root);
+  PySHMEM_BROADCAST_BIT(64, dest, source, nbytes, root);
+  PySHMEM_BROADCAST_BIT(32, dest, source, nbytes, root);
   return PySHMEM_UNAVAILABLE;
+#endif
 }
 
 #endif
 
+#if !defined(PySHMEM_HAVE_shmem_broadcast)
+
+#define PySHMEM_BROADCAST(TYPENAME, TYPE)                                     \
+static int shmem_##TYPENAME##_broadcast                                       \
+(shmem_team_t team, TYPE *dest, const TYPE *source, size_t nelems, int root)  \
+{ return shmem_broadcastmem(team, dest, source, nelems*sizeof(TYPE), root); }
+
+PySHMEM_APPLY_STD_RMA_TYPES(PySHMEM_BROADCAST)
+
+#endif
+
+/* --- */
+
 #if !defined(PySHMEM_HAVE_shmem_collectmem)
 
-#define PySHMEM_XCOLLECT(f, N, dest, source, nbytes)                    \
+#define PySHMEM_XCOLLECT_BIT(f, N, dest, source, nbytes)                \
   do {                                                                  \
     if (nbytes % (N>>3) == 0) {                                         \
       shmem_##f##collect##N(dest, source, (nbytes)/(N>>3),              \
@@ -368,35 +414,72 @@ int shmem_broadcastmem(shmem_team_t team, void *dest, const void *source, size_t
       return 0;                                                         \
     }                                                                   \
   } while(0);
-#define PySHMEM_COLLECT(N, dest, source, nbytes) \
-  PySHMEM_XCOLLECT(, N, dest, source, nbytes)
-#define PySHMEM_FCOLLECT(N, dest, source, nbytes) \
-  PySHMEM_XCOLLECT(f, N, dest, source, nbytes)
+
+#define PySHMEM_COLLECT_BIT(N, dest, source, nbytes) \
+  PySHMEM_XCOLLECT_BIT(, N, dest, source, nbytes)
+
+#define PySHMEM_FCOLLECT_BIT(N, dest, source, nbytes) \
+  PySHMEM_XCOLLECT_BIT(f, N, dest, source, nbytes)
 
 static
-int shmem_collectmem(shmem_team_t team, void *dest, const void *source, size_t nbytes)
+int shmem_collectmem(shmem_team_t team,
+                     void *dest, const void *source, size_t nbytes)
 {
+#if defined(PySHMEM_HAVE_shmem_collectmem)
+  unsigned char *_dest = (unsigned char *) dest;
+  const unsigned char * _source = (const unsigned char *) source;
+  return shmem_uchar_collect(team, _dest, _source, nbytes);
+#else
   if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
-  PySHMEM_COLLECT(32, dest, source, nbytes);
+  PySHMEM_COLLECT_BIT(64, dest, source, nbytes);
+  PySHMEM_COLLECT_BIT(32, dest, source, nbytes);
   return PySHMEM_UNAVAILABLE;
+#endif
 }
 
 static
-int shmem_fcollectmem(shmem_team_t team, void *dest, const void *source, size_t nbytes)
+int shmem_fcollectmem(shmem_team_t team,
+                      void *dest, const void *source, size_t nbytes)
 {
+#if defined(PySHMEM_HAVE_shmem_collectmem)
+  unsigned char *_dest = (unsigned char *) dest;
+  const unsigned char * _source = (const unsigned char *) source;
+  return shmem_uchar_fcollect(team, _dest, _source, nbytes);
+#else
   if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
-  PySHMEM_FCOLLECT(64, dest, source, nbytes);
-  PySHMEM_FCOLLECT(32, dest, source, nbytes);
+  PySHMEM_FCOLLECT_BIT(64, dest, source, nbytes);
+  PySHMEM_FCOLLECT_BIT(32, dest, source, nbytes);
   return PySHMEM_UNAVAILABLE;
+#endif
 }
 
 #endif
 
+#if !defined(PySHMEM_HAVE_shmem_collect)
+
+#define PySHMEM_XCOLLECT(f, TYPENAME, TYPE)                              \
+static int shmem_##TYPENAME##_##f##collect                               \
+(shmem_team_t team, TYPE *dest, const TYPE *source, size_t nelems)       \
+{ return shmem_##f##collectmem(team, dest, source, nelems*sizeof(TYPE)); }
+
+#define PySHMEM_COLLECT(TYPENAME, TYPE) \
+  PySHMEM_XCOLLECT(, TYPENAME, TYPE)
+
+#define PySHMEM_FCOLLECT(TYPENAME, TYPE) \
+  PySHMEM_XCOLLECT(f, TYPENAME, TYPE)
+
+PySHMEM_APPLY_STD_RMA_TYPES(PySHMEM_COLLECT)
+PySHMEM_APPLY_STD_RMA_TYPES(PySHMEM_FCOLLECT)
+
+#endif
+
+/* --- */
+
 #if !defined(PySHMEM_HAVE_shmem_alltoallmem)
 
-#define PySHMEM_ALLTOALL(N, dest, source, nbytes)                       \
+#define PySHMEM_ALLTOALL_BIT(N, dest, source, nbytes)                   \
   do {                                                                  \
-    if (nbytes % (N>>3) == 0) {                                         \
+    if ((nbytes) % (N>>3) == 0) {                                       \
       shmem_alltoall##N(dest, source, (nbytes)/(N>>3),                  \
                         0, 0, shmem_n_pes(), _py_shmem_pSync());        \
       return 0;                                                         \
@@ -404,22 +487,71 @@ int shmem_fcollectmem(shmem_team_t team, void *dest, const void *source, size_t 
   } while(0);
 
 static
-int shmem_alltoallmem(shmem_team_t team, void *dest, const void *source, size_t nbytes)
+int shmem_alltoallmem(shmem_team_t team,
+                      void *dest, const void *source, size_t nbytes)
 {
+#if defined(PySHMEM_HAVE_shmem_collectmem)
+  unsigned char *_dest = (unsigned char *) dest;
+  const unsigned char * _source = (const unsigned char *) source;
+  return shmem_uchar_alltoall(team, _dest, _source, nbytes);
+#else
   if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
-  PySHMEM_ALLTOALL(64, dest, source, nbytes);
-  PySHMEM_ALLTOALL(32, dest, source, nbytes);
+  PySHMEM_ALLTOALL_BIT(64, dest, source, nbytes);
+  PySHMEM_ALLTOALL_BIT(32, dest, source, nbytes);
   return PySHMEM_UNAVAILABLE;
+#endif
+}
+
+#endif
+
+#if !defined(PySHMEM_HAVE_shmem_alltoall)
+
+#define PySHMEM_ALLTOALL(TYPENAME, TYPE)                             \
+static int shmem_##TYPENAME##_alltoall                               \
+(shmem_team_t team, TYPE *dest, const TYPE *source, size_t nelems)   \
+{ return shmem_alltoallmem(team, dest, source, nelems*sizeof(TYPE)); }
+
+PySHMEM_APPLY_STD_RMA_TYPES(PySHMEM_ALLTOALL)
+
+#endif
+
+/* --- */
+
+#define PySHMEM_ALLTOALLS_BIT(N, dest, source, dst, sst, size, eltsize) \
+  do {                                                                  \
+    if ((eltsize) == (N>>3)) {                                          \
+      shmem_alltoalls##N(dest, source, dst, sst, size,                  \
+                         0, 0, shmem_n_pes(), _py_shmem_pSync()) ;      \
+      return 0;                                                         \
+    }                                                                   \
+  } while(0)
+
+#if !defined(PySHMEM_HAVE_shmem_alltoallsmem)
+
+static
+int shmem_alltoallsmem(shmem_team_t team, void *dest, const void *source,
+                       ptrdiff_t dst, ptrdiff_t sst, size_t nbytes)
+{
+#if defined(PySHMEM_HAVE_shmem_alltoalls)
+  unsigned char *_dest = (unsigned char *) dest;
+  const unsigned char * _source = (const unsigned char *) source;
+  return shmem_uchar_alltoalls(team, _dest, _source, dst, sst, nbytes);
+#else
+  (void)team; (void)dest; (void)source;
+  (void)dst;  (void)sst;  (void)nbytes;
+  return PySHMEM_UNAVAILABLE;
+#endif
 }
 
 #endif
 
 static
-int shmem_py_alltoalls(shmem_team_t team, void *dest, const void *source,
-                       ptrdiff_t dst, ptrdiff_t sst, size_t size, size_t eltsize)
+int shmem_alltoallsmem_x(shmem_team_t team,
+                         void *dest, const void *source,
+                         ptrdiff_t dst, ptrdiff_t sst,
+                         size_t size, size_t eltsize)
 {
-#if defined(PySHMEM_HAVE_shmem_TYPENAME_alltoalls)
-
+#if defined(PySHMEM_HAVE_shmem_alltoalls)
   switch (eltsize) {
   case (1): return shmem_uint8_alltoalls (team, dest, source, dst, sst, size);
   case (2): return shmem_uint16_alltoalls(team, dest, source, dst, sst, size);
@@ -427,26 +559,30 @@ int shmem_py_alltoalls(shmem_team_t team, void *dest, const void *source,
   case (8): return shmem_uint64_alltoalls(team, dest, source, dst, sst, size);
   }
   return PySHMEM_UNAVAILABLE;
-
 #else
-
-#define PySHMEM_ALLTOALLS(N, dest, source, dst, sst, size)      \
-  shmem_alltoalls##N(dest, source, dst, sst, size,              \
-                     0, 0, shmem_n_pes(), _py_shmem_pSync());
-
   if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
-  switch (eltsize) {
-  case (4): PySHMEM_ALLTOALLS(32, dest, source, dst, sst, size); return 0;
-  case (8): PySHMEM_ALLTOALLS(64, dest, source, dst, sst, size); return 0;
-  }
+  PySHMEM_ALLTOALLS_BIT(64, dest, source, dst, sst, size, eltsize);
+  PySHMEM_ALLTOALLS_BIT(32, dest, source, dst, sst, size, eltsize);
   return PySHMEM_UNAVAILABLE;
-
 #endif
 }
 
+#if !defined(PySHMEM_HAVE_shmem_alltoalls)
+
+#define PySHMEM_ALLTOALLS(TYPENAME, TYPE)                      \
+static int shmem_##TYPENAME##_alltoalls                        \
+(shmem_team_t team, TYPE *dest, const TYPE *source,            \
+ ptrdiff_t dst, ptrdiff_t sst, size_t nelems)                  \
+{ return shmem_alltoallsmem_x(team, dest, source,              \
+                              dst, sst, nelems, sizeof(TYPE)); }
+
+PySHMEM_APPLY_STD_RMA_TYPES(PySHMEM_ALLTOALLS)
+
+#endif
+
 /* --- */
 
-#if !defined(PySHMEM_HAVE_shmem_OP_reduce)
+#if !defined(PySHMEM_HAVE_shmem_reduce)
 
 #define PySHMEM_REDUCE_OP(TYPENAME, TYPE, OP)                           \
 static                                                                  \
@@ -536,7 +672,7 @@ PySHMEM_REDUCE_UINT(longlong, long long)
 
 #endif
 
-#if !defined(PySHMEM_HAVE_shmem_OP_reduce)
+#if !defined(PySHMEM_HAVE_shmem_reduce)
 
 #define PySHMEM_REDUCE_FAIL_OP(TYPENAME, TYPE, OP)                      \
 static                                                                  \
