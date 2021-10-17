@@ -1,4 +1,5 @@
 import os
+import glob
 import cffi
 
 srcdir = os.path.abspath(os.path.dirname(__file__))
@@ -21,17 +22,14 @@ def api_build(
     for code in generate():
         ffi.cdef(code)
     ffi.cdef("""
-    int shmem_py_alltoalls(
+    int shmem_alltoallsmem_x(
         shmem_team_t team,
         void *dest, const void *source,
         ptrdiff_t dst, ptrdiff_t sst,
         size_t size, size_t eltsize);
     """)
     ffi.cdef("""
-    void *shmem_py_malloc(size_t size);
-    void *shmem_py_malloc_clear(size_t size);
-    void *shmem_py_malloc_align(size_t align, size_t size);
-    void *shmem_py_malloc_hints(size_t size, long hints);
+    void *shmem_py_alloc(size_t size, size_t align, long hints, int clear);
     void  shmem_py_free(void *ptr);
     """)
     ffi.cdef("""
@@ -51,12 +49,17 @@ def api_build(
     source = f"#include <{shmem_h}>\n"
     source += f"#include <{libshmem_c}>\n"
     source += cmplxl
+    depends = glob.glob(
+        os.path.join(srcdir, '**', '*.[hc]'),
+        recursive=True,
+    )
 
     ffi.set_source(
         f"shmem4py.{module}", source,
         include_dirs=[srcdir],
         extra_compile_args=["-forward-unknown-to-host-compiler","-x c++"],
         extra_link_args=["-L/home/rogowsm/opt/nvshmem/lib","-lnvshmem","-lcuda"],
+        depends=depends,
     )
 
     return ffi

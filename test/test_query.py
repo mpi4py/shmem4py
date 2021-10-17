@@ -22,11 +22,13 @@ class TestQuery(unittest.TestCase):
     def testAddrAccesibleCData(self):
         addr = shmem.alloc('i', 1)
         flag = shmem.addr_accessible(addr, shmem.my_pe())
+        shmem.free(addr)
         self.assertTrue(flag)
 
     def testAddrAccesibleNumPy(self):
         addr = shmem.empty(1, dtype='i')
         flag = shmem.addr_accessible(addr, shmem.my_pe())
+        shmem.free(addr)
         self.assertTrue(flag)
 
 

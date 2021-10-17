@@ -21,6 +21,8 @@ class TestLock(unittest.TestCase):
             shmem.clear_lock(lock)
         shmem.barrier_all()
         self.assertEqual(counter, npes)
+        shmem.free(counter)
+        shmem.del_lock(lock)
 
     def testTestLock(self):
         npes = shmem.n_pes()
@@ -38,14 +40,16 @@ class TestLock(unittest.TestCase):
             shmem.clear_lock(lock)
         shmem.barrier_all()
         self.assertEqual(counter, npes)
+        shmem.free(counter)
+        shmem.del_lock(lock)
 
 
 @unittest.skipIf('osss-ucx' in shmem.VENDOR_STRING, 'osss-ucx')
 class TestLockClass(unittest.TestCase):
 
     def testBlocking(self):
-        npes = shmem.n_pes()
         lock = shmem.Lock()
+        npes = shmem.n_pes()
         value = np.array(0, dtype='i')
         counter = shmem.array(0, dtype='i')
         shmem.barrier_all()
@@ -58,10 +62,12 @@ class TestLockClass(unittest.TestCase):
             lock.release()
         shmem.barrier_all()
         self.assertEqual(counter, npes)
+        shmem.free(counter)
+        lock.destroy()
 
     def testNonBlocking(self):
-        npes = shmem.n_pes()
         lock = shmem.Lock()
+        npes = shmem.n_pes()
         value = np.array(0, dtype='i')
         counter = shmem.array(0, dtype='i')
         shmem.barrier_all()
@@ -75,10 +81,12 @@ class TestLockClass(unittest.TestCase):
             lock.release()
         shmem.barrier_all()
         self.assertEqual(counter, npes)
+        shmem.free(counter)
+        lock.destroy()
 
     def testWith(self):
-        npes = shmem.n_pes()
         lock = shmem.Lock()
+        npes = shmem.n_pes()
         value = np.array(0, dtype='i')
         counter = shmem.array(0, dtype='i')
         shmem.barrier_all()
@@ -90,6 +98,14 @@ class TestLockClass(unittest.TestCase):
                 shmem.quiet()
         shmem.barrier_all()
         self.assertEqual(counter, npes)
+        shmem.free(counter)
+        lock.destroy()
+
+    def testDestroy(self):
+        lock = shmem.Lock()
+        lock.destroy()
+        lock.destroy()
+        lock.destroy()
 
 
 if __name__ == '__main__':

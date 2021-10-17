@@ -18,7 +18,7 @@ class TestAlloc(unittest.TestCase):
                 for align in (None, 8, 64, 128):
                     for clear in (True, False):
                         for hints in (0, hint_atomics, hint_remote):
-                            cdata = shmem.alloc(t, n, align, clear, hints)
+                            cdata = shmem.alloc(t, n, align, hints, clear)
                             caddr = shmem.ffi.cast('uintptr_t', cdata)
                             if align is not None:
                                 self.assertEqual(int(caddr) % align, 0)
@@ -35,6 +35,7 @@ class TestAlloc(unittest.TestCase):
                 array = shmem.fromcdata(cdata, dtype=t)
                 self.assertEqual(array.shape, (n,))
                 self.assertEqual(array.dtype, np.dtype(t))
+                shmem.free(cdata)
                 #
                 cdata = shmem.alloc(t, n)
                 array = shmem.fromcdata(cdata)
@@ -42,6 +43,7 @@ class TestAlloc(unittest.TestCase):
                 self.assertEqual(array.shape, (n,))
                 array = shmem.fromcdata(cdata, (n, 1))
                 self.assertEqual(array.shape, (n, 1))
+                shmem.free(cdata)
                 #
                 cdata = shmem.alloc(t, n*n)
                 array = shmem.fromcdata(cdata)
@@ -49,6 +51,7 @@ class TestAlloc(unittest.TestCase):
                 array = shmem.fromcdata(cdata, (n, n), order='F')
                 self.assertEqual(array.shape, (n, n))
                 self.assertTrue(array.flags.f_contiguous)
+                shmem.free(cdata)
 
     def testNewArray(self):
         for n in range(4):
@@ -65,7 +68,7 @@ class TestAlloc(unittest.TestCase):
                                 self.assertTrue(array.flags.c_contiguous)
                             if order == 'F':
                                 self.assertTrue(array.flags.f_contiguous)
-                            shmem.free(array.base)
+                            shmem.del_array(array)
                             array = shmem.new_array(
                                 (n, n), t, order=order,
                                 align=align, clear=clear
@@ -75,7 +78,7 @@ class TestAlloc(unittest.TestCase):
                                 self.assertTrue(array.flags.c_contiguous)
                             if order == 'F':
                                 self.assertTrue(array.flags.f_contiguous)
-                            shmem.free(array.base)
+                            shmem.del_array(array)
 
     def testArray(self):
         arglist = (
@@ -91,10 +94,12 @@ class TestAlloc(unittest.TestCase):
                     self.assertEqual(a.dtype, b.dtype)
                     self.assertEqual(a.shape, b.shape)
                     self.assertEqual(a.strides, b.strides)
+                    shmem.free(a.base)
                     a = shmem.array(b)
                     self.assertEqual(a.dtype, b.dtype)
                     self.assertEqual(a.shape, b.shape)
                     self.assertEqual(a.strides, b.strides)
+                    shmem.free(a.base)
 
 
     def testEmpty(self):
@@ -102,12 +107,16 @@ class TestAlloc(unittest.TestCase):
         af = shmem.empty(1, dtype=float)
         self.assertEqual(ai.dtype, np.dtype(int))
         self.assertEqual(af.dtype, np.dtype(float))
+        shmem.free(ai)
+        shmem.free(af)
 
     def testEmpty(self):
         ai = shmem.empty(1, dtype=int)
         af = shmem.empty(1, dtype=float)
         self.assertEqual(ai.dtype, np.dtype(int))
         self.assertEqual(af.dtype, np.dtype(float))
+        shmem.free(ai)
+        shmem.free(af)
 
     def testZeros(self):
         ai = shmem.zeros(1, dtype=int)
@@ -116,6 +125,8 @@ class TestAlloc(unittest.TestCase):
         self.assertEqual(af[0], 0.0)
         self.assertEqual(ai.dtype, np.dtype(int))
         self.assertEqual(af.dtype, np.dtype(float))
+        shmem.free(ai)
+        shmem.free(af)
 
     def testOnes(self):
         ai = shmem.ones(1, dtype=int)
@@ -124,6 +135,8 @@ class TestAlloc(unittest.TestCase):
         self.assertEqual(af[0], 1.0)
         self.assertEqual(ai.dtype, np.dtype(int))
         self.assertEqual(af.dtype, np.dtype(float))
+        shmem.free(ai)
+        shmem.free(af)
 
     def testFull(self):
         ai = shmem.full(1, 42)
@@ -132,6 +145,8 @@ class TestAlloc(unittest.TestCase):
         self.assertEqual(af[0], 42.0)
         self.assertEqual(ai.dtype, np.dtype(int))
         self.assertEqual(af.dtype, np.dtype(float))
+        shmem.free(ai)
+        shmem.free(af)
 
 
 if __name__ == '__main__':

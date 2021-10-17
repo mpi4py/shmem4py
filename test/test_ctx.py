@@ -114,6 +114,10 @@ class TestCtx(unittest.TestCase):
         ctx.quiet()
         shmem.quiet(ctx)
 
+    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
+    def testInvalid(self):
+        ctx = shmem.CTX_INVALID
+        self.assertRaises(RuntimeError, ctx.get_team)
 
 
 if __name__ == '__main__':

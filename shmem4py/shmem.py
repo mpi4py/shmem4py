@@ -6,8 +6,27 @@
 # ---
 
 import weakref as _wr
+import functools as _ft
+
+# ---
+
 import numpy as np
 from .api import ffi, lib
+
+# ---
+
+
+def _chkerr(ierr: int, func: str = "shmem") -> None:
+    if ierr != 0:
+        if ierr == -1431655766:
+            raise NotImplementedError(f"{func}")
+        raise RuntimeError(f"{func}: error {ierr}")
+
+
+def _chkint(ival: int, func: str = "shmem") -> None:
+    if ival < 0:
+        _chkerr(ival, func)
+
 
 # ---
 
@@ -79,18 +98,6 @@ def query_thread() -> int:
 
 
 # ---
-
-
-def _chkerr(ierr: int, func: str = "shmem") -> None:
-    if ierr != 0:  # pragma: no cover
-        if ierr == -1431655766:
-            raise NotImplementedError(f"{func}")
-        raise RuntimeError(f"{func}: error {ierr}")
-
-
-def _chkint(ival: int, func: str = "shmem") -> None:
-    if ival < 0:  # pragma: no cover
-        _chkerr(ival, func)
 
 
 def _initialize() -> None:
@@ -456,54 +463,6 @@ def ptr(
 # ---
 
 
-class _RawAllocAlign(dict):
-
-    def __init__(self, clear: bool = True) -> None:
-        super().__init__()
-        self.__clear = clear
-
-    def __missing__(self, align: int) -> 'Callable[[int],ffi.CData]':
-        return ffi.new_allocator(
-            lambda size: lib.shmem_py_malloc_align(align, size),
-            lib.shmem_py_free,
-            should_clear_after_alloc=self.__clear,
-        )
-
-
-class _RawAllocHints(dict):
-
-    def __init__(self, clear: bool = True) -> None:
-        super().__init__()
-        self.__clear = clear
-
-    def __missing__(self, hints: int) -> 'Callable[[str, int], ffi.CData]':
-        return ffi.new_allocator(
-            lambda size: lib.shmem_py_malloc_hints(size, hints),
-            lib.shmem_py_free,
-            should_clear_after_alloc=self.__clear,
-        )
-
-
-_raw_malloc = ffi.new_allocator(
-    lib.shmem_py_malloc,
-    lib.shmem_py_free,
-    should_clear_after_alloc=False,
-)
-
-_raw_calloc = ffi.new_allocator(
-    lib.shmem_py_malloc_clear,
-    lib.shmem_py_free,
-    should_clear_after_alloc=False,
-)
-
-_raw_malloc_align = _RawAllocAlign(clear=False)
-
-_raw_calloc_align = _RawAllocAlign(clear=True)
-
-_raw_malloc_hints = _RawAllocHints(clear=False)
-
-_raw_calloc_hints = _RawAllocHints(clear=True)
-
 _numpy_to_cffi = {
     'c': 'char',
     'b': 'signed char',
@@ -532,12 +491,13 @@ _numpy_to_cffi = {
     'u2': 'uint16_t',
     'u4': 'uint32_t',
     'u8': 'uint64_t',
-    'f4':  'float',
-    'f8':  'double',
-    'f16': 'long double',
-    'c8':  'float _Complex',
-    'c16': 'double _Complex',
-    'c32': 'long double _Complex',
+
+    f'f{np.dtype("f").itemsize}': 'float',
+    f'f{np.dtype("d").itemsize}': 'double',
+    f'f{np.dtype("g").itemsize}': 'long double',
+    f'c{np.dtype("F").itemsize}': 'float _Complex',
+    f'c{np.dtype("D").itemsize}': 'double _Complex',
+    f'c{np.dtype("G").itemsize}': 'long double _Complex',
 }
 
 _cffi_to_numpy = {
@@ -572,15 +532,32 @@ _numpy_to_shmem = {
     'u2': 'uint16',
     'u4': 'uint32',
     'u8': 'uint64',
-    'f4': 'float',
-    'f8': 'double',
-    'f16': 'longdouble',
-    'c8': 'complexf',
-    'c16': 'complexd',
-    'c32': 'complexl',
+
+    f'f{np.dtype("f").itemsize}': 'float',
+    f'f{np.dtype("d").itemsize}': 'double',
+    f'f{np.dtype("g").itemsize}': 'longdouble',
+    f'c{np.dtype("F").itemsize}': 'complexf',
+    f'c{np.dtype("D").itemsize}': 'complexd',
+    f'c{np.dtype("G").itemsize}': 'complexl',
 }
 
 _heap = _wr.WeakValueDictionary()
+
+
+@_ft.lru_cache(maxsize=None)
+def _get_allocator(
+    align: 'Optional[int]' = None,
+    hints: 'Optional[int]' = None,
+    clear: bool = True,
+) -> 'Callable[[str, int], ffi.CData]':
+    align = align if align is not None else 0
+    hints = hints if hints is not None else 0
+    assert align >= 0 and hints >= 0
+    return ffi.new_allocator(
+        lambda size: lib.shmem_py_alloc(size, align, hints, clear),
+        lib.shmem_py_free,
+        should_clear_after_alloc=False,
+    )
 
 
 MALLOC_ATOMICS_REMOTE: int = lib.SHMEM_MALLOC_ATOMICS_REMOTE
@@ -588,34 +565,21 @@ MALLOC_SIGNAL_REMOTE: int = lib.SHMEM_MALLOC_SIGNAL_REMOTE
 
 
 def alloc(
-    dtype: 'np.DTypeLike',
+    dtype: 'npt.DTypeLike',
     size:  int,
     align: 'Optional[int]' = None,
-    clear: bool = True,
     hints: 'Optional[int]' = None,
+    clear: bool = True,
 ) -> ffi.CData:
     """
     """
     dtype = np.dtype(dtype)
     ctype = _numpy_to_shmem[dtype.char]
     cdecl = ffi.getctype(ctype, '[]')
-    if align is not None:
-        if clear:
-            allocator = _raw_calloc_align[align]
-        else:
-            allocator = _raw_malloc_align[align]
-    elif hints is not None:
-        if clear:
-            allocator = _raw_calloc_hints[hints]
-        else:
-            allocator = _raw_malloc_hints[hints]
-    else:
-        if clear:
-            allocator = _raw_calloc
-        else:
-            allocator = _raw_malloc
+    allocator = _get_allocator(align, hints, clear)
     cdata = allocator(cdecl, size)
-    _heap[ffi.cast('uintptr_t', cdata)] = cdata
+    caddr = ffi.cast('uintptr_t', cdata)
+    _heap[caddr] = cdata
     return cdata
 
 
@@ -624,15 +588,16 @@ def free(cdata: 'ffi.CData|Buffer') -> None:
     """
     if not isinstance(cdata, ffi.CData):
         cdata = ffi.from_buffer(cdata)
-    cdata = _heap.pop(ffi.cast('uintptr_t', cdata))
+    caddr = ffi.cast('uintptr_t', cdata)
+    cdata = _heap.pop(caddr)
     ffi.release(cdata)
 
 
 def fromcdata(
     cdata: ffi.CData,
     shape: 'Optional[int|tuple[int]]' = None,
-    dtype: 'Optional[np.DTypeLike]' = None,
-    order: 'str' = 'C',
+    dtype: 'Optional[npt.DTypeLike]' = None,
+    order: str = 'C',
 ) -> 'npt.NDArray':
     """
     """
@@ -643,7 +608,8 @@ def fromcdata(
     itemsize = dtype.itemsize
     if shape is None:
         shape = ffi.sizeof(cdata) // itemsize
-    nbytes = np.prod(shape, dtype='p') * itemsize
+    count = np.prod(shape, dtype='p')
+    nbytes = count * itemsize
     buf = ffi.buffer(cdata, nbytes)
     a = np.frombuffer(buf, dtype)
     tmp = a.reshape(shape, order=order)
@@ -655,83 +621,92 @@ def fromcdata(
 
 def new_array(
     shape: 'int|tuple[int]',
-    dtype: 'np.DTypeLike' = float,
-    order: 'str' = 'C',
+    dtype: 'npt.DTypeLike' = float,
+    order: str = 'C',
     align: 'Optional[int]' = None,
-    clear: 'bool' = True,
     hints: 'Optional[int]' = None,
+    clear: bool = True,
 ) -> 'npt.NDArray':
     """
     """
     dtype = np.dtype(dtype)
     count = np.prod(shape, dtype='p')
-    cdata = alloc(dtype, count, align, clear, hints)
+    cdata = alloc(dtype, count, align, hints, clear)
     return fromcdata(cdata, shape, dtype, order)
+
+
+def del_array(a: 'npt.NDArray') -> None:
+    """
+    """
+    assert isinstance(a, np.ndarray)
+    free(a.base)
 
 
 def array(
     obj: 'Any',
-    dtype: 'Optional[np.DTypeLike]' = None,
-    order: 'str' = 'K',
+    dtype: 'Optional[npt.DTypeLike]' = None,
+    order: str = 'K',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
     """
     """
     tmp = np.array(obj, dtype, copy=False, order=order)
-    a = new_array(tmp.size, tmp.dtype, align=align, clear=False, hints=hints)
+    a = new_array(tmp.size, tmp.dtype, align=align, hints=hints, clear=False)
     a.shape = tmp.shape
     if tmp.ndim > 1:
         a.strides = tmp.strides
     np.copyto(a, tmp, casting='no')
+    lib.shmem_sync_all()
     return a
 
 
 def empty(
     shape: 'int|tuple[int]',
-    dtype: 'np.DTypeLike' = float,
-    order: 'str' = 'C',
+    dtype: 'npt.DTypeLike' = float,
+    order: str = 'C',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
     """
     """
-    a = new_array(shape, dtype, order, align=align, clear=False, hints=hints)
+    a = new_array(shape, dtype, order, align=align, hints=hints, clear=False)
     return a
 
 
 def zeros(
     shape: 'int|tuple[int]',
-    dtype: 'np.DTypeLike' = float,
-    order: 'str' = 'C',
+    dtype: 'npt.DTypeLike' = float,
+    order: str = 'C',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
     """
     """
-    a = new_array(shape, dtype, order, align=align, clear=True, hints=hints)
+    a = new_array(shape, dtype, order, align=align, hints=hints, clear=True)
     return a
 
 
 def ones(
     shape: 'int|tuple[int]',
-    dtype: 'np.DTypeLike' = float,
-    order: 'str' = 'C',
+    dtype: 'npt.DTypeLike' = float,
+    order: str = 'C',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
     """
     """
-    a = new_array(shape, dtype, order, align=align, clear=True, hints=hints)
+    a = new_array(shape, dtype, order, align=align, hints=hints, clear=True)
     np.copyto(a, 1, casting='unsafe')
+    lib.shmem_sync_all()
     return a
 
 
 def full(
     shape: 'int|tuple[int]',
     fill_value: 'int|float',
-    dtype: 'Optional[np.DTypeLike]' = None,
-    order: 'str' = 'C',
+    dtype: 'Optional[npt.DTypeLike]' = None,
+    order: str = 'C',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
@@ -739,15 +714,16 @@ def full(
     """
     if dtype is None:
         dtype = np.array(fill_value).dtype
-    a = new_array(shape, dtype, order, align=align, clear=False, hints=hints)
+    a = new_array(shape, dtype, order, align=align, hints=hints, clear=False)
     np.copyto(a, fill_value, casting='unsafe')
+    lib.shmem_sync_all()
     return a
 
 
 # ---
 
 
-def _shmem(ctx, ctype, name, chkerr=False):
+def _shmem(ctx, ctype, name, chkerr=0):
     if ctx is None:
         if ctype is None:
             funcname = f'shmem_{name}'
@@ -773,6 +749,8 @@ def _shmem(ctx, ctype, name, chkerr=False):
         result = function(*args)
         ierr = lib._shmem_error
         _chkerr(ierr, funcname)
+        if chkerr > 1:
+            _chkerr(result, funcname)
         return result
 
     return wrapper
@@ -896,7 +874,7 @@ def _shmem_amo_nbi(ctx, name, fetch, remote, *args, readonly=False):
     ftype, fetch = _parse_amo(fetch, readonly=False)
     ctype, remote = _parse_amo(remote, readonly=readonly)
     assert ctype == ftype
-    shmem_amo_nbi = _shmem(ctx, ctype, f'atomic_{name}_nbi', chkerr=True)
+    shmem_amo_nbi = _shmem(ctx, ctype, f'atomic_{name}_nbi', chkerr=1)
     return shmem_amo_nbi(fetch, remote, *args)
 
 
@@ -922,24 +900,6 @@ def atomic_compare_swap(target, cond, value, pe, ctx=None):
     """
     """
     return _shmem_amo(ctx, 'compare_swap', target, cond, value, pe)
-
-
-def atomic_fetch_op(target, op, value, pe, ctx=None):
-    """
-    """
-    if op == 'inc':
-        return _shmem_amo(ctx, f'fetch_{op}', target, pe)
-    else:
-        return _shmem_amo(ctx, f'fetch_{op}', target, value, pe)
-
-
-def atomic_op(target, op, value, pe, ctx=None):
-    """
-    """
-    if op == 'inc':
-        return _shmem_amo(ctx, op, target, pe)
-    else:
-        return _shmem_amo(ctx, op, target, value, pe)
 
 
 def atomic_fetch_inc(target, pe, ctx=None):
@@ -1020,15 +980,6 @@ def atomic_compare_swap_nbi(fetch, target, cond, value, pe, ctx=None) -> None:
     _shmem_amo_nbi(ctx, 'compare_swap', fetch, target, cond, value, pe)
 
 
-def atomic_fetch_op_nbi(fetch, target, op, value, pe, ctx=None) -> None:
-    """
-    """
-    if op == 'inc':
-        _shmem_amo_nbi(ctx, f'fetch_{op}', fetch, target, pe)
-    else:
-        _shmem_amo_nbi(ctx, f'fetch_{op}', fetch, target, value, pe)
-
-
 def atomic_fetch_inc_nbi(fetch, target, pe, ctx=None) -> None:
     """
     """
@@ -1059,6 +1010,43 @@ def atomic_fetch_xor_nbi(fetch, target, value, pe, ctx=None) -> None:
     _shmem_amo_nbi(ctx, 'fetch_xor', fetch, target, value, pe)
 
 
+AMO_INC: str = 'inc'
+AMO_ADD: str = 'add'
+AMO_AND: str = 'and'
+AMO_OR:  str = 'or'
+AMO_XOR: str = 'xor'
+
+
+def atomic_op(target, op, value, pe, ctx=None):
+    """
+    """
+    op = str(op).lower()
+    if op == 'inc':
+        return _shmem_amo(ctx, op, target, pe)
+    else:
+        return _shmem_amo(ctx, op, target, value, pe)
+
+
+def atomic_fetch_op(target, op, value, pe, ctx=None):
+    """
+    """
+    op = str(op).lower()
+    if op == 'inc':
+        return _shmem_amo(ctx, f'fetch_{op}', target, pe)
+    else:
+        return _shmem_amo(ctx, f'fetch_{op}', target, value, pe)
+
+
+def atomic_fetch_op_nbi(fetch, target, op, value, pe, ctx=None) -> None:
+    """
+    """
+    op = str(op).lower()
+    if op == 'inc':
+        _shmem_amo_nbi(ctx, f'fetch_{op}', fetch, target, pe)
+    else:
+        _shmem_amo_nbi(ctx, f'fetch_{op}', fetch, target, value, pe)
+
+
 # ---
 
 
@@ -1073,11 +1061,11 @@ def _shmem_rma_signal(ctx, name, nbi,
     sig_addr = _parse_signal(sig_addr)
     try:
         funcname = f'{name}_signal{nbi}'
-        shmem_rma_signal = _shmem(ctx, ctype, funcname, chkerr=True)
+        shmem_rma_signal = _shmem(ctx, ctype, funcname, chkerr=1)
     except AttributeError:
         size *= ffi.sizeof(ctype)
         funcname = f'{name}mem_signal{nbi}'
-        shmem_rma_signal = _shmem(ctx, None, funcname, chkerr=True)
+        shmem_rma_signal = _shmem(ctx, None, funcname, chkerr=1)
     return shmem_rma_signal(target, source, size, sig_addr, signal, sig_op, pe)
 
 
@@ -1111,11 +1099,22 @@ def signal_fetch(sig_addr):
     return lib.shmem_signal_fetch(sig_addr)
 
 
+_signal_type = ffi.typeof('uint64_t*')
+
+
 def new_signal() -> ffi.CData:
     """
     """
     hints = lib.SHMEM_MALLOC_SIGNAL_REMOTE
-    return _raw_calloc_hints[hints]('uint64_t*')
+    allocator = _get_allocator(hints=hints)
+    return allocator(_signal_type)
+
+
+def del_signal(signal: ffi.CData) -> None:
+    """
+    """
+    assert ffi.typeof(signal) is _signal_type
+    ffi.release(signal)
 
 
 # ---
@@ -1185,6 +1184,17 @@ def _parse_reduce(target, source, size):
     return (stype, tdata, sdata, size)
 
 
+def _shmem_collective(ctype, name, size):
+    try:
+        funcname = f'{name}'
+        shmem_collective = _shmem(None, ctype, funcname, chkerr=2)
+    except AttributeError:
+        funcname = f'{name}mem'
+        shmem_collective = _shmem(None, None, funcname, chkerr=2)
+        size *= ffi.sizeof(ctype)
+    return shmem_collective, size
+
+
 def barrier_all() -> None:
     """
     """
@@ -1207,56 +1217,56 @@ def sync(team: 'Optional[Team]' = None) -> None:
         _chkerr(ierr, "shmem_team_sync")
 
 
-def broadcast(target, source, root, size=None, team=None):
+def broadcast(target, source, root, size=None, team=None) -> None:
     """
     """
     team, _ = _parse_team(team)
     ctype, target, source, size = _parse_bcast(target, source, size)
-    size = size * ffi.sizeof(ctype)
-    ierr = lib.shmem_broadcastmem(team, target, source, size, root)
-    _chkerr(ierr, "shmem_broadcastmem")
+    shmem_broadcast, size = _shmem_collective(ctype, 'broadcast', size)
+    shmem_broadcast(team, target, source, size, root)
 
 
-def collect(target, source, size=None, team=None):
+def collect(target, source, size=None, team=None) -> None:
     """
     """
     team, _ = _parse_team(team)
     ctype, target, source, size = _parse_collect(target, source, size)
-    size = size * ffi.sizeof(ctype)
-    ierr = lib.shmem_collectmem(team, target, source, size)
-    _chkerr(ierr, "shmem_collectmem")
+    shmem_collect, size = _shmem_collective(ctype, 'collect', size)
+    shmem_collect(team, target, source, size)
 
 
-def fcollect(target, source, size=None, team=None):
+def fcollect(target, source, size=None, team=None) -> None:
     """
     """
     team, npes = _parse_team(team)
     ctype, target, source, size = _parse_collect(target, source, size, npes)
-    size = size * ffi.sizeof(ctype)
-    ierr = lib.shmem_fcollectmem(team, target, source, size)
-    _chkerr(ierr, "shmem_fcollectmem")
+    shmem_fcollect, size = _shmem_collective(ctype, 'fcollect', size)
+    shmem_fcollect(team, target, source, size)
 
 
-def alltoall(target, source, size=None, team=None):
+def alltoall(target, source, size=None, team=None) -> None:
     """
     """
     team, npes = _parse_team(team)
     args = (target, source, size, npes)
     ctype, target, source, size = _parse_alltoall(*args)
-    size = size * ffi.sizeof(ctype)
-    ierr = lib.shmem_alltoallmem(team, target, source, size)
-    _chkerr(ierr, "shmem_alltoallmem")
+    shmem_alltoall, size = _shmem_collective(ctype, 'alltoall', size)
+    shmem_alltoall(team, target, source, size)
 
 
-def alltoalls(target, source, tst=1, sst=1, size=None, team=None):
+def alltoalls(target, source, tst=1, sst=1, size=None, team=None) -> None:
     """
     """
     team, npes = _parse_team(team)
     args = (target, source, size, npes, tst, sst)
     ctype, target, source, size = _parse_alltoall(*args)
-    eltsz = ffi.sizeof(ctype)
-    ierr = lib.shmem_py_alltoalls(team, target, source, tst, sst, size, eltsz)
-    _chkerr(ierr, "shmem_alltoalls")
+    shmem_alltoalls, memsize = _shmem_collective(ctype, 'alltoalls', size)
+    if size == memsize:
+        shmem_alltoalls(team, target, source, tst, sst, size)
+    else:
+        itemsize = ffi.sizeof(ctype)
+        shmem_alltoalls = _shmem(None, None, 'alltoallsmem_x', chkerr=2)
+        shmem_alltoalls(team, target, source, tst, sst, size, itemsize)
 
 
 OP_AND = 'and'
@@ -1271,10 +1281,54 @@ OP_PROD = 'prod'
 def reduce(target, source, op='sum', size=None, team=None):
     """
     """
+    op = str(op).lower()
     team = team.ob_team if team is not None else lib.SHMEM_TEAM_WORLD
     ctype, target, source, size = _parse_reduce(target, source, size)
-    ierr = _shmem(None, ctype, f'{op}_reduce')(team, target, source, size)
+    shmem_reduce = _shmem(None, ctype, f'{op}_reduce')
+    ierr = shmem_reduce(team, target, source, size)
     _chkerr(ierr, f"shmem_{ctype}_{op}_reduce")
+
+
+def and_reduce(target, source, size=None, team=None):
+    """
+    """
+    return reduce(target, source, OP_AND, size, team)
+
+
+def or_reduce(target, source, size=None, team=None):
+    """
+    """
+    return reduce(target, source, OP_OR, size, team)
+
+
+def xor_reduce(target, source, size=None, team=None):
+    """
+    """
+    return reduce(target, source, OP_XOR, size, team)
+
+
+def max_reduce(target, source, size=None, team=None):
+    """
+    """
+    return reduce(target, source, OP_MAX, size, team)
+
+
+def min_reduce(target, source, size=None, team=None):
+    """
+    """
+    return reduce(target, source, OP_MIN, size, team)
+
+
+def sum_reduce(target, source, size=None, team=None):
+    """
+    """
+    return reduce(target, source, OP_SUM, size, team)
+
+
+def prod_reduce(target, source, size=None, team=None):
+    """
+    """
+    return reduce(target, source, OP_PROD, size, team)
 
 
 # ---
@@ -1533,10 +1587,21 @@ def quiet(ctx: 'Optional[Ctx]' = None) -> None:
 # ---
 
 
+_lock_type = ffi.typeof('long*')
+
+
 def new_lock() -> ffi.CData:
     """
     """
-    return _raw_calloc('long*')
+    allocator = _get_allocator()
+    return allocator(_lock_type)
+
+
+def del_lock(lock: ffi.CData) -> None:
+    """
+    """
+    assert ffi.typeof(lock) is _lock_type
+    ffi.release(lock)
 
 
 def set_lock(lock: ffi.CData) -> None:
@@ -1563,18 +1628,30 @@ class Lock:
     def __init__(self) -> None:
         self._lock = new_lock()
 
+    def destroy(self) -> None:
+        """
+        """
+        lock = self._lock
+        self._lock = None
+        if lock is not None:
+            del_lock(lock)
+
     def acquire(self, blocking: bool = True) -> bool:
         """
         """
+        lock = self._lock
+        assert lock is not None
         if blocking:
-            set_lock(self._lock)
+            set_lock(lock)
             return True
-        return not test_lock(self._lock)
+        return not test_lock(lock)
 
     def release(self) -> None:
         """
         """
-        clear_lock(self._lock)
+        lock = self._lock
+        assert lock is not None
+        clear_lock(lock)
 
     def __enter__(self):
         self.acquire()
@@ -1586,7 +1663,7 @@ class Lock:
 # ---
 
 
-def pcontrol(level=1):
+def pcontrol(level: int = 1):
     """
     """
     lib.shmem_pcontrol(level)
