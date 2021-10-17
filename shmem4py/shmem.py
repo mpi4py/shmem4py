@@ -17,14 +17,14 @@ from .api import ffi, lib
 
 
 def _chkerr(ierr: int, func: str = "shmem") -> None:
-    if ierr != 0:  # pragma: no cover
+    if ierr != 0:
         if ierr == -1431655766:
             raise NotImplementedError(f"{func}")
         raise RuntimeError(f"{func}: error {ierr}")
 
 
 def _chkint(ival: int, func: str = "shmem") -> None:
-    if ival < 0:  # pragma: no cover
+    if ival < 0:
         _chkerr(ival, func)
 
 

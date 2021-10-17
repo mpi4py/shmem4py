@@ -134,6 +134,11 @@ class TestTeam(unittest.TestCase):
         team = shmem.TEAM_WORLD
         team.sync()
 
+    def testInvalid(self):
+        team = shmem.TEAM_INVALID
+        self.assertRaises(RuntimeError, team.my_pe)
+        self.assertRaises(RuntimeError, team.n_pes)
+
 
 if __name__ == '__main__':
     unittest.main()
