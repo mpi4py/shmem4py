@@ -110,6 +110,28 @@ class TestReduce(unittest.TestCase):
                 shmem.free(tgt)
                 shmem.free(src)
 
+    def testOpReduce(self):
+        mype = shmem.my_pe()
+        npes = shmem.n_pes()
+        for op, types in ops.items():
+            reducefn = ufunc[op].reduce
+            for t in types:
+                with self.subTest(type=t, op=op):
+                    ini = np.array(-1, dtype=t)
+                    val = reducefn(np.arange(1, npes+1, dtype=t), dtype=t)
+                    tgt = shmem.full(2, ini, dtype=t)
+                    src = shmem.full(1, mype+1, dtype=t)
+                    shmem.barrier_all()
+                    shmem_reduce = getattr(shmem, f'{op}_reduce')
+                    shmem_reduce(tgt, src)
+                    if op == 'prod' and t in (types_f+types_c):
+                        self.assertTrue(np.allclose(tgt[0], val))
+                    else:
+                        self.assertEqual(tgt[0], val)
+                    self.assertEqual(tgt[1], ini)
+                    shmem.free(tgt)
+                    shmem.free(src)
+
 
 if __name__ == '__main__':
     unittest.main()

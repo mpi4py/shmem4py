@@ -1266,8 +1266,51 @@ def reduce(target, source, op='sum', size=None, team=None):
     op = str(op).lower()
     team = team.ob_team if team is not None else lib.SHMEM_TEAM_WORLD
     ctype, target, source, size = _parse_reduce(target, source, size)
-    ierr = _shmem(None, ctype, f'{op}_reduce')(team, target, source, size)
+    shmem_reduce = _shmem(None, ctype, f'{op}_reduce')
+    ierr = shmem_reduce(team, target, source, size)
     _chkerr(ierr, f"shmem_{ctype}_{op}_reduce")
+
+
+def and_reduce(target, source, size=None, team=None):
+    """
+    """
+    return reduce(target, source, OP_AND, size, team)
+
+
+def or_reduce(target, source, size=None, team=None):
+    """
+    """
+    return reduce(target, source, OP_OR, size, team)
+
+
+def xor_reduce(target, source, size=None, team=None):
+    """
+    """
+    return reduce(target, source, OP_XOR, size, team)
+
+
+def max_reduce(target, source, size=None, team=None):
+    """
+    """
+    return reduce(target, source, OP_MAX, size, team)
+
+
+def min_reduce(target, source, size=None, team=None):
+    """
+    """
+    return reduce(target, source, OP_MIN, size, team)
+
+
+def sum_reduce(target, source, size=None, team=None):
+    """
+    """
+    return reduce(target, source, OP_SUM, size, team)
+
+
+def prod_reduce(target, source, size=None, team=None):
+    """
+    """
+    return reduce(target, source, OP_PROD, size, team)
 
 
 # ---
