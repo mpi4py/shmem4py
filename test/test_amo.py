@@ -101,6 +101,13 @@ class TestAMO(unittest.TestCase):
                 shmem.barrier_all()
                 self.assertEqual(val, 3 + i)
             shmem.free(tgt)
+        for t in types_ext:
+            tgt = shmem.array(0, dtype=t)
+            for i in range(3):
+                op = shmem.AMO_SET
+                val = shmem.atomic_fetch_op(tgt, op, i+1, nxpe)
+                self.assertEqual(val, i)
+            shmem.free(tgt)
 
     def testOp(self):
         mype = shmem.my_pe()
@@ -120,6 +127,14 @@ class TestAMO(unittest.TestCase):
                 val = shmem.atomic_fetch(tgt, nxpe)
                 shmem.atomic_op(tgt, op, 1, nxpe)
                 self.assertEqual(val, 3 + i)
+            shmem.free(tgt)
+        for t in types_ext:
+            tgt = shmem.array(0, dtype=t)
+            for i in range(3):
+                op = shmem.AMO_SET
+                val = shmem.atomic_fetch(tgt, nxpe)
+                shmem.atomic_op(tgt, op, i+1, nxpe)
+                self.assertEqual(val, i)
             shmem.free(tgt)
 
     def testFetchIncAdd(self):
@@ -320,6 +335,15 @@ class TestAMONBI(unittest.TestCase):
                 shmem.atomic_fetch_op_nbi(val, tgt, op, 1, nxpe)
                 shmem.quiet()
                 self.assertEqual(val, 3 + i)
+            shmem.free(tgt)
+        for t in types_ext:
+            val = np.array(0, dtype=t)
+            tgt = shmem.array(0, dtype=t)
+            for i in range(3):
+                op = shmem.AMO_SET
+                shmem.atomic_fetch_op_nbi(val, tgt, op, i+1, nxpe)
+                shmem.quiet()
+                self.assertEqual(val, i)
             shmem.free(tgt)
 
     def testFetchIncAdd(self):
