@@ -52,8 +52,8 @@ class TestWait(unittest.TestCase):
                         #
                         shmem.barrier_all()
                         ivars = shmem.zeros(3, t)
-                        values = np.zeros(3, t)
-                        status = np.ones(3, 'i')
+                        values = [0] * 3
+                        status = [1] * 3
                         shmem.barrier_all()
                         shmem.wait_until_all(
                             ivars, '==', 0, status=status,
@@ -117,8 +117,8 @@ class TestWait(unittest.TestCase):
                         #
                         shmem.barrier_all()
                         ivars = shmem.zeros(3, t)
-                        values = np.ones(3, t)
-                        status = np.ones(3, 'i')
+                        values = [0] * 3
+                        status = [1] * 3
                         shmem.barrier_all()
                         index = shmem.wait_until_any(
                             ivars, '==', 0, status=status,
@@ -202,8 +202,8 @@ class TestWait(unittest.TestCase):
                         #
                         shmem.barrier_all()
                         ivars = shmem.zeros(3, t)
-                        values = np.zeros(3, t)
-                        status = np.ones(3, 'i')
+                        values = [0] * 3
+                        status = [1] * 3
                         shmem.barrier_all()
                         index = shmem.wait_until_some(
                             ivars, '==', 0, status=status,
@@ -323,8 +323,8 @@ class TestTest(unittest.TestCase):
                         #
                         shmem.barrier_all()
                         ivars = shmem.zeros(3, t)
-                        values = np.zeros(3, t)
-                        status = np.ones(3, 'i')
+                        values = [0] * 3
+                        status = [1] * 3
                         shmem.barrier_all()
                         index = shmem.test_all(
                             ivars, '==', 0, status=status,
@@ -396,8 +396,8 @@ class TestTest(unittest.TestCase):
                         #
                         shmem.barrier_all()
                         ivars = shmem.zeros(3, t)
-                        values = np.ones(3, t)
-                        status = np.ones(3, 'i')
+                        values = [0] * 3
+                        status = [1] * 3
                         shmem.barrier_all()
                         index = shmem.test_any(
                             ivars, '==', 0, status=status,
@@ -479,8 +479,8 @@ class TestTest(unittest.TestCase):
                         #
                         shmem.barrier_all()
                         ivars = shmem.zeros(3, t)
-                        values = np.zeros(3, t)
-                        status = np.ones(3, 'i')
+                        values = [0] * 3
+                        status = [1] * 3
                         shmem.barrier_all()
                         index = shmem.test_some(
                             ivars, '==', 0, status=status,

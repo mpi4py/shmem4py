@@ -539,6 +539,10 @@ _numpy_to_shmem = {
     f'c{np.dtype("G").itemsize}': 'complexl',
 }
 
+_shmem_to_numpy = {
+    v: k for k, v in _numpy_to_shmem.items()
+}
+
 _heap = _wr.WeakValueDictionary()
 
 
@@ -1391,6 +1395,7 @@ def _parse_sync_indices(nelems):
 def _parse_sync_status(status, nelems):
     if status is None:
         return ffi.NULL
+    status = np.asarray(status, dtype='i')
     status, size, ctype = _getbuffer(status, readonly=True)
     assert size >= nelems
     assert ctype == 'int'
@@ -1398,6 +1403,8 @@ def _parse_sync_status(status, nelems):
 
 
 def _parse_sync_values(values, nelems, vtype):
+    dtype = _shmem_to_numpy[vtype]
+    values = np.asarray(values, dtype=dtype)
     values, size, ctype = _getbuffer(values, readonly=True)
     assert size >= nelems
     assert ctype == vtype
