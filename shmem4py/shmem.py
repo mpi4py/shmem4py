@@ -857,6 +857,11 @@ def get_nbi(target, source, pe, size=None, ctx=None) -> None:
 # ---
 
 
+def _parse_amo_op(op):
+    assert isinstance(op, str)
+    return f'{op}'.lower()
+
+
 def _parse_amo(remote, readonly=False):
     cdata, size, ctype = _getbuffer(remote, readonly=readonly)
     assert size == 1
@@ -1018,17 +1023,17 @@ AMO_XOR: str = 'xor'
 def atomic_op(target, op, value, pe, ctx=None):
     """
     """
-    op = str(op).lower()
+    op = _parse_amo_op(op)
     if op == 'inc':
-        return _shmem_amo(ctx, op, target, pe)
+        return _shmem_amo(ctx, f'{op}', target, pe)
     else:
-        return _shmem_amo(ctx, op, target, value, pe)
+        return _shmem_amo(ctx, f'{op}', target, value, pe)
 
 
 def atomic_fetch_op(target, op, value, pe, ctx=None):
     """
     """
-    op = str(op).lower()
+    op = _parse_amo_op(op)
     if op == 'inc':
         return _shmem_amo(ctx, f'fetch_{op}', target, pe)
     else:
@@ -1038,7 +1043,7 @@ def atomic_fetch_op(target, op, value, pe, ctx=None):
 def atomic_fetch_op_nbi(fetch, target, op, value, pe, ctx=None) -> None:
     """
     """
-    op = str(op).lower()
+    op = _parse_amo_op(op)
     if op == 'inc':
         _shmem_amo_nbi(ctx, f'fetch_{op}', fetch, target, pe)
     else:
@@ -1170,6 +1175,11 @@ def _parse_alltoall(target, source, size, npes, tst=1, sst=1):
     return (stype, tdata, sdata, size)
 
 
+def _parse_reduce_op(op):
+    assert isinstance(op, str)
+    return f'{op}'.lower()
+
+
 def _parse_reduce(target, source, size):
     tdata, tsize, ttype = _getbuffer(target, readonly=False)
     sdata, ssize, stype = _getbuffer(source, readonly=True)
@@ -1279,7 +1289,7 @@ OP_PROD = 'prod'
 def reduce(target, source, op='sum', size=None, team=None):
     """
     """
-    op = str(op).lower()
+    op = _parse_reduce_op(op)
     team = team.ob_team if team is not None else lib.SHMEM_TEAM_WORLD
     ctype, target, source, size = _parse_reduce(target, source, size)
     shmem_reduce = _shmem(None, ctype, f'{op}_reduce')
