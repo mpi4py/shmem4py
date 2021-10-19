@@ -20,7 +20,7 @@ class build_ext(cmd_build_ext, object):
         sys.dont_write_bytecode = True
         from fficompiler import fficompiler
         sys.dont_write_bytecode = dwb
-        cc = fficompiler.search('NVCC')
+        cc = fficompiler.search('NVCC', 'nvcc')
         ld = fficompiler.search('NVCC')
         fficompiler(cc, ld).configure(self.compiler)
         super(build_ext, self).build_extensions()

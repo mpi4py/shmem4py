@@ -10,7 +10,7 @@
 #define PySHMEM_VENDOR_OSSS 1
 #elif defined(SHMEM_DEF_H) && defined(SHMEM_FUNCTION_ATTRIBUTES)
 #define PySHMEM_VENDOR_Sandia 1
-#elif defined(_NVSHMEM_H_)
+#elif defined(NVSHMEM_VENDOR_VERSION)
 #define PySHMEM_VENDOR_NVIDIA 1
 #endif
 

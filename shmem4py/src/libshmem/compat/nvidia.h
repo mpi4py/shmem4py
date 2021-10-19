@@ -11,7 +11,7 @@
 #define SHMEM_TEAM_WORLD              NVSHMEM_TEAM_WORLD
 #define SHMEM_TEAM_SHARED             NVSHMEM_TEAM_SHARED
 #define SHMEM_TEAM_INVALID            NVSHMEM_TEAM_INVALID
-#define SHMEM_MAX_NAME_LEN            NVSHMEM_MAX_NAME_LEN 
+#define SHMEM_MAX_NAME_LEN            NVSHMEM_MAX_NAME_LEN
 #define SHMEM_CMP_EQ                  NVSHMEM_CMP_EQ
 #define SHMEM_CMP_NE                  NVSHMEM_CMP_NE
 #define SHMEM_CMP_GT                  NVSHMEM_CMP_GT
@@ -108,84 +108,84 @@
 #define shmem_ushort_prod_reduce    nvshmem_ushort_prod_reduce
 #define shmem_ushort_sum_reduce     nvshmem_ushort_sum_reduce
 #define shmem_ushort_xor_reduce     nvshmem_ushort_xor_reduce
-#define shmem_char_max_reduce       nvshmem_char_max_reduce    
-#define shmem_char_min_reduce       nvshmem_char_min_reduce    
-#define shmem_char_prod_reduce      nvshmem_char_prod_reduce   
-#define shmem_char_sum_reduce       nvshmem_char_sum_reduce    
-#define shmem_int16_and_reduce      nvshmem_int16_and_reduce   
-#define shmem_int16_max_reduce      nvshmem_int16_max_reduce   
-#define shmem_int16_min_reduce      nvshmem_int16_min_reduce   
-#define shmem_int16_or_reduce       nvshmem_int16_or_reduce    
-#define shmem_int16_prod_reduce     nvshmem_int16_prod_reduce  
-#define shmem_int16_sum_reduce      nvshmem_int16_sum_reduce   
-#define shmem_int16_xor_reduce      nvshmem_int16_xor_reduce   
-#define shmem_int32_and_reduce      nvshmem_int32_and_reduce   
-#define shmem_int32_max_reduce      nvshmem_int32_max_reduce   
-#define shmem_int32_min_reduce      nvshmem_int32_min_reduce   
-#define shmem_int32_or_reduce       nvshmem_int32_or_reduce    
-#define shmem_int32_prod_reduce     nvshmem_int32_prod_reduce  
-#define shmem_int32_sum_reduce      nvshmem_int32_sum_reduce   
-#define shmem_int32_xor_reduce      nvshmem_int32_xor_reduce   
-#define shmem_int64_and_reduce      nvshmem_int64_and_reduce   
-#define shmem_int64_max_reduce      nvshmem_int64_max_reduce   
-#define shmem_int64_min_reduce      nvshmem_int64_min_reduce   
-#define shmem_int64_or_reduce       nvshmem_int64_or_reduce    
-#define shmem_int64_prod_reduce     nvshmem_int64_prod_reduce  
-#define shmem_int64_sum_reduce      nvshmem_int64_sum_reduce   
-#define shmem_int64_xor_reduce      nvshmem_int64_xor_reduce   
-#define shmem_int8_and_reduce       nvshmem_int8_and_reduce    
-#define shmem_int8_max_reduce       nvshmem_int8_max_reduce    
-#define shmem_int8_min_reduce       nvshmem_int8_min_reduce    
-#define shmem_int8_or_reduce        nvshmem_int8_or_reduce     
-#define shmem_int8_prod_reduce      nvshmem_int8_prod_reduce   
-#define shmem_int8_sum_reduce       nvshmem_int8_sum_reduce    
-#define shmem_int8_xor_reduce       nvshmem_int8_xor_reduce    
-#define shmem_schar_max_reduce      nvshmem_schar_max_reduce   
-#define shmem_schar_min_reduce      nvshmem_schar_min_reduce   
-#define shmem_schar_prod_reduce     nvshmem_schar_prod_reduce  
-#define shmem_schar_sum_reduce      nvshmem_schar_sum_reduce   
-#define shmem_size_and_reduce       nvshmem_size_and_reduce    
-#define shmem_size_max_reduce       nvshmem_size_max_reduce    
-#define shmem_size_min_reduce       nvshmem_size_min_reduce    
-#define shmem_size_or_reduce        nvshmem_size_or_reduce     
-#define shmem_size_prod_reduce      nvshmem_size_prod_reduce   
-#define shmem_size_sum_reduce       nvshmem_size_sum_reduce    
-#define shmem_size_xor_reduce       nvshmem_size_xor_reduce    
-#define shmem_uchar_and_reduce      nvshmem_uchar_and_reduce   
-#define shmem_uchar_max_reduce      nvshmem_uchar_max_reduce   
-#define shmem_uchar_min_reduce      nvshmem_uchar_min_reduce   
-#define shmem_uchar_or_reduce       nvshmem_uchar_or_reduce    
-#define shmem_uchar_prod_reduce     nvshmem_uchar_prod_reduce  
-#define shmem_uchar_sum_reduce      nvshmem_uchar_sum_reduce   
-#define shmem_uchar_xor_reduce      nvshmem_uchar_xor_reduce   
-#define shmem_uint16_and_reduce     nvshmem_uint16_and_reduce  
-#define shmem_uint16_max_reduce     nvshmem_uint16_max_reduce  
-#define shmem_uint16_min_reduce     nvshmem_uint16_min_reduce  
-#define shmem_uint16_or_reduce      nvshmem_uint16_or_reduce   
-#define shmem_uint16_prod_reduce    nvshmem_uint16_prod_reduce 
-#define shmem_uint16_sum_reduce     nvshmem_uint16_sum_reduce  
-#define shmem_uint16_xor_reduce     nvshmem_uint16_xor_reduce  
-#define shmem_uint32_and_reduce     nvshmem_uint32_and_reduce  
-#define shmem_uint32_max_reduce     nvshmem_uint32_max_reduce  
-#define shmem_uint32_min_reduce     nvshmem_uint32_min_reduce  
-#define shmem_uint32_or_reduce      nvshmem_uint32_or_reduce   
-#define shmem_uint32_prod_reduce    nvshmem_uint32_prod_reduce 
-#define shmem_uint32_sum_reduce     nvshmem_uint32_sum_reduce  
-#define shmem_uint32_xor_reduce     nvshmem_uint32_xor_reduce  
-#define shmem_uint64_and_reduce     nvshmem_uint64_and_reduce  
-#define shmem_uint64_max_reduce     nvshmem_uint64_max_reduce  
-#define shmem_uint64_min_reduce     nvshmem_uint64_min_reduce  
-#define shmem_uint64_or_reduce      nvshmem_uint64_or_reduce   
-#define shmem_uint64_prod_reduce    nvshmem_uint64_prod_reduce 
-#define shmem_uint64_sum_reduce     nvshmem_uint64_sum_reduce  
-#define shmem_uint64_xor_reduce     nvshmem_uint64_xor_reduce  
-#define shmem_uint8_and_reduce      nvshmem_uint8_and_reduce   
-#define shmem_uint8_max_reduce      nvshmem_uint8_max_reduce   
-#define shmem_uint8_min_reduce      nvshmem_uint8_min_reduce   
-#define shmem_uint8_or_reduce       nvshmem_uint8_or_reduce    
-#define shmem_uint8_prod_reduce     nvshmem_uint8_prod_reduce  
-#define shmem_uint8_sum_reduce      nvshmem_uint8_sum_reduce   
-#define shmem_uint8_xor_reduce      nvshmem_uint8_xor_reduce   
+#define shmem_char_max_reduce       nvshmem_char_max_reduce
+#define shmem_char_min_reduce       nvshmem_char_min_reduce
+#define shmem_char_prod_reduce      nvshmem_char_prod_reduce
+#define shmem_char_sum_reduce       nvshmem_char_sum_reduce
+#define shmem_int16_and_reduce      nvshmem_int16_and_reduce
+#define shmem_int16_max_reduce      nvshmem_int16_max_reduce
+#define shmem_int16_min_reduce      nvshmem_int16_min_reduce
+#define shmem_int16_or_reduce       nvshmem_int16_or_reduce
+#define shmem_int16_prod_reduce     nvshmem_int16_prod_reduce
+#define shmem_int16_sum_reduce      nvshmem_int16_sum_reduce
+#define shmem_int16_xor_reduce      nvshmem_int16_xor_reduce
+#define shmem_int32_and_reduce      nvshmem_int32_and_reduce
+#define shmem_int32_max_reduce      nvshmem_int32_max_reduce
+#define shmem_int32_min_reduce      nvshmem_int32_min_reduce
+#define shmem_int32_or_reduce       nvshmem_int32_or_reduce
+#define shmem_int32_prod_reduce     nvshmem_int32_prod_reduce
+#define shmem_int32_sum_reduce      nvshmem_int32_sum_reduce
+#define shmem_int32_xor_reduce      nvshmem_int32_xor_reduce
+#define shmem_int64_and_reduce      nvshmem_int64_and_reduce
+#define shmem_int64_max_reduce      nvshmem_int64_max_reduce
+#define shmem_int64_min_reduce      nvshmem_int64_min_reduce
+#define shmem_int64_or_reduce       nvshmem_int64_or_reduce
+#define shmem_int64_prod_reduce     nvshmem_int64_prod_reduce
+#define shmem_int64_sum_reduce      nvshmem_int64_sum_reduce
+#define shmem_int64_xor_reduce      nvshmem_int64_xor_reduce
+#define shmem_int8_and_reduce       nvshmem_int8_and_reduce
+#define shmem_int8_max_reduce       nvshmem_int8_max_reduce
+#define shmem_int8_min_reduce       nvshmem_int8_min_reduce
+#define shmem_int8_or_reduce        nvshmem_int8_or_reduce
+#define shmem_int8_prod_reduce      nvshmem_int8_prod_reduce
+#define shmem_int8_sum_reduce       nvshmem_int8_sum_reduce
+#define shmem_int8_xor_reduce       nvshmem_int8_xor_reduce
+#define shmem_schar_max_reduce      nvshmem_schar_max_reduce
+#define shmem_schar_min_reduce      nvshmem_schar_min_reduce
+#define shmem_schar_prod_reduce     nvshmem_schar_prod_reduce
+#define shmem_schar_sum_reduce      nvshmem_schar_sum_reduce
+#define shmem_size_and_reduce       nvshmem_size_and_reduce
+#define shmem_size_max_reduce       nvshmem_size_max_reduce
+#define shmem_size_min_reduce       nvshmem_size_min_reduce
+#define shmem_size_or_reduce        nvshmem_size_or_reduce
+#define shmem_size_prod_reduce      nvshmem_size_prod_reduce
+#define shmem_size_sum_reduce       nvshmem_size_sum_reduce
+#define shmem_size_xor_reduce       nvshmem_size_xor_reduce
+#define shmem_uchar_and_reduce      nvshmem_uchar_and_reduce
+#define shmem_uchar_max_reduce      nvshmem_uchar_max_reduce
+#define shmem_uchar_min_reduce      nvshmem_uchar_min_reduce
+#define shmem_uchar_or_reduce       nvshmem_uchar_or_reduce
+#define shmem_uchar_prod_reduce     nvshmem_uchar_prod_reduce
+#define shmem_uchar_sum_reduce      nvshmem_uchar_sum_reduce
+#define shmem_uchar_xor_reduce      nvshmem_uchar_xor_reduce
+#define shmem_uint16_and_reduce     nvshmem_uint16_and_reduce
+#define shmem_uint16_max_reduce     nvshmem_uint16_max_reduce
+#define shmem_uint16_min_reduce     nvshmem_uint16_min_reduce
+#define shmem_uint16_or_reduce      nvshmem_uint16_or_reduce
+#define shmem_uint16_prod_reduce    nvshmem_uint16_prod_reduce
+#define shmem_uint16_sum_reduce     nvshmem_uint16_sum_reduce
+#define shmem_uint16_xor_reduce     nvshmem_uint16_xor_reduce
+#define shmem_uint32_and_reduce     nvshmem_uint32_and_reduce
+#define shmem_uint32_max_reduce     nvshmem_uint32_max_reduce
+#define shmem_uint32_min_reduce     nvshmem_uint32_min_reduce
+#define shmem_uint32_or_reduce      nvshmem_uint32_or_reduce
+#define shmem_uint32_prod_reduce    nvshmem_uint32_prod_reduce
+#define shmem_uint32_sum_reduce     nvshmem_uint32_sum_reduce
+#define shmem_uint32_xor_reduce     nvshmem_uint32_xor_reduce
+#define shmem_uint64_and_reduce     nvshmem_uint64_and_reduce
+#define shmem_uint64_max_reduce     nvshmem_uint64_max_reduce
+#define shmem_uint64_min_reduce     nvshmem_uint64_min_reduce
+#define shmem_uint64_or_reduce      nvshmem_uint64_or_reduce
+#define shmem_uint64_prod_reduce    nvshmem_uint64_prod_reduce
+#define shmem_uint64_sum_reduce     nvshmem_uint64_sum_reduce
+#define shmem_uint64_xor_reduce     nvshmem_uint64_xor_reduce
+#define shmem_uint8_and_reduce      nvshmem_uint8_and_reduce
+#define shmem_uint8_max_reduce      nvshmem_uint8_max_reduce
+#define shmem_uint8_min_reduce      nvshmem_uint8_min_reduce
+#define shmem_uint8_or_reduce       nvshmem_uint8_or_reduce
+#define shmem_uint8_prod_reduce     nvshmem_uint8_prod_reduce
+#define shmem_uint8_sum_reduce      nvshmem_uint8_sum_reduce
+#define shmem_uint8_xor_reduce      nvshmem_uint8_xor_reduce
 
 #define shmem_double_atomic_fetch           nvshmem_double_atomic_fetch
 #define shmem_double_atomic_set             nvshmem_double_atomic_set
@@ -560,7 +560,7 @@
 #define shmem_putmem_nbi nvshmem_putmem_nbi
 
 typedef int* shmem_ctx_t;
-int one = 1; // TODO: 
+static int one = 1; // TODO:
 const shmem_ctx_t SHMEM_CTX_DEFAULT = &one;
 
 //
@@ -581,9 +581,25 @@ static int shmem_broadcastmem(shmem_team_t team, void* dest, const void* source,
 }
 
 #define PySHMEM_HAVE_shmem_collectmem 1
+static int shmem_collectmem(shmem_team_t team, void* dest, const void* source, size_t nelems)
+{
+#if 0
+  return nvshmem_uchar_collect(team, (unsigned char*)dest, (unsigned char*)source, nelems);
+#else
+  (void)team; (void)dest; (void)source; (void)nelems;
+  return PySHMEM_UNAVAILABLE;
+#endif
+}
+
+#define PySHMEM_HAVE_shmem_fcollectmem 1
 static int shmem_fcollectmem(shmem_team_t team, void* dest, const void* source, size_t nelems)
 {
+#if NVSHMEM_VENDOR_VERSION > 20201
   return nvshmem_uchar_fcollect(team, (unsigned char*)dest, (unsigned char*)source, nelems);
+#else
+  (void)team; (void)dest; (void)source; (void)nelems;
+  return PySHMEM_UNAVAILABLE;
+#endif
 }
 
 #define PySHMEM_HAVE_shmem_alltoallmem 1
@@ -704,7 +720,7 @@ static int shmem_ctx_get_team(shmem_ctx_t ctx, shmem_team_t* team)
   if (ctx == SHMEM_CTX_DEFAULT) {
     team = SHMEM_TEAM_WORLD;
     return 0;
-  } 
+  }
   // else if (ctx == SHMEM_CTX_INVALID) {
   //   team = (shmem_team_t*)SHMEM_TEAM_INVALID;
   //   return 1;
@@ -718,21 +734,14 @@ static int shmem_ctx_get_team(shmem_ctx_t ctx, shmem_team_t* team)
 //
 
 
-static void    shmem_set_lock           (long *lock)                                                       { (void)lock; (void)PySHMEM_UNAVAILABLE; }                
+static void    shmem_set_lock           (long *lock)                                                       { (void)lock; (void)PySHMEM_UNAVAILABLE; }
 static int     shmem_test_lock          (long *lock)                                                       { (void)lock; return PySHMEM_UNAVAILABLE; }
-static void    shmem_clear_lock         (long *lock)                                                       { (void)lock; (void)PySHMEM_UNAVAILABLE; }                
+static void    shmem_clear_lock         (long *lock)                                                       { (void)lock; (void)PySHMEM_UNAVAILABLE; }
 
 static int     shmem_global_exit        (int status)                     { return PySHMEM_UNAVAILABLE; } // TODO: compat / abort+printf / nv + fail
 static int     shmem_ctx_create         (long options, shmem_ctx_t *ctx) { return PySHMEM_UNAVAILABLE; } // TODO: see compatiblity below -> return DEFAULT context
 static void    shmem_ctx_destroy        (shmem_ctx_t ctx)                { (void)ctx; (void)PySHMEM_UNAVAILABLE; } // TODO: see compatiblity below -> return DEFAULT context
 static int     shmem_team_create_ctx    (shmem_team_t team, long options, shmem_ctx_t *ctx) { return PySHMEM_UNAVAILABLE; } // TODO: see compatiblity below -> return DEFAULT context
-
-static
-int shmem_collectmem(shmem_team_t team, void* dest, const void* source, size_t nelems)
-{
-  (void)team; (void)dest; (void)source; (void)nelems;
-  return PySHMEM_UNAVAILABLE;
-}
 
 #define PySHMEM_WAIT_UNTIL(TYPENAME,TYPE)                                 \
 static                                                                    \
@@ -741,7 +750,7 @@ void shmem_##TYPENAME##_wait_until(TYPE *ivar, int cmp, TYPE cmp_value)   \
   /* 0 being the CUDA default stream */                                   \
   nvshmemx_##TYPENAME##_wait_until_on_stream(ivar,cmp,cmp_value,0);       \
 }
-PySHMEM_WAIT_UNTIL(int32,     int32_t) 
+PySHMEM_WAIT_UNTIL(int32,     int32_t)
 PySHMEM_WAIT_UNTIL(ulonglong, unsigned long long)
 PySHMEM_WAIT_UNTIL(ulong,     unsigned long)
 PySHMEM_WAIT_UNTIL(uint,      unsigned int)
@@ -784,11 +793,11 @@ int shmem_##TYPENAME##_##OP##_reduce(shmem_team_t team, TYPE *dest, const TYPE *
   return PySHMEM_UNAVAILABLE;                                                                           \
 }
 PySHMEM_REDUCE_UNAVAL(longdouble, long double,     sum)   // PySHMEM_REDUCE_FAIL_OP
-PySHMEM_REDUCE_UNAVAL(longdouble, long double,     prod)  // PySHMEM_REDUCE_FAIL_OP 
+PySHMEM_REDUCE_UNAVAL(longdouble, long double,     prod)  // PySHMEM_REDUCE_FAIL_OP
 PySHMEM_REDUCE_UNAVAL(longdouble, long double,     min)   // PySHMEM_REDUCE_FAIL_OP
 PySHMEM_REDUCE_UNAVAL(longdouble, long double,     max)   // PySHMEM_REDUCE_FAIL_OP
-PySHMEM_REDUCE_UNAVAL(complexf,   float _Complex,  prod)  // PySHMEM_REDUCE_FAIL_OP 
-PySHMEM_REDUCE_UNAVAL(complexd,   double _Complex, prod)  // PySHMEM_REDUCE_FAIL_OP 
+PySHMEM_REDUCE_UNAVAL(complexf,   float _Complex,  prod)  // PySHMEM_REDUCE_FAIL_OP
+PySHMEM_REDUCE_UNAVAL(complexd,   double _Complex, prod)  // PySHMEM_REDUCE_FAIL_OP
 
 static
 void shmem_alltoalls32(void *target, const void *source, ptrdiff_t dst, ptrdiff_t sst,
@@ -891,7 +900,7 @@ void   shmem_ctx_##RMA##mem##NBI(shmem_ctx_t ctx, void *dest, const void *source
 {                                                                                                       \
   (void)ctx; (void)dest; (void)source; (void)count; (void)pe;                                           \
   (void)PySHMEM_UNAVAILABLE;                                                                            \
-} 
+}
 PySHMEM_CTX_MEM(put,_nbi)
 PySHMEM_CTX_MEM(get,_nbi)
 PySHMEM_CTX_MEM(put,)
@@ -903,7 +912,7 @@ void shmem_ctx_##RMA##SIZE##NBI(shmem_ctx_t ctx, void *dest, const void *source,
 {                                                                                                       \
   (void)ctx; (void)dest; (void)source; (void)count; (void)pe;                                           \
   (void)PySHMEM_UNAVAILABLE;                                                                            \
-} 
+}
 PySHMEM_CTX_SIZE(put,8,  _nbi)
 PySHMEM_CTX_SIZE(put,16, _nbi)
 PySHMEM_CTX_SIZE(put,32, _nbi)
@@ -931,7 +940,7 @@ void shmem_ctx_i##RMA##SIZE(shmem_ctx_t ctx, void *dest, const void *source, ptr
 {                                                                                                                                 \
   (void)ctx; (void)dest; (void)source; (void)dst; (void)sst; (void)count; (void)pe;                                               \
   (void)PySHMEM_UNAVAILABLE;                                                                                                      \
-} 
+}
 PySHMEM_CTX_iSIZE(put,8  )
 PySHMEM_CTX_iSIZE(put,16 )
 PySHMEM_CTX_iSIZE(put,32 )
