@@ -14,6 +14,6 @@
 # endif
 #endif
 
-PySHMEM_Thread_local static int _shmem_error = 0;
+static PySHMEM_Thread_local int _shmem_error = 0;
 
 #define PySHMEM_UNAVAILABLE (_shmem_error = -1431655766) /*0xAAAAAAAA*/
