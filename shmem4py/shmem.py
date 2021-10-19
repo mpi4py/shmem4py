@@ -722,7 +722,7 @@ def ones(
 ) -> 'npt.NDArray':
     """
     """
-    a = new_array(shape, dtype, order, align=align, hints=hints, clear=True)
+    a = new_array(shape, dtype, order, align=align, hints=hints, clear=False)
     np.copyto(a, 1, casting='unsafe')
     lib.shmem_sync_all()
     return a
