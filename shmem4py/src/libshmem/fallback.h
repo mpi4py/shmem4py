@@ -428,7 +428,6 @@ int shmem_collectmem(shmem_team_t team,
   return shmem_uchar_collect(team, _dest, _source, nbytes);
 #else
   if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
-  PySHMEM_COLLECT_BIT(64, dest, source, nbytes);
   PySHMEM_COLLECT_BIT(32, dest, source, nbytes);
   return PySHMEM_UNAVAILABLE;
 #endif
