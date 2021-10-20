@@ -596,7 +596,7 @@ def alloc(
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
     clear: bool = True,
-) -> ffi.CData:
+) -> 'ffi.CData':
     """
     """
     dtype = np.dtype(dtype)
@@ -620,7 +620,7 @@ def free(cdata: 'ffi.CData|Buffer') -> None:
 
 
 def fromcdata(
-    cdata: ffi.CData,
+    cdata: 'ffi.CData',
     shape: 'Optional[int|Sequence[int]]' = None,
     dtype: 'Optional[npt.DTypeLike]' = None,
     order: str = 'C',
