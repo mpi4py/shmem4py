@@ -23,7 +23,7 @@ class TestPtr(unittest.TestCase):
         for t in types:
             sym = shmem.new_array(1, t)
             sym[0] = npes
-            shmem.barrier_all()
+            shmem.sync_all()
 
             nloc = shmem.ptr(sym, nxpe)
             if nloc is not None:
@@ -54,7 +54,6 @@ class TestPtr(unittest.TestCase):
             for d in (0, 1, 2, 3):
                 for order in ('C', 'F'):
                     sym = shmem.full((3,)*d, npes, dtype=t, order=order)
-                    shmem.barrier_all()
                     loc = shmem.ptr(sym, nxpe)
                     if loc is not None:
                         self.assertTrue(isinstance(loc, np.ndarray))

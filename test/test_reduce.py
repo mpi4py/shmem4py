@@ -47,7 +47,6 @@ class TestReduce(unittest.TestCase):
             with self.subTest(type=t):
                 tgt = shmem.array(-1, dtype=t)
                 src = shmem.full(1, mype, dtype=t)
-                shmem.barrier_all()
                 shmem.reduce(tgt, src)
                 self.assertEqual(tgt, ((npes-1)*npes)//2)
                 shmem.free(tgt)
@@ -61,7 +60,6 @@ class TestReduce(unittest.TestCase):
             with self.subTest(type=t):
                 tgt = shmem.array(-1, dtype=t)
                 src = shmem.full(1, mype, dtype=t)
-                shmem.barrier_all()
                 shmem.reduce(tgt, src, team=team)
                 self.assertEqual(tgt, ((npes-1)*npes)//2)
                 shmem.free(tgt)
@@ -78,7 +76,6 @@ class TestReduce(unittest.TestCase):
                     val = reducefn(np.arange(1, npes+1, dtype=t), dtype=t)
                     tgt = shmem.full(2, ini, dtype=t)
                     src = shmem.full(1, mype+1, dtype=t)
-                    shmem.barrier_all()
                     shmem.reduce(tgt, src, op=op)
                     if op == 'prod' and t in (types_f+types_c):
                         self.assertTrue(np.allclose(tgt[0], val))
@@ -100,13 +97,14 @@ class TestReduce(unittest.TestCase):
                 src = shmem.full(npes+2, mype+1, dtype=t)
                 for size in range(npes+2):
                     with self.subTest(type=t, op=op, size=size):
-                        shmem.barrier_all()
                         shmem.reduce(tgt, src, op=op, size=size)
                         if op == 'prod' and t in (types_f+types_c):
                             self.assertTrue(np.allclose(tgt[:size], val))
                         else:
                             self.assertTrue(np.all(tgt[:size] == val))
                         self.assertTrue(np.all(tgt[size:] == ini))
+                    tgt[...] = ini
+                    shmem.sync_all()
                 shmem.free(tgt)
                 shmem.free(src)
 
@@ -121,7 +119,6 @@ class TestReduce(unittest.TestCase):
                     val = reducefn(np.arange(1, npes+1, dtype=t), dtype=t)
                     tgt = shmem.full(2, ini, dtype=t)
                     src = shmem.full(1, mype+1, dtype=t)
-                    shmem.barrier_all()
                     shmem_reduce = getattr(shmem, f'{op}_reduce')
                     shmem_reduce(tgt, src)
                     if op == 'prod' and t in (types_f+types_c):

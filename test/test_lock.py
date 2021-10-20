@@ -11,7 +11,6 @@ class TestLock(unittest.TestCase):
         lock = shmem.new_lock()
         value = np.array(0, dtype='i')
         counter = shmem.array(0, dtype='i')
-        shmem.barrier_all()
         for pe in range(npes):
             shmem.set_lock(lock)
             shmem.get(value, counter, pe)
@@ -19,7 +18,7 @@ class TestLock(unittest.TestCase):
             shmem.put(counter, value, pe)
             shmem.quiet()
             shmem.clear_lock(lock)
-        shmem.barrier_all()
+        shmem.sync_all()
         self.assertEqual(counter, npes)
         shmem.free(counter)
         shmem.del_lock(lock)
@@ -29,7 +28,6 @@ class TestLock(unittest.TestCase):
         lock = shmem.new_lock()
         value = np.array(0, dtype='i')
         counter = shmem.array(0, dtype='i')
-        shmem.barrier_all()
         for pe in range(npes):
             while shmem.test_lock(lock):
                 pass
@@ -38,7 +36,7 @@ class TestLock(unittest.TestCase):
             shmem.put(counter, value, pe)
             shmem.quiet()
             shmem.clear_lock(lock)
-        shmem.barrier_all()
+        shmem.sync_all()
         self.assertEqual(counter, npes)
         shmem.free(counter)
         shmem.del_lock(lock)
@@ -52,7 +50,6 @@ class TestLockClass(unittest.TestCase):
         npes = shmem.n_pes()
         value = np.array(0, dtype='i')
         counter = shmem.array(0, dtype='i')
-        shmem.barrier_all()
         for pe in range(npes):
             lock.acquire(blocking=True)
             shmem.get(value, counter, pe)
@@ -60,7 +57,7 @@ class TestLockClass(unittest.TestCase):
             shmem.put(counter, value, pe)
             shmem.quiet()
             lock.release()
-        shmem.barrier_all()
+        shmem.sync_all()
         self.assertEqual(counter, npes)
         shmem.free(counter)
         lock.destroy()
@@ -70,7 +67,6 @@ class TestLockClass(unittest.TestCase):
         npes = shmem.n_pes()
         value = np.array(0, dtype='i')
         counter = shmem.array(0, dtype='i')
-        shmem.barrier_all()
         for pe in range(npes):
             while not lock.acquire(blocking=False):
                 pass
@@ -79,7 +75,7 @@ class TestLockClass(unittest.TestCase):
             shmem.put(counter, value, pe)
             shmem.quiet()
             lock.release()
-        shmem.barrier_all()
+        shmem.sync_all()
         self.assertEqual(counter, npes)
         shmem.free(counter)
         lock.destroy()
@@ -89,14 +85,13 @@ class TestLockClass(unittest.TestCase):
         npes = shmem.n_pes()
         value = np.array(0, dtype='i')
         counter = shmem.array(0, dtype='i')
-        shmem.barrier_all()
         for pe in range(npes):
             with lock:
                 shmem.get(value, counter, pe)
                 value += 1
                 shmem.put(counter, value, pe)
                 shmem.quiet()
-        shmem.barrier_all()
+        shmem.sync_all()
         self.assertEqual(counter, npes)
         shmem.free(counter)
         lock.destroy()

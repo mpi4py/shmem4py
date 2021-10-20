@@ -29,7 +29,6 @@ class TestSignal(unittest.TestCase):
                         result = i+1
                         src = np.full(2, nxpe, dtype=t)
                         dst = shmem.full(2, -1, dtype=t)
-                        shmem.barrier_all()
                         shmem.put_signal(
                             dst, src, nxpe,
                             sig_addr, signal, op,
@@ -55,12 +54,10 @@ class TestSignal(unittest.TestCase):
                         result = i+1
                         src = np.full(2, nxpe, dtype=t)
                         dst = shmem.full(2, -1, dtype=t)
-                        shmem.barrier_all()
                         shmem.put_signal_nbi(
                             dst, src, nxpe,
                             sig_addr, signal, op,
                             ctx=ctx)
-                        shmem.quiet()
                         shmem.barrier_all()
                         value = shmem.signal_fetch(sig_addr)
                         self.assertEqual(dst[0], mype)

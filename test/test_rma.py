@@ -20,7 +20,7 @@ class TestRMA(unittest.TestCase):
             dst = shmem.empty(2, dtype=t)
             dst[...] = init = np.array(-1, dtype=t)
             ctx = shmem.CTX_DEFAULT
-            shmem.barrier_all()
+            shmem.sync_all()
             shmem.put(dst, src, nxpe, size=1, ctx=ctx)
             shmem.barrier_all()
             self.assertEqual(dst[0], mype)
@@ -36,9 +36,8 @@ class TestRMA(unittest.TestCase):
             dst = np.empty(2, dtype=t)
             dst[...] = init = np.array(-1, dtype=t)
             ctx = shmem.CTX_DEFAULT
-            shmem.barrier_all()
+            shmem.sync_all()
             shmem.get(dst, src, nxpe, size=1, ctx=ctx)
-            shmem.barrier_all()
             self.assertEqual(dst[0], nxpe)
             self.assertEqual(dst[1], init)
             shmem.free(src)
@@ -50,7 +49,6 @@ class TestRMA(unittest.TestCase):
         for t in types:
             src = np.full(2, nxpe, dtype=t)
             dst = shmem.full(2, -1, dtype=t)
-            shmem.barrier_all()
             shmem.put(dst, src, nxpe)
             shmem.barrier_all()
             self.assertEqual(dst[0], mype)
@@ -64,7 +62,6 @@ class TestRMA(unittest.TestCase):
         for t in types:
             src = shmem.full(1, mype, dtype=t)
             dst = np.full(1, -1, dtype=t)
-            shmem.barrier_all()
             shmem.get(dst, src, nxpe)
             self.assertEqual(dst[0], nxpe)
             shmem.free(src)
@@ -81,18 +78,20 @@ class TestRMA(unittest.TestCase):
             for tst in range(1, 12):
                 with self.subTest(t=t, tst=tst):
                     tgt[...] = val
-                    shmem.barrier_all()
+                    shmem.sync_all()
                     shmem.iput(tgt, src, nxpe, tst=tst)
-                    shmem.barrier_all()
+                    shmem.quiet()
+                    shmem.sync_all()
                     self.assertTrue(np.all(tgt[::tst]==mype))
                     for i in range(1, tst):
                         self.assertTrue(np.all(tgt[i::tst]==val))
             for sst in range(1, 12):
                 with self.subTest(t=t, sst=sst):
                     tgt[...] = val
-                    shmem.barrier_all()
+                    shmem.sync_all()
                     shmem.iput(tgt, src, nxpe, sst=sst)
-                    shmem.barrier_all()
+                    shmem.quiet()
+                    shmem.sync_all()
                     n = src[::sst].size
                     self.assertTrue(np.all(tgt[:n]==mype))
                     self.assertTrue(np.all(tgt[n:]==val))
@@ -110,18 +109,16 @@ class TestRMA(unittest.TestCase):
             for tst in range(1, 12):
                 with self.subTest(t=t, tst=tst):
                     tgt[...] = val
-                    shmem.barrier_all()
+                    shmem.sync_all()
                     shmem.iget(tgt, src, nxpe, tst=tst)
-                    shmem.barrier_all()
                     self.assertTrue(np.all(tgt[::tst]==nxpe))
                     for i in range(1, tst):
                         self.assertTrue(np.all(tgt[i::tst]==val))
             for sst in range(1, 12):
                 with self.subTest(t=t, sst=sst):
                     tgt[...] = val
-                    shmem.barrier_all()
+                    shmem.sync_all()
                     shmem.iget(tgt, src, nxpe, sst=sst)
-                    shmem.barrier_all()
                     n = src[::sst].size
                     self.assertTrue(np.all(tgt[:n]==nxpe))
                     self.assertTrue(np.all(tgt[n:]==val))
@@ -134,11 +131,10 @@ class TestRMA(unittest.TestCase):
         for t in types:
             src = np.full(1, nxpe, dtype=t)
             dst = shmem.full(1, -1, dtype=t)
-            shmem.barrier_all()
             shmem.put_nbi(dst, src, nxpe)
             shmem.fence()
             shmem.quiet()
-            shmem.barrier_all()
+            shmem.sync_all()
             self.assertEqual(dst[0], mype)
             shmem.free(dst)
 
@@ -149,7 +145,6 @@ class TestRMA(unittest.TestCase):
         for t in types:
             src = shmem.full(1, mype, dtype=t)
             dst = np.full(1, -1, dtype=t)
-            shmem.barrier_all()
             shmem.get_nbi(dst, src, nxpe)
             shmem.fence()
             shmem.quiet()
