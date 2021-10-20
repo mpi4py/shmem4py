@@ -184,7 +184,7 @@ uint64_t shmem_signal_wait_until(uint64_t *sig_addr, int cmp, uint64_t cmp_value
 
 #if !defined(PySHMEM_HAVE_SHMEM_CTX_INVALID)
 
-#define SHMEM_CTX_INVALID ((shmem_ctx_t)(SHMEM_CTX_DEFAULT?NULL:(SHMEM_CTX_DEFAULT-1)))
+#define SHMEM_CTX_INVALID ((shmem_ctx_t)(SHMEM_CTX_DEFAULT?NULL:((char*)SHMEM_CTX_DEFAULT-1)))
 
 #endif
 
@@ -569,10 +569,10 @@ int shmem_alltoallsmem_x(shmem_team_t team,
 {
 #if defined(PySHMEM_HAVE_shmem_alltoalls)
   switch (eltsize) {
-  case (1): return shmem_uint8_alltoalls (team, dest, source, dst, sst, size);
-  case (2): return shmem_uint16_alltoalls(team, dest, source, dst, sst, size);
-  case (4): return shmem_uint32_alltoalls(team, dest, source, dst, sst, size);
-  case (8): return shmem_uint64_alltoalls(team, dest, source, dst, sst, size);
+  case (1): return shmem_uint8_alltoalls (team, (uint8_t*)  dest, (uint8_t*)  source, dst, sst, size);
+  case (2): return shmem_uint16_alltoalls(team, (uint16_t*) dest, (uint16_t*) source, dst, sst, size);
+  case (4): return shmem_uint32_alltoalls(team, (uint32_t*) dest, (uint32_t*) source, dst, sst, size);
+  case (8): return shmem_uint64_alltoalls(team, (uint64_t*) dest, (uint64_t*) source, dst, sst, size);
   }
   return PySHMEM_UNAVAILABLE;
 #else
