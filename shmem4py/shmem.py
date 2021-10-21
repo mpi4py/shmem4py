@@ -5,6 +5,7 @@
 # pylint: disable=too-many-arguments
 # ---
 
+import enum as _enum
 import weakref as _wr
 import functools as _ft
 
@@ -36,7 +37,7 @@ MINOR_VERSION: int = lib.SHMEM_MINOR_VERSION
 VENDOR_STRING: str = ffi.string(lib.SHMEM_VENDOR_STRING).decode()
 
 
-def info_get_version() -> 'tuple[int, int]':
+def info_get_version() -> 'Tuple[int, int]':
     """
     """
     major = ffi.new('int*')
@@ -56,10 +57,19 @@ def info_get_name() -> str:
 # ---
 
 
-THREAD_SINGLE:     int = lib.SHMEM_THREAD_SINGLE
-THREAD_FUNNELED:   int = lib.SHMEM_THREAD_FUNNELED
-THREAD_SERIALIZED: int = lib.SHMEM_THREAD_SERIALIZED
-THREAD_MULTIPLE:   int = lib.SHMEM_THREAD_MULTIPLE
+class THREAD(_enum.IntEnum):
+    """
+    """
+    SINGLE:     int = lib.SHMEM_THREAD_SINGLE
+    FUNNELED:   int = lib.SHMEM_THREAD_FUNNELED
+    SERIALIZED: int = lib.SHMEM_THREAD_SERIALIZED
+    MULTIPLE:   int = lib.SHMEM_THREAD_MULTIPLE
+
+
+THREAD_SINGLE:     THREAD = THREAD.SINGLE
+THREAD_FUNNELED:   THREAD = THREAD.FUNNELED
+THREAD_SERIALIZED: THREAD = THREAD.SERIALIZED
+THREAD_MULTIPLE:   THREAD = THREAD.MULTIPLE
 
 
 def init() -> None:
@@ -80,21 +90,21 @@ def global_exit(status: int = 0) -> 'NoReturn':  # pragma: no cover
     lib.shmem_global_exit(status)
 
 
-def init_thread(requested: int = THREAD_MULTIPLE) -> int:
+def init_thread(requested: THREAD = THREAD_MULTIPLE) -> THREAD:
     """
     """
     provided = ffi.new('int*', lib.SHMEM_THREAD_SINGLE)
     ierr = lib.shmem_init_thread(requested, provided)
     _chkerr(ierr, "shmem_init_thread")
-    return provided[0]
+    return THREAD(provided[0])
 
 
-def query_thread() -> int:
+def query_thread() -> THREAD:
     """
     """
     provided = ffi.new('int*', lib.SHMEM_THREAD_SINGLE)
     lib.shmem_query_thread(provided)
-    return provided[0]
+    return THREAD(provided[0])
 
 
 # ---
@@ -124,8 +134,7 @@ def _initialize() -> None:
     if rc.initialize:
         if rc.threads:
             level = rc.thread_level.upper()
-            attr = f'SHMEM_THREAD_{level}'
-            requested = getattr(lib, attr)
+            requested = getattr(THREAD, level)
             init_thread(requested)
         else:
             init()
@@ -142,15 +151,23 @@ _initialize()
 # ---
 
 
-CTX_PRIVATE:    int = lib.SHMEM_CTX_PRIVATE
-CTX_SERIALIZED: int = lib.SHMEM_CTX_SERIALIZED
-CTX_NOSTORE:    int = lib.SHMEM_CTX_NOSTORE
+class CTX(_enum.IntFlag):
+    """
+    """
+    PRIVATE:    int = lib.SHMEM_CTX_PRIVATE
+    SERIALIZED: int = lib.SHMEM_CTX_SERIALIZED
+    NOSTORE:    int = lib.SHMEM_CTX_NOSTORE
+
+
+CTX_PRIVATE:    CTX = CTX.PRIVATE
+CTX_SERIALIZED: CTX = CTX.SERIALIZED
+CTX_NOSTORE:    CTX = CTX.NOSTORE
 
 
 class Ctx:
     """Communication context."""
 
-    def __new__(cls, ctx=None):
+    def __new__(cls, ctx: 'Optional[Ctx]' = None) -> 'Ctx':
         self = object.__new__(cls)
         self.ob_ctx = lib.SHMEM_CTX_INVALID
         if isinstance(ctx, ffi.CData):
@@ -248,7 +265,7 @@ CTX_INVALID: Ctx = Ctx(lib.SHMEM_CTX_INVALID)
 class Team:
     """Team management."""
 
-    def __new__(cls, team=None):
+    def __new__(cls, team: 'Optional[Team]' = None) -> 'Team':
         self = object.__new__(cls)
         self.ob_team = lib.SHMEM_TEAM_INVALID
         if isinstance(team, ffi.CData):
@@ -541,6 +558,10 @@ _numpy_to_shmem = {
     f'c{np.dtype("G").itemsize}': 'complexl',
 }
 
+_shmem_to_numpy = {
+    v: k for k, v in _numpy_to_shmem.items()
+}
+
 _heap = _wr.WeakValueDictionary()
 
 
@@ -560,8 +581,15 @@ def _get_allocator(
     )
 
 
-MALLOC_ATOMICS_REMOTE: int = lib.SHMEM_MALLOC_ATOMICS_REMOTE
-MALLOC_SIGNAL_REMOTE: int = lib.SHMEM_MALLOC_SIGNAL_REMOTE
+class MALLOC(_enum.IntFlag):
+    """
+    """
+    ATOMICS_REMOTE: int = lib.SHMEM_MALLOC_ATOMICS_REMOTE
+    SIGNAL_REMOTE:  int = lib.SHMEM_MALLOC_SIGNAL_REMOTE
+
+
+MALLOC_ATOMICS_REMOTE: MALLOC = MALLOC.ATOMICS_REMOTE
+MALLOC_SIGNAL_REMOTE:  MALLOC = MALLOC.SIGNAL_REMOTE
 
 
 def alloc(
@@ -570,7 +598,7 @@ def alloc(
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
     clear: bool = True,
-) -> ffi.CData:
+) -> 'ffi.CData':
     """
     """
     dtype = np.dtype(dtype)
@@ -594,8 +622,8 @@ def free(cdata: 'ffi.CData|Buffer') -> None:
 
 
 def fromcdata(
-    cdata: ffi.CData,
-    shape: 'Optional[int|tuple[int]]' = None,
+    cdata: 'ffi.CData',
+    shape: 'Optional[int|Sequence[int]]' = None,
     dtype: 'Optional[npt.DTypeLike]' = None,
     order: str = 'C',
 ) -> 'npt.NDArray':
@@ -620,7 +648,7 @@ def fromcdata(
 
 
 def new_array(
-    shape: 'int|tuple[int]',
+    shape: 'int|Sequence[int]',
     dtype: 'npt.DTypeLike' = float,
     order: str = 'C',
     align: 'Optional[int]' = None,
@@ -662,7 +690,7 @@ def array(
 
 
 def empty(
-    shape: 'int|tuple[int]',
+    shape: 'int|Sequence[int]',
     dtype: 'npt.DTypeLike' = float,
     order: str = 'C',
     align: 'Optional[int]' = None,
@@ -675,7 +703,7 @@ def empty(
 
 
 def zeros(
-    shape: 'int|tuple[int]',
+    shape: 'int|Sequence[int]',
     dtype: 'npt.DTypeLike' = float,
     order: str = 'C',
     align: 'Optional[int]' = None,
@@ -688,7 +716,7 @@ def zeros(
 
 
 def ones(
-    shape: 'int|tuple[int]',
+    shape: 'int|Sequence[int]',
     dtype: 'npt.DTypeLike' = float,
     order: str = 'C',
     align: 'Optional[int]' = None,
@@ -696,15 +724,15 @@ def ones(
 ) -> 'npt.NDArray':
     """
     """
-    a = new_array(shape, dtype, order, align=align, hints=hints, clear=True)
+    a = new_array(shape, dtype, order, align=align, hints=hints, clear=False)
     np.copyto(a, 1, casting='unsafe')
     lib.shmem_sync_all()
     return a
 
 
 def full(
-    shape: 'int|tuple[int]',
-    fill_value: 'int|float',
+    shape: 'int|Sequence[int]',
+    fill_value: 'Number',
     dtype: 'Optional[npt.DTypeLike]' = None,
     order: str = 'C',
     align: 'Optional[int]' = None,
@@ -820,43 +848,96 @@ def _shmem_rma_nbi(ctx, name, target, source, size, pe):
         return _shmem(ctx, None, f'{name}mem_nbi')(target, source, size, pe)
 
 
-def put(target, source, pe, size=None, ctx=None) -> None:
+def put(
+    target,
+    source,
+    pe: int,
+    size: 'Optional[int]' = None,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
     """
     """
-    return _shmem_rma(ctx, 'put', target, source, size, pe)
+    _shmem_rma(ctx, 'put', target, source, size, pe)
 
 
-def get(target, source, pe, size=None, ctx=None) -> None:
+def get(
+    target,
+    source,
+    pe: int,
+    size: 'Optional[int]' = None,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
     """
     """
-    return _shmem_rma(ctx, 'get', target, source, size, pe)
+    _shmem_rma(ctx, 'get', target, source, size, pe)
 
 
-def iput(target, source, pe, tst=1, sst=1, size=None, ctx=None) -> None:
+def iput(
+    target,
+    source,
+    pe: int,
+    tst: int = 1,
+    sst: int = 1,
+    size: 'Optional[int]' = None,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
     """
     """
-    return _shmem_irma(ctx, 'put', target, source, tst, sst, size, pe)
+    _shmem_irma(ctx, 'put', target, source, tst, sst, size, pe)
 
 
-def iget(target, source, pe, tst=1, sst=1, size=None, ctx=None) -> None:
+def iget(
+    target,
+    source,
+    pe: int,
+    tst: int = 1,
+    sst: int = 1,
+    size: 'Optional[int]' = None,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
     """
     """
-    return _shmem_irma(ctx, 'get', target, source, tst, sst, size, pe)
+    _shmem_irma(ctx, 'get', target, source, tst, sst, size, pe)
 
 
-def put_nbi(target, source, pe, size=None, ctx=None) -> None:
+def put_nbi(
+    target,
+    source,
+    pe: int,
+    size: 'Optional[int]' = None,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
     """
     """
-    return _shmem_rma_nbi(ctx, 'put', target, source, size, pe)
+    _shmem_rma_nbi(ctx, 'put', target, source, size, pe)
 
 
-def get_nbi(target, source, pe, size=None, ctx=None) -> None:
+def get_nbi(
+    target,
+    source,
+    pe: int,
+    size: 'Optional[int]' = None,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
     """
     """
-    return _shmem_rma_nbi(ctx, 'get', target, source, size, pe)
+    _shmem_rma_nbi(ctx, 'get', target, source, size, pe)
 
 
 # ---
+
+
+def _parse_amo_op(op):
+    assert isinstance(op, str)
+    return f'{op}'.lower()
+
+
+def _parse_amo_args(name, args):
+    if name in ('inc', 'fetch_inc'):
+        return name, args[1:]
+    if name == 'fetch_set':
+        return 'swap', args
+    return name, args
 
 
 def _parse_amo(remote, readonly=False):
@@ -866,11 +947,14 @@ def _parse_amo(remote, readonly=False):
 
 
 def _shmem_amo(ctx, name, remote, *args, readonly=False):
+    name, args = _parse_amo_args(name, args)
     ctype, remote = _parse_amo(remote, readonly=readonly)
-    return _shmem(ctx, ctype, f'atomic_{name}')(remote, *args)
+    shmem_amo = _shmem(ctx, ctype, f'atomic_{name}')
+    return shmem_amo(remote, *args)
 
 
 def _shmem_amo_nbi(ctx, name, fetch, remote, *args, readonly=False):
+    name, args = _parse_amo_args(name, args)
     ftype, fetch = _parse_amo(fetch, readonly=False)
     ctype, remote = _parse_amo(remote, readonly=readonly)
     assert ctype == ftype
@@ -878,187 +962,329 @@ def _shmem_amo_nbi(ctx, name, fetch, remote, *args, readonly=False):
     return shmem_amo_nbi(fetch, remote, *args)
 
 
-def atomic_fetch(source, pe, ctx=None):
+def atomic_set(
+    target,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
+    """
+    """
+    _shmem_amo(ctx, 'set', target, value, pe)
+
+
+def atomic_inc(
+    target,
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
+    """
+    """
+    _shmem_amo(ctx, 'inc', target, None, pe)
+
+
+def atomic_add(
+    target,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
+    """
+    """
+    _shmem_amo(ctx, 'add', target, value, pe)
+
+
+def atomic_and(
+    target,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
+    """
+    """
+    _shmem_amo(ctx, 'and', target, value, pe)
+
+
+def atomic_or(
+    target,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
+    """
+    """
+    _shmem_amo(ctx, 'or', target, value, pe)
+
+
+def atomic_xor(
+    target,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
+    """
+    """
+    _shmem_amo(ctx, 'xor', target, value, pe)
+
+
+def atomic_fetch(
+    source,
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> 'Number':
     """
     """
     return _shmem_amo(ctx, 'fetch', source, pe, readonly=True)
 
 
-def atomic_set(target, value, pe, ctx=None):
-    """
-    """
-    return _shmem_amo(ctx, 'set', target, value, pe)
-
-
-def atomic_swap(target, value, pe, ctx=None):
+def atomic_swap(
+    target,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> 'Number':
     """
     """
     return _shmem_amo(ctx, 'swap', target, value, pe)
 
 
-def atomic_compare_swap(target, cond, value, pe, ctx=None):
+def atomic_compare_swap(
+    target,
+    cond,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> 'Number':
     """
     """
     return _shmem_amo(ctx, 'compare_swap', target, cond, value, pe)
 
 
-def atomic_fetch_inc(target, pe, ctx=None):
+def atomic_fetch_inc(
+    target,
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> 'Number':
     """
     """
-    return _shmem_amo(ctx, 'fetch_inc', target, pe)
+    return _shmem_amo(ctx, 'fetch_inc', target, None, pe)
 
 
-def atomic_inc(target, pe, ctx=None):
-    """
-    """
-    return _shmem_amo(ctx, 'inc', target, pe)
-
-
-def atomic_fetch_add(target, value, pe, ctx=None):
+def atomic_fetch_add(
+    target,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> 'Number':
     """
     """
     return _shmem_amo(ctx, 'fetch_add', target, value, pe)
 
 
-def atomic_add(target, value, pe, ctx=None):
-    """
-    """
-    return _shmem_amo(ctx, 'add', target, value, pe)
-
-
-def atomic_fetch_and(target, value, pe, ctx=None):
+def atomic_fetch_and(
+    target,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> 'Number':
     """
     """
     return _shmem_amo(ctx, 'fetch_and', target, value, pe)
 
 
-def atomic_and(target, value, pe, ctx=None):
-    """
-    """
-    return _shmem_amo(ctx, 'and', target, value, pe)
-
-
-def atomic_fetch_or(target, value, pe, ctx=None):
+def atomic_fetch_or(
+    target,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> 'Number':
     """
     """
     return _shmem_amo(ctx, 'fetch_or', target, value, pe)
 
 
-def atomic_or(target, value, pe, ctx=None):
-    """
-    """
-    return _shmem_amo(ctx, 'or', target, value, pe)
-
-
-def atomic_fetch_xor(target, value, pe, ctx=None):
+def atomic_fetch_xor(
+    target,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> 'Number':
     """
     """
     return _shmem_amo(ctx, 'fetch_xor', target, value, pe)
 
 
-def atomic_xor(target, value, pe, ctx=None):
-    """
-    """
-    return _shmem_amo(ctx, 'xor', target, value, pe)
-
-
-def atomic_fetch_nbi(fetch, source, pe, ctx=None) -> None:
+def atomic_fetch_nbi(
+    fetch,
+    source,
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
     """
     """
     _shmem_amo_nbi(ctx, 'fetch', fetch, source, pe, readonly=True)
 
 
-def atomic_swap_nbi(fetch, target, value, pe, ctx=None) -> None:
+def atomic_swap_nbi(
+    fetch,
+    target,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
     """
     """
     _shmem_amo_nbi(ctx, 'swap', fetch, target, value, pe)
 
 
-def atomic_compare_swap_nbi(fetch, target, cond, value, pe, ctx=None) -> None:
+def atomic_compare_swap_nbi(
+    fetch,
+    target,
+    cond,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
     """
     """
     _shmem_amo_nbi(ctx, 'compare_swap', fetch, target, cond, value, pe)
 
 
-def atomic_fetch_inc_nbi(fetch, target, pe, ctx=None) -> None:
+def atomic_fetch_inc_nbi(
+    fetch,
+    target,
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
     """
     """
-    _shmem_amo_nbi(ctx, 'fetch_inc', fetch, target, pe)
+    _shmem_amo_nbi(ctx, 'fetch_inc', fetch, target, None, pe)
 
 
-def atomic_fetch_add_nbi(fetch, target, value, pe, ctx=None) -> None:
+def atomic_fetch_add_nbi(
+    fetch,
+    target,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
     """
     """
     _shmem_amo_nbi(ctx, 'fetch_add', fetch, target, value, pe)
 
 
-def atomic_fetch_and_nbi(fetch, target, value, pe, ctx=None) -> None:
+def atomic_fetch_and_nbi(
+    fetch,
+    target,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
     """
     """
     _shmem_amo_nbi(ctx, 'fetch_and', fetch, target, value, pe)
 
 
-def atomic_fetch_or_nbi(fetch, target, value, pe, ctx=None) -> None:
+def atomic_fetch_or_nbi(
+    fetch,
+    target,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
     """
     """
     _shmem_amo_nbi(ctx, 'fetch_or', fetch, target, value, pe)
 
 
-def atomic_fetch_xor_nbi(fetch, target, value, pe, ctx=None) -> None:
+def atomic_fetch_xor_nbi(
+    fetch,
+    target,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
     """
     """
     _shmem_amo_nbi(ctx, 'fetch_xor', fetch, target, value, pe)
 
 
-AMO_INC: str = 'inc'
-AMO_ADD: str = 'add'
-AMO_AND: str = 'and'
-AMO_OR:  str = 'or'
-AMO_XOR: str = 'xor'
-
-
-def atomic_op(target, op, value, pe, ctx=None):
+class AMO(str, _enum.Enum):
     """
     """
-    op = str(op).lower()
-    if op == 'inc':
-        return _shmem_amo(ctx, op, target, pe)
-    else:
-        return _shmem_amo(ctx, op, target, value, pe)
+    SET: str = 'set'
+    INC: str = 'inc'
+    ADD: str = 'add'
+    AND: str = 'and'
+    OR:  str = 'or'
+    XOR: str = 'xor'
 
 
-def atomic_fetch_op(target, op, value, pe, ctx=None):
-    """
-    """
-    op = str(op).lower()
-    if op == 'inc':
-        return _shmem_amo(ctx, f'fetch_{op}', target, pe)
-    else:
-        return _shmem_amo(ctx, f'fetch_{op}', target, value, pe)
+AMO_SET: AMO = AMO.SET
+AMO_INC: AMO = AMO.INC
+AMO_ADD: AMO = AMO.ADD
+AMO_AND: AMO = AMO.AND
+AMO_OR:  AMO = AMO.OR
+AMO_XOR: AMO = AMO.XOR
 
 
-def atomic_fetch_op_nbi(fetch, target, op, value, pe, ctx=None) -> None:
+def atomic_op(
+    target,
+    op: AMO,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
     """
     """
-    op = str(op).lower()
-    if op == 'inc':
-        _shmem_amo_nbi(ctx, f'fetch_{op}', fetch, target, pe)
-    else:
-        _shmem_amo_nbi(ctx, f'fetch_{op}', fetch, target, value, pe)
+    op = _parse_amo_op(op)
+    _shmem_amo(ctx, f'{op}', target, value, pe)
+
+
+def atomic_fetch_op(
+    target,
+    op: AMO,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> 'Number':
+    """
+    """
+    op = _parse_amo_op(op)
+    return _shmem_amo(ctx, f'fetch_{op}', target, value, pe)
+
+
+def atomic_fetch_op_nbi(
+    fetch,
+    target,
+    op: AMO,
+    value: 'Number',
+    pe: int,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
+    """
+    """
+    op = _parse_amo_op(op)
+    return _shmem_amo_nbi(ctx, f'fetch_{op}', fetch, target, value, pe)
 
 
 # ---
 
 
-def _parse_signal(sig_addr):
-    return sig_addr
+_signal_ctype = ffi.typeof('uint64_t*')
 
 
-def _shmem_rma_signal(ctx, name, nbi,
-                      target, source, size, pe,
-                      sig_addr, signal, sig_op):
+def _parse_signal(signal):
+    return signal
+
+
+def _shmem_rma_signal(
+    ctx, name, nbi,
+    target, source, size, pe,
+    signal, value, sigop,
+):
     ctype, target, source, size = _parse_rma(target, source, size)
-    sig_addr = _parse_signal(sig_addr)
+    signal = _parse_signal(signal)
     try:
         funcname = f'{name}_signal{nbi}'
         shmem_rma_signal = _shmem(ctx, ctype, funcname, chkerr=1)
@@ -1066,55 +1292,77 @@ def _shmem_rma_signal(ctx, name, nbi,
         size *= ffi.sizeof(ctype)
         funcname = f'{name}mem_signal{nbi}'
         shmem_rma_signal = _shmem(ctx, None, funcname, chkerr=1)
-    return shmem_rma_signal(target, source, size, sig_addr, signal, sig_op, pe)
+    return shmem_rma_signal(target, source, size, signal, value, sigop, pe)
 
 
-SIGNAL_SET = lib.SHMEM_SIGNAL_SET
-SIGNAL_ADD = lib.SHMEM_SIGNAL_ADD
-
-
-def put_signal(target, source, pe,
-               sig_addr, signal, sig_op,
-               size=None, ctx=None) -> None:
-    """
-    """
-    return _shmem_rma_signal(ctx, 'put', '',
-                             target, source, size, pe,
-                             sig_addr, signal, sig_op)
-
-
-def put_signal_nbi(target, source, pe,
-                   sig_addr, signal, sig_op,
-                   size=None, ctx=None) -> None:
-    """
-    """
-    return _shmem_rma_signal(ctx, 'put', '_nbi',
-                             target, source, size, pe,
-                             sig_addr, signal, sig_op)
-
-
-def signal_fetch(sig_addr):
-    """
-    """
-    return lib.shmem_signal_fetch(sig_addr)
-
-
-_signal_type = ffi.typeof('uint64_t*')
-
-
-def new_signal() -> ffi.CData:
+def new_signal() -> 'SigAddr':
     """
     """
     hints = lib.SHMEM_MALLOC_SIGNAL_REMOTE
     allocator = _get_allocator(hints=hints)
-    return allocator(_signal_type)
+    return allocator(_signal_ctype)
 
 
-def del_signal(signal: ffi.CData) -> None:
+def del_signal(signal: 'SigAddr') -> None:
     """
     """
-    assert ffi.typeof(signal) is _signal_type
+    assert ffi.typeof(signal) is _signal_ctype
     ffi.release(signal)
+
+
+def signal_fetch(signal: 'SigAddr') -> int:
+    """
+    """
+    return lib.shmem_signal_fetch(signal)
+
+
+class SIGNAL(_enum.IntEnum):
+    """
+    """
+    SET: int = lib.SHMEM_SIGNAL_SET
+    ADD: int = lib.SHMEM_SIGNAL_ADD
+
+
+SIGNAL_SET: SIGNAL = SIGNAL.SET
+SIGNAL_ADD: SIGNAL = SIGNAL.ADD
+
+
+def put_signal(
+    target,
+    source,
+    pe: int,
+    signal: 'SigAddr',
+    value: int,
+    sigop: SIGNAL,
+    size: 'Optional[int]' = None,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
+    """
+    """
+    _shmem_rma_signal(
+        ctx, 'put', '',
+        target, source, size, pe,
+        signal, value, sigop,
+    )
+
+
+def put_signal_nbi(
+    target,
+    source,
+    pe: int,
+    signal: 'SigAddr',
+    value: int,
+    sigop: SIGNAL,
+    size: 'Optional[int]' = None,
+    ctx: 'Optional[Ctx]' = None,
+) -> None:
+    """
+    """
+    _shmem_rma_signal(
+        ctx, 'put', '_nbi',
+        target, source, size, pe,
+        signal, value, sigop,
+    )
 
 
 # ---
@@ -1172,6 +1420,11 @@ def _parse_alltoall(target, source, size, npes, tst=1, sst=1):
     return (stype, tdata, sdata, size)
 
 
+def _parse_reduce_op(op):
+    assert isinstance(op, str)
+    return f'{op}'.lower()
+
+
 def _parse_reduce(target, source, size):
     tdata, tsize, ttype = _getbuffer(target, readonly=False)
     sdata, ssize, stype = _getbuffer(source, readonly=True)
@@ -1217,7 +1470,13 @@ def sync(team: 'Optional[Team]' = None) -> None:
         _chkerr(ierr, "shmem_team_sync")
 
 
-def broadcast(target, source, root, size=None, team=None) -> None:
+def broadcast(
+    target,
+    source,
+    root: int,
+    size: 'Optional[int]' = None,
+    team: 'Optional[Team]' = None,
+) -> None:
     """
     """
     team, _ = _parse_team(team)
@@ -1226,7 +1485,12 @@ def broadcast(target, source, root, size=None, team=None) -> None:
     shmem_broadcast(team, target, source, size, root)
 
 
-def collect(target, source, size=None, team=None) -> None:
+def collect(
+    target,
+    source,
+    size: 'Optional[int]' = None,
+    team: 'Optional[Team]' = None,
+) -> None:
     """
     """
     team, _ = _parse_team(team)
@@ -1235,7 +1499,12 @@ def collect(target, source, size=None, team=None) -> None:
     shmem_collect(team, target, source, size)
 
 
-def fcollect(target, source, size=None, team=None) -> None:
+def fcollect(
+    target,
+    source,
+    size: 'Optional[int]' = None,
+    team: 'Optional[Team]' = None,
+) -> None:
     """
     """
     team, npes = _parse_team(team)
@@ -1254,7 +1523,14 @@ def alltoall(target, source, size=None, team=None) -> None:
     shmem_alltoall(team, target, source, size)
 
 
-def alltoalls(target, source, tst=1, sst=1, size=None, team=None) -> None:
+def alltoalls(
+    target,
+    source,
+    tst: int = 1,
+    sst: int = 1,
+    size: 'Optional[int]' = None,
+    team: 'Optional[Team]' = None,
+) -> None:
     """
     """
     team, npes = _parse_team(team)
@@ -1269,19 +1545,37 @@ def alltoalls(target, source, tst=1, sst=1, size=None, team=None) -> None:
         shmem_alltoalls(team, target, source, tst, sst, size, itemsize)
 
 
-OP_AND = 'and'
-OP_OR = 'or'
-OP_XOR = 'xor'
-OP_MAX = 'max'
-OP_MIN = 'min'
-OP_SUM = 'sum'
-OP_PROD = 'prod'
-
-
-def reduce(target, source, op='sum', size=None, team=None):
+class OP(str, _enum.Enum):
     """
     """
-    op = str(op).lower()
+    AND:  str = 'and'
+    OR:   str = 'or'
+    XOR:  str = 'xor'
+    MAX:  str = 'max'
+    MIN:  str = 'min'
+    SUM:  str = 'sum'
+    PROD: str = 'prod'
+
+
+OP_AND:  OP = OP.AND
+OP_OR:   OP = OP.OR
+OP_XOR:  OP = OP.XOR
+OP_MAX:  OP = OP.MAX
+OP_MIN:  OP = OP.MIN
+OP_SUM:  OP = OP.SUM
+OP_PROD: OP = OP.PROD
+
+
+def reduce(
+    target,
+    source,
+    op: OP = OP_SUM,
+    size: 'Optional[int]' = None,
+    team: 'Optional[Team]' = None,
+) -> None:
+    """
+    """
+    op = _parse_reduce_op(op)
     team = team.ob_team if team is not None else lib.SHMEM_TEAM_WORLD
     ctype, target, source, size = _parse_reduce(target, source, size)
     shmem_reduce = _shmem(None, ctype, f'{op}_reduce')
@@ -1289,57 +1583,103 @@ def reduce(target, source, op='sum', size=None, team=None):
     _chkerr(ierr, f"shmem_{ctype}_{op}_reduce")
 
 
-def and_reduce(target, source, size=None, team=None):
+def and_reduce(
+    target,
+    source,
+    size: 'Optional[int]' = None,
+    team: 'Optional[Team]' = None,
+) -> None:
     """
     """
-    return reduce(target, source, OP_AND, size, team)
+    reduce(target, source, OP_AND, size, team)
 
 
-def or_reduce(target, source, size=None, team=None):
+def or_reduce(
+    target,
+    source,
+    size: 'Optional[int]' = None,
+    team: 'Optional[Team]' = None,
+) -> None:
     """
     """
-    return reduce(target, source, OP_OR, size, team)
+    reduce(target, source, OP_OR, size, team)
 
 
-def xor_reduce(target, source, size=None, team=None):
+def xor_reduce(
+    target,
+    source,
+    size: 'Optional[int]' = None,
+    team: 'Optional[Team]' = None,
+) -> None:
     """
     """
-    return reduce(target, source, OP_XOR, size, team)
+    reduce(target, source, OP_XOR, size, team)
 
 
-def max_reduce(target, source, size=None, team=None):
+def max_reduce(
+    target,
+    source,
+    size: 'Optional[int]' = None,
+    team: 'Optional[Team]' = None,
+) -> None:
     """
     """
-    return reduce(target, source, OP_MAX, size, team)
+    reduce(target, source, OP_MAX, size, team)
 
 
-def min_reduce(target, source, size=None, team=None):
+def min_reduce(
+    target,
+    source,
+    size: 'Optional[int]' = None,
+    team: 'Optional[Team]' = None,
+) -> None:
     """
     """
-    return reduce(target, source, OP_MIN, size, team)
+    reduce(target, source, OP_MIN, size, team)
 
 
-def sum_reduce(target, source, size=None, team=None):
+def sum_reduce(
+    target,
+    source,
+    size: 'Optional[int]' = None,
+    team: 'Optional[Team]' = None,
+) -> None:
     """
     """
-    return reduce(target, source, OP_SUM, size, team)
+    reduce(target, source, OP_SUM, size, team)
 
 
-def prod_reduce(target, source, size=None, team=None):
+def prod_reduce(
+    target,
+    source,
+    size: 'Optional[int]' = None,
+    team: 'Optional[Team]' = None,
+) -> None:
     """
     """
-    return reduce(target, source, OP_PROD, size, team)
+    reduce(target, source, OP_PROD, size, team)
 
 
 # ---
 
 
-CMP_EQ = lib.SHMEM_CMP_EQ
-CMP_NE = lib.SHMEM_CMP_NE
-CMP_GT = lib.SHMEM_CMP_GT
-CMP_LE = lib.SHMEM_CMP_LE
-CMP_LT = lib.SHMEM_CMP_LT
-CMP_GE = lib.SHMEM_CMP_GE
+class CMP(_enum.IntEnum):
+    """
+    """
+    EQ: int = lib.SHMEM_CMP_EQ
+    NE: int = lib.SHMEM_CMP_NE
+    GT: int = lib.SHMEM_CMP_GT
+    LE: int = lib.SHMEM_CMP_LE
+    LT: int = lib.SHMEM_CMP_LT
+    GE: int = lib.SHMEM_CMP_GE
+
+
+CMP_EQ: CMP = CMP.EQ
+CMP_NE: CMP = CMP.NE
+CMP_GT: CMP = CMP.GT
+CMP_LE: CMP = CMP.LE
+CMP_LT: CMP = CMP.LT
+CMP_GE: CMP = CMP.GE
 
 
 _str_to_cmp = {
@@ -1380,6 +1720,7 @@ def _parse_sync_indices(nelems):
 def _parse_sync_status(status, nelems):
     if status is None:
         return ffi.NULL
+    status = np.asarray(status, dtype='i')
     status, size, ctype = _getbuffer(status, readonly=True)
     assert size >= nelems
     assert ctype == 'int'
@@ -1387,6 +1728,8 @@ def _parse_sync_status(status, nelems):
 
 
 def _parse_sync_values(values, nelems, vtype):
+    dtype = _shmem_to_numpy[vtype]
+    values = np.asarray(values, dtype=dtype)
     values, size, ctype = _getbuffer(values, readonly=True)
     assert size >= nelems
     assert ctype == vtype
@@ -1397,7 +1740,11 @@ def _shmem_sync(ctype, name):
     return _shmem(None, ctype, name)
 
 
-def wait_until(ivar, cmp, value) -> None:
+def wait_until(
+    ivar,
+    cmp: CMP,
+    value: 'Number',
+) -> None:
     """
     """
     cmp = _parse_cmp(cmp)
@@ -1406,7 +1753,12 @@ def wait_until(ivar, cmp, value) -> None:
     return shmem_wait(ivar, cmp, value)
 
 
-def wait_until_all(ivars, cmp, value, status=None) -> None:
+def wait_until_all(
+    ivars,
+    cmp: CMP,
+    value: 'Number',
+    status: 'Optional[Sequence[int]]' = None,
+) -> None:
     """
     """
     cmp = _parse_cmp(cmp)
@@ -1416,7 +1768,12 @@ def wait_until_all(ivars, cmp, value, status=None) -> None:
     return shmem_wait(ivars, nelems, status, cmp, value)
 
 
-def wait_until_any(ivars, cmp, value, status=None) -> 'Optional[int]':
+def wait_until_any(
+    ivars,
+    cmp: CMP,
+    value: 'Number',
+    status: 'Optional[Sequence[int]]' = None,
+) -> 'Optional[int]':
     """
     """
     cmp = _parse_cmp(cmp)
@@ -1427,7 +1784,12 @@ def wait_until_any(ivars, cmp, value, status=None) -> 'Optional[int]':
     return index if index < nelems else None
 
 
-def wait_until_some(ivars, cmp, value, status=None) -> 'List[int]':
+def wait_until_some(
+    ivars,
+    cmp: CMP,
+    value: 'Number',
+    status: 'Optional[Sequence[int]]' = None,
+) -> 'List[int]':
     """
     """
     cmp = _parse_cmp(cmp)
@@ -1439,7 +1801,12 @@ def wait_until_some(ivars, cmp, value, status=None) -> 'List[int]':
     return list(indices[0:num])
 
 
-def wait_until_all_vector(ivars, cmp, values, status=None) -> None:
+def wait_until_all_vector(
+    ivars,
+    cmp: CMP,
+    values: 'Sequence[Number]',
+    status: 'Optional[Sequence[int]]' = None,
+) -> None:
     """
     """
     cmp = _parse_cmp(cmp)
@@ -1450,7 +1817,12 @@ def wait_until_all_vector(ivars, cmp, values, status=None) -> None:
     return shmem_wait(ivars, nelems, status, cmp, values)
 
 
-def wait_until_any_vector(ivars, cmp, values, status=None) -> 'Optional[int]':
+def wait_until_any_vector(
+    ivars,
+    cmp: CMP,
+    values: 'Sequence[Number]',
+    status: 'Optional[Sequence[int]]' = None,
+) -> 'Optional[int]':
     """
     """
     cmp = _parse_cmp(cmp)
@@ -1462,7 +1834,12 @@ def wait_until_any_vector(ivars, cmp, values, status=None) -> 'Optional[int]':
     return index if index < nelems else None
 
 
-def wait_until_some_vector(ivars, cmp, values, status=None) -> 'List[int]':
+def wait_until_some_vector(
+    ivars,
+    cmp: CMP,
+    values: 'Sequence[Number]',
+    status: 'Optional[Sequence[int]]' = None,
+) -> 'List[int]':
     """
     """
     cmp = _parse_cmp(cmp)
@@ -1475,7 +1852,11 @@ def wait_until_some_vector(ivars, cmp, values, status=None) -> 'List[int]':
     return list(indices[0:num])
 
 
-def test(ivar, cmp, value) -> bool:
+def test(
+    ivar,
+    cmp: CMP,
+    value: 'Number',
+) -> bool:
     """
     """
     cmp = _parse_cmp(cmp)
@@ -1485,7 +1866,12 @@ def test(ivar, cmp, value) -> bool:
     return bool(flag)
 
 
-def test_all(ivars, cmp, value, status=None) -> bool:
+def test_all(
+    ivars,
+    cmp: CMP,
+    value: 'Number',
+    status: 'Optional[Sequence[int]]' = None,
+) -> bool:
     """
     """
     cmp = _parse_cmp(cmp)
@@ -1496,7 +1882,12 @@ def test_all(ivars, cmp, value, status=None) -> bool:
     return bool(flag)
 
 
-def test_any(ivars, cmp, value, status=None) -> 'Optional[int]':
+def test_any(
+    ivars,
+    cmp: CMP,
+    value: 'Number',
+    status: 'Optional[Sequence[int]]' = None,
+) -> 'Optional[int]':
     """
     """
     cmp = _parse_cmp(cmp)
@@ -1507,7 +1898,12 @@ def test_any(ivars, cmp, value, status=None) -> 'Optional[int]':
     return index if index < nelems else None
 
 
-def test_some(ivars, cmp, value, status=None) -> 'List[int]':
+def test_some(
+    ivars,
+    cmp: CMP,
+    value: 'Number',
+    status: 'Optional[Sequence[int]]' = None,
+) -> 'List[int]':
     """
     """
     cmp = _parse_cmp(cmp)
@@ -1519,7 +1915,12 @@ def test_some(ivars, cmp, value, status=None) -> 'List[int]':
     return list(indices[0:num])
 
 
-def test_all_vector(ivars, cmp, values, status=None) -> None:
+def test_all_vector(
+    ivars,
+    cmp: CMP,
+    values: 'Sequence[Number]',
+    status: 'Optional[Sequence[int]]' = None,
+) -> bool:
     """
     """
     cmp = _parse_cmp(cmp)
@@ -1530,7 +1931,12 @@ def test_all_vector(ivars, cmp, values, status=None) -> None:
     return bool(shmem_test(ivars, nelems, status, cmp, values))
 
 
-def test_any_vector(ivars, cmp, values, status=None) -> 'Optional[int]':
+def test_any_vector(
+    ivars,
+    cmp: CMP,
+    values: 'Sequence[Number]',
+    status: 'Optional[Sequence[int]]' = None,
+) -> 'Optional[int]':
     """
     """
     cmp = _parse_cmp(cmp)
@@ -1542,7 +1948,12 @@ def test_any_vector(ivars, cmp, values, status=None) -> 'Optional[int]':
     return index if index < nelems else None
 
 
-def test_some_vector(ivars, cmp, values, status=None) -> 'List[int]':
+def test_some_vector(
+    ivars,
+    cmp: CMP,
+    values: 'Sequence[Number]',
+    status: 'Optional[Sequence[int]]' = None,
+) -> 'List[int]':
     """
     """
     cmp = _parse_cmp(cmp)
@@ -1555,12 +1966,16 @@ def test_some_vector(ivars, cmp, values, status=None) -> 'List[int]':
     return list(indices[0:num])
 
 
-def signal_wait_until(signal, cmp, value) -> int:
+def signal_wait_until(
+    signal: 'SigAddr',
+    cmp: CMP,
+    value: 'Number',
+) -> int:
     """
     """
     cmp = _parse_cmp(cmp)
-    sig_addr = _parse_signal(signal)
-    return lib.shmem_signal_wait_until(sig_addr, cmp, value)
+    signal = _parse_signal(signal)
+    return lib.shmem_signal_wait_until(signal, cmp, value)
 
 
 # ---
@@ -1587,36 +2002,36 @@ def quiet(ctx: 'Optional[Ctx]' = None) -> None:
 # ---
 
 
-_lock_type = ffi.typeof('long*')
+_lock_ctype = ffi.typeof('long*')
 
 
-def new_lock() -> ffi.CData:
+def new_lock() -> 'LockAddr':
     """
     """
     allocator = _get_allocator()
-    return allocator(_lock_type)
+    return allocator(_lock_ctype)
 
 
-def del_lock(lock: ffi.CData) -> None:
+def del_lock(lock: 'LockAddr') -> None:
     """
     """
-    assert ffi.typeof(lock) is _lock_type
+    assert ffi.typeof(lock) is _lock_ctype
     ffi.release(lock)
 
 
-def set_lock(lock: ffi.CData) -> None:
+def set_lock(lock: 'LockAddr') -> None:
     """
     """
     lib.shmem_set_lock(lock)
 
 
-def test_lock(lock: ffi.CData) -> bool:
+def test_lock(lock: 'LockAddr') -> bool:
     """
     """
     return bool(lib.shmem_test_lock(lock))
 
 
-def clear_lock(lock: ffi.CData) -> None:
+def clear_lock(lock: 'LockAddr') -> None:
     """
     """
     lib.shmem_clear_lock(lock)
@@ -1653,10 +2068,10 @@ class Lock:
         assert lock is not None
         clear_lock(lock)
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         self.acquire()
 
-    def __exit__(self, *args):
+    def __exit__(self, *args) -> None:
         self.release()
 
 
