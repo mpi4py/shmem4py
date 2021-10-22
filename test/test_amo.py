@@ -92,12 +92,12 @@ class TestAMO(unittest.TestCase):
             shmem.barrier_all()
             for i in range(3):
                 op = shmem.AMO_INC
-                val = shmem.atomic_fetch_op(tgt, op, None, nxpe)
+                val = shmem.atomic_fetch_op(tgt, None, op, nxpe)
                 shmem.barrier_all()
                 self.assertEqual(val, i)
             for i in range(3):
                 op = shmem.AMO_ADD
-                val = shmem.atomic_fetch_op(tgt, op, 1, nxpe)
+                val = shmem.atomic_fetch_op(tgt, 1, op, nxpe)
                 shmem.barrier_all()
                 self.assertEqual(val, 3 + i)
             shmem.free(tgt)
@@ -105,7 +105,7 @@ class TestAMO(unittest.TestCase):
             tgt = shmem.array(0, dtype=t)
             for i in range(3):
                 op = shmem.AMO_SET
-                val = shmem.atomic_fetch_op(tgt, op, i+1, nxpe)
+                val = shmem.atomic_fetch_op(tgt, i+1, op, nxpe)
                 self.assertEqual(val, i)
             shmem.free(tgt)
 
@@ -119,13 +119,13 @@ class TestAMO(unittest.TestCase):
                 shmem.barrier_all()
                 op = shmem.AMO_INC
                 val = shmem.atomic_fetch(tgt, nxpe)
-                shmem.atomic_op(tgt, op, None, nxpe)
+                shmem.atomic_op(tgt, None, op, nxpe)
                 self.assertEqual(val, i)
             for i in range(3):
                 shmem.barrier_all()
                 op = shmem.AMO_ADD
                 val = shmem.atomic_fetch(tgt, nxpe)
-                shmem.atomic_op(tgt, op, 1, nxpe)
+                shmem.atomic_op(tgt, 1, op, nxpe)
                 self.assertEqual(val, 3 + i)
             shmem.free(tgt)
         for t in types_ext:
@@ -133,7 +133,7 @@ class TestAMO(unittest.TestCase):
             for i in range(3):
                 op = shmem.AMO_SET
                 val = shmem.atomic_fetch(tgt, nxpe)
-                shmem.atomic_op(tgt, op, i+1, nxpe)
+                shmem.atomic_op(tgt, i+1, op, nxpe)
                 self.assertEqual(val, i)
             shmem.free(tgt)
 
@@ -327,12 +327,12 @@ class TestAMONBI(unittest.TestCase):
             shmem.barrier_all()
             for i in range(3):
                 op = shmem.AMO_INC
-                shmem.atomic_fetch_op_nbi(val, tgt, op, None, nxpe)
+                shmem.atomic_fetch_op_nbi(val, tgt, None, op, nxpe)
                 shmem.quiet()
                 self.assertEqual(val, i)
             for i in range(3):
                 op = shmem.AMO_ADD
-                shmem.atomic_fetch_op_nbi(val, tgt, op, 1, nxpe)
+                shmem.atomic_fetch_op_nbi(val, tgt, 1, op, nxpe)
                 shmem.quiet()
                 self.assertEqual(val, 3 + i)
             shmem.free(tgt)
@@ -341,7 +341,7 @@ class TestAMONBI(unittest.TestCase):
             tgt = shmem.array(0, dtype=t)
             for i in range(3):
                 op = shmem.AMO_SET
-                shmem.atomic_fetch_op_nbi(val, tgt, op, i+1, nxpe)
+                shmem.atomic_fetch_op_nbi(val, tgt, i+1, op, nxpe)
                 shmem.quiet()
                 self.assertEqual(val, i)
             shmem.free(tgt)
