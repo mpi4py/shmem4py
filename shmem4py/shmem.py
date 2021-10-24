@@ -1230,8 +1230,8 @@ AMO_XOR: AMO = AMO.XOR
 
 def atomic_op(
     target,
-    op: AMO,
     value: 'Number',
+    op: AMO,
     pe: int,
     ctx: 'Optional[Ctx]' = None,
 ) -> None:
@@ -1243,8 +1243,8 @@ def atomic_op(
 
 def atomic_fetch_op(
     target,
-    op: AMO,
     value: 'Number',
+    op: AMO,
     pe: int,
     ctx: 'Optional[Ctx]' = None,
 ) -> 'Number':
@@ -1257,8 +1257,8 @@ def atomic_fetch_op(
 def atomic_fetch_op_nbi(
     fetch,
     target,
-    op: AMO,
     value: 'Number',
+    op: AMO,
     pe: int,
     ctx: 'Optional[Ctx]' = None,
 ) -> None:

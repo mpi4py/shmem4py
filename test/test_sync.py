@@ -308,7 +308,6 @@ class TestTest(unittest.TestCase):
             for n in [0, 1, 3]:
                 with self.subTest(type=t, size=n):
                     if n == 0:
-                        continue # XXX Sandia-OSS
                         shmem.barrier_all()
                         ivars = shmem.zeros(0, t)
                         values = np.zeros(0, t)
