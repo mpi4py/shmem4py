@@ -22,7 +22,4 @@
 #define PySHMEM_HAVE_shmem_wait_test_many 1
 #define PySHMEM_HAVE_shmem_pcontrol 1
 
-/* https://github.com/Sandia-OpenSHMEM/SOS/issues/1015 */
-#undef PySHMEM_HAVE_shmem_signal_wait_until
-
 #endif
