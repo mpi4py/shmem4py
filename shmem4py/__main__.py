@@ -3,7 +3,7 @@
 """Print shmem4py version."""
 
 
-def main():
+def main() -> None:
     """Entry-point for ``python -m shmem4py ...``."""
     # pylint: disable=import-outside-toplevel
     package = __spec__.parent

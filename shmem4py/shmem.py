@@ -88,6 +88,7 @@ def global_exit(status: int = 0) -> 'NoReturn':  # pragma: no cover
     """
     """
     lib.shmem_global_exit(status)
+    raise SystemExit(status)  # unreachable
 
 
 def init_thread(requested: THREAD = THREAD_MULTIPLE) -> THREAD:
@@ -441,7 +442,7 @@ def pe_accessible(pe: int) -> bool:
 
 
 def addr_accessible(
-    addr: 'ffi.CData|npt.NDArray',
+    addr: 'Union[npt.NDArray, ffi.CData]',
     pe: int,
 ) -> bool:
     """
@@ -452,9 +453,9 @@ def addr_accessible(
 
 
 def ptr(
-    target: 'ffi.CData|npt.NDArray',
+    target: 'Union[npt.NDArray, ffi.CData]',
     pe: int,
-) -> 'ffi.CData|Optional[npt.NDArray]':
+) -> 'Optional[Union[npt.NDArray, ffi.CData]]':
     """
     """
     if isinstance(target, ffi.CData):
@@ -609,7 +610,7 @@ def alloc(
     return cdata
 
 
-def free(cdata: 'ffi.CData|Buffer') -> None:
+def free(cdata: 'Union[Buffer, ffi.CData]') -> None:
     """
     """
     if not isinstance(cdata, ffi.CData):
@@ -621,9 +622,9 @@ def free(cdata: 'ffi.CData|Buffer') -> None:
 
 def fromcdata(
     cdata: 'ffi.CData',
-    shape: 'Optional[int|Sequence[int]]' = None,
-    dtype: 'Optional[npt.DTypeLike]' = None,
-    order: str = 'C',
+    shape: 'Optional[Union[int, Sequence[int]]]' = None,
+    dtype: 'npt.DTypeLike' = None,
+    order: 'Literal["C", "F"]' = 'C',
 ) -> 'npt.NDArray':
     """
     """
@@ -646,9 +647,9 @@ def fromcdata(
 
 
 def new_array(
-    shape: 'int|Sequence[int]',
+    shape: 'Union[int, Sequence[int]]',
     dtype: 'npt.DTypeLike' = float,
-    order: str = 'C',
+    order: 'Literal["C", "F"]' = 'C',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
     clear: bool = True,
@@ -670,8 +671,8 @@ def del_array(a: 'npt.NDArray') -> None:
 
 def array(
     obj: 'Any',
-    dtype: 'Optional[npt.DTypeLike]' = None,
-    order: str = 'K',
+    dtype: 'npt.DTypeLike' = None,
+    order: 'Literal["K", "A", "C", "F"]' = 'K',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
@@ -688,9 +689,9 @@ def array(
 
 
 def empty(
-    shape: 'int|Sequence[int]',
+    shape: 'Union[int, Sequence[int]]',
     dtype: 'npt.DTypeLike' = float,
-    order: str = 'C',
+    order: 'Literal["C", "F"]' = 'C',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
@@ -701,9 +702,9 @@ def empty(
 
 
 def zeros(
-    shape: 'int|Sequence[int]',
+    shape: 'Union[int, Sequence[int]]',
     dtype: 'npt.DTypeLike' = float,
-    order: str = 'C',
+    order: 'Literal["C", "F"]' = 'C',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
@@ -714,9 +715,9 @@ def zeros(
 
 
 def ones(
-    shape: 'int|Sequence[int]',
+    shape: 'Union[int, Sequence[int]]',
     dtype: 'npt.DTypeLike' = float,
-    order: str = 'C',
+    order: 'Literal["C", "F"]' = 'C',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
@@ -729,10 +730,10 @@ def ones(
 
 
 def full(
-    shape: 'int|Sequence[int]',
+    shape: 'Union[int, Sequence[int]]',
     fill_value: 'Number',
-    dtype: 'Optional[npt.DTypeLike]' = None,
-    order: str = 'C',
+    dtype: 'npt.DTypeLike' = None,
+    order: 'Literal["C", "F"]' = 'C',
     align: 'Optional[int]' = None,
     hints: 'Optional[int]' = None,
 ) -> 'npt.NDArray':
@@ -1269,7 +1270,7 @@ def atomic_fetch_op_nbi(
 # ---
 
 
-_signal_ctype = ffi.typeof('uint64_t*')
+_signal_ctype: 'ffi.CType' = ffi.typeof('uint64_t*')
 
 
 def _parse_signal(signal):
@@ -2000,7 +2001,7 @@ def quiet(ctx: 'Optional[Ctx]' = None) -> None:
 # ---
 
 
-_lock_ctype = ffi.typeof('long*')
+_lock_ctype: 'ffi.CType' = ffi.typeof('long*')
 
 
 def new_lock() -> 'LockAddr':
@@ -2039,6 +2040,7 @@ class Lock:
     """Lock object."""
 
     def __init__(self) -> None:
+        self._lock = None
         self._lock = new_lock()
 
     def destroy(self) -> None:
