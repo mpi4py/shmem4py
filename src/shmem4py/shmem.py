@@ -52,11 +52,11 @@ if _typing.TYPE_CHECKING:  # pragma: no cover
     T = TypeVar('T', bound=np.generic)
     _Heap = _weakref.WeakValueDictionary[ffi.CData, ffi.CData]
 
-    Number = Union[int, float, complex, np.generic]
-    SigAddr = NewType('SigAddr', ffi.CData)
-    CtxHandle = NewType('CtxHandle', ffi.CData)
-    TeamHandle = NewType('TeamHandle', ffi.CData)
-    LockHandle = NewType('LockHandle', ffi.CData)
+    Number = Union[int, float, complex, np.number]  #: Numeric type.
+    SigAddr = NewType('SigAddr', ffi.CData)         #: Signal address.
+    CtxHandle = NewType('CtxHandle', ffi.CData)     #: Context handle.
+    TeamHandle = NewType('TeamHandle', ffi.CData)   #: Team handle.
+    LockHandle = NewType('LockHandle', ffi.CData)   #: Lock handle.
 
 # ---
 
@@ -838,7 +838,7 @@ def _shmem(ctx, ctype, name, chkerr=0):
 
 
 def _getbuffer(
-    obj: NDArray,
+    obj: NDArray[Any],
     readonly: bool = False,
 ) -> Tuple[ffi.CData, int, str]:
     if not isinstance(obj, np.ndarray):
