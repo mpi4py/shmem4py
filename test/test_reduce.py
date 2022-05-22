@@ -33,7 +33,7 @@ ufunc = {
 }
 
 if shmem.info_get_version() < (1, 5):
-    for op in "max min sum prod".split():
+    for op in map(shmem.OP, "max min sum prod".split()):
         for t in types_u:
             ops[op].remove(t)
 
