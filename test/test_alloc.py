@@ -101,15 +101,6 @@ class TestAlloc(unittest.TestCase):
                     self.assertEqual(a.strides, b.strides)
                     shmem.free(a.base)
 
-
-    def testEmpty(self):
-        ai = shmem.empty(1, dtype=int)
-        af = shmem.empty(1, dtype=float)
-        self.assertEqual(ai.dtype, np.dtype(int))
-        self.assertEqual(af.dtype, np.dtype(float))
-        shmem.free(ai)
-        shmem.free(af)
-
     def testEmpty(self):
         ai = shmem.empty(1, dtype=int)
         af = shmem.empty(1, dtype=float)
