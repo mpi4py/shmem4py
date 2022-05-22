@@ -33,6 +33,9 @@ setup(
     packages = [
         'shmem4py',
     ],
+    package_data = {
+        'shmem4py' : ['api.pyi'],
+    },
     cffi_modules = [
         'shmem4py/src/api_build.py:ffibuilder',
     ],

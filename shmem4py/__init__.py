@@ -1,6 +1,12 @@
 # Author:  Lisandro Dalcin
 # Contact: dalcinl@gmail.com
 """OpenSHMEM for Python."""
+from __future__ import annotations as _annotations
+import typing as _typing
+
+if _typing.TYPE_CHECKING:  # pragma: no cover
+    from typing import Any, Optional
+
 
 __version__ = '0.1.0'
 __author__ = 'Lisandro Dalcin'
@@ -26,17 +32,17 @@ class Rc:
     initialize: bool = True
     threads: bool = False
     thread_level: str = 'multiple'
-    finalize: 'Optional[bool]' = None
+    finalize: Optional[bool] = None
 
-    def __init__(self, **kwargs: 'Any') -> None:
+    def __init__(self, **kwargs: Any) -> None:
         self(**kwargs)
 
-    def __setattr__(self, name: str, value: 'Any') -> None:
+    def __setattr__(self, name: str, value: Any) -> None:
         if not hasattr(self, name):
             raise TypeError(f"object has no attribute '{name}'")
         super().__setattr__(name, value)
 
-    def __call__(self, **kwargs: 'Any') -> None:
+    def __call__(self, **kwargs: Any) -> None:
         for key in kwargs:
             if not hasattr(self, key):
                 raise TypeError(f"unexpected argument '{key}'")

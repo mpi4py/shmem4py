@@ -8,47 +8,50 @@ types += [f'u{1<<i}' for i in range(4)]
 types += [f'f{1<<i}' for i in range(2,4)]
 
 
+#@unittest.skipIf(True, "always")
 class TestAlloc(unittest.TestCase):
 
     def testAlloc(self):
         hint_atomics = shmem.MALLOC_ATOMICS_REMOTE
         hint_remote = shmem.MALLOC_SIGNAL_REMOTE
         for n in range(4):
-            for t in types:
+            for s in [1, 2, 4, 8, 12, 16]:
                 for align in (None, 8, 64, 128):
                     for clear in (True, False):
                         for hints in (0, hint_atomics, hint_remote):
-                            cdata = shmem.alloc(t, n, align, hints, clear)
+                            mem = shmem.alloc(n, s, align, hints, clear)
+                            cdata = shmem.ffi.from_buffer(mem)
                             caddr = shmem.ffi.cast('uintptr_t', cdata)
+                            self.assertEqual(len(mem), n*s)
                             if align is not None:
                                 self.assertEqual(int(caddr) % align, 0)
-                            if clear and len(cdata):
-                                self.assertEqual(cdata[0], 0)
-                            shmem.free(cdata)
-                            self.assertRaises(KeyError, shmem.free, cdata)
+                            if clear and len(mem):
+                                self.assertEqual(mem[0], 0)
+                            shmem.free(mem)
+                            self.assertRaises(KeyError, shmem.free, mem)
 
-    def testFromCData(self):
+    def testFromAlloc(self):
         for n in range(4):
             for t in types:
-                size = n * np.dtype(t).itemsize
-                cdata = shmem.alloc('B', size)
-                array = shmem.fromcdata(cdata, dtype=t)
+                s = np.dtype(t).itemsize
+                cdata = shmem.alloc(n, s)
+                array = shmem.fromalloc(cdata, dtype=t)
                 self.assertEqual(array.shape, (n,))
                 self.assertEqual(array.dtype, np.dtype(t))
                 shmem.free(cdata)
                 #
-                cdata = shmem.alloc(t, n)
-                array = shmem.fromcdata(cdata)
+                cdata = shmem.alloc(n, s)
+                array = shmem.fromalloc(cdata, dtype=t)
                 self.assertEqual(array.dtype, np.dtype(t))
                 self.assertEqual(array.shape, (n,))
-                array = shmem.fromcdata(cdata, (n, 1))
+                array = shmem.fromalloc(cdata, (n, 1), dtype=t)
                 self.assertEqual(array.shape, (n, 1))
                 shmem.free(cdata)
                 #
-                cdata = shmem.alloc(t, n*n)
-                array = shmem.fromcdata(cdata)
+                cdata = shmem.alloc(n*n, s)
+                array = shmem.fromalloc(cdata, dtype=t)
                 self.assertEqual(array.shape, (n*n,))
-                array = shmem.fromcdata(cdata, (n, n), order='F')
+                array = shmem.fromalloc(cdata, (n, n), dtype=t, order='F')
                 self.assertEqual(array.shape, (n, n))
                 self.assertTrue(array.flags.f_contiguous)
                 shmem.free(cdata)
@@ -61,7 +64,7 @@ class TestAlloc(unittest.TestCase):
                         for clear in (True, False):
                             array = shmem.new_array(
                                 n, t, order=order,
-                                align=align, clear=clear
+                                align=align, clear=clear,
                             )
                             self.assertEqual(array.dtype, np.dtype(t))
                             if order == 'C':
@@ -71,7 +74,7 @@ class TestAlloc(unittest.TestCase):
                             shmem.del_array(array)
                             array = shmem.new_array(
                                 (n, n), t, order=order,
-                                align=align, clear=clear
+                                align=align, clear=clear,
                             )
                             self.assertEqual(array.dtype, np.dtype(t))
                             if order == 'C':
@@ -94,12 +97,12 @@ class TestAlloc(unittest.TestCase):
                     self.assertEqual(a.dtype, b.dtype)
                     self.assertEqual(a.shape, b.shape)
                     self.assertEqual(a.strides, b.strides)
-                    shmem.free(a.base)
+                    shmem.free(a)
                     a = shmem.array(b)
                     self.assertEqual(a.dtype, b.dtype)
                     self.assertEqual(a.shape, b.shape)
                     self.assertEqual(a.strides, b.strides)
-                    shmem.free(a.base)
+                    shmem.free(a)
 
     def testEmpty(self):
         ai = shmem.empty(1, dtype=int)

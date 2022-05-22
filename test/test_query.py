@@ -20,7 +20,7 @@ class TestQuery(unittest.TestCase):
         self.assertTrue(flag)
 
     def testAddrAccesibleCData(self):
-        addr = shmem.alloc('i', 1)
+        addr = shmem.new_array(1, 'i')
         flag = shmem.addr_accessible(addr, shmem.my_pe())
         shmem.free(addr)
         self.assertTrue(flag)

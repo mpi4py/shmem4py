@@ -21,6 +21,7 @@ test-%:
 .PHONY: lint
 lint:
 	-pycodestyle shmem4py
+	-flake8 shmem4py
 	-pylint shmem4py
 
 .PHONY: cover cover-html
@@ -38,6 +39,7 @@ clean:
 	-$(RM) -r build shmem4py/*.so shmem4py.egg-info
 	-$(RM) -r */__pycache__ */*/__pycache__
 	-$(RM) -r .coverage* htmlcov/
+	-$(RM) -r .mypy_cache
 
 .PHONY: install uninstall
 install:

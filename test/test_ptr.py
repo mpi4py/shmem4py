@@ -14,34 +14,30 @@ types += [f'f{1<<i}' for i in range(2,4)]
 
 class TestPtr(unittest.TestCase):
 
-    def testPtrCData(self):
+    def testPtrMemory(self):
         mype = shmem.my_pe()
         npes = shmem.n_pes()
         nxpe = (mype + 1) % npes
         pvpe = (mype - 1) % npes
 
         for t in types:
-            sym = shmem.alloc(t, 1)
+            sym = shmem.new_array(1, t)
             sym[0] = npes
             shmem.barrier_all()
 
             nloc = shmem.ptr(sym, nxpe)
-            self.assertTrue(isinstance(nloc, ffi.CData))
-            self.assertEqual(ffi.typeof(sym), ffi.typeof(nloc))
-            if nloc:
-                if not pypy:
-                    self.assertEqual(ffi.sizeof(sym), ffi.sizeof(nloc))
+            if nloc is not None:
+                self.assertTrue(isinstance(nloc, np.ndarray))
+                self.assertEqual(nloc.dtype, sym.dtype)
                 self.assertEqual(nloc[0], npes)
                 nloc[0] = nxpe
                 shmem.barrier_all()
                 self.assertEqual(sym[0], mype)
 
             ploc = shmem.ptr(sym, pvpe)
-            self.assertTrue(isinstance(ploc, shmem.ffi.CData))
-            self.assertEqual(ffi.typeof(sym), ffi.typeof(ploc))
-            if ploc:
-                if not pypy:
-                    self.assertEqual(ffi.sizeof(sym), ffi.sizeof(ploc))
+            if ploc is not None:
+                self.assertTrue(isinstance(ploc, np.ndarray))
+                self.assertEqual(ploc.dtype, sym.dtype)
                 self.assertEqual(ploc[0], pvpe)
                 ploc[0] = mype
                 shmem.barrier_all()
@@ -79,7 +75,7 @@ class TestPtr(unittest.TestCase):
                         loc[...] = mype
                         shmem.barrier_all()
                         self.assertTrue(np.all(sym == nxpe))
-                    shmem.free(sym.base)
+                    shmem.free(sym)
 
 
 if __name__ == '__main__':
