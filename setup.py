@@ -6,13 +6,14 @@
 Python bindings for OpenSHMEM
 """
 
-import sys, os
+import os
+import sys
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext as cmd_build_ext
 from setuptools.command.install   import install   as cmd_install
 
 topdir = os.path.abspath(os.path.dirname(__file__))
-sys.path.insert(0, os.path.join(topdir, 'shmem4py', 'src'))
+sys.path.insert(0, os.path.join(topdir, 'src'))
 
 class build_ext(cmd_build_ext, object):
     def build_extensions(self):
@@ -30,17 +31,8 @@ class install(cmd_install, object):
         super(install, self).run()
 
 setup(
-    packages = [
-        'shmem4py',
-    ],
-    package_data = {
-        'shmem4py' : [
-            'api.pyi',
-            'py.typed',
-        ],
-    },
     cffi_modules = [
-        'shmem4py/src/api_build.py:ffibuilder',
+        'src/ffibuilder.py:ffibuilder',
     ],
     cmdclass = {
         'build_ext': build_ext,

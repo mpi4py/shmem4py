@@ -1,18 +1,20 @@
 import os
+import sys
 import glob
 import cffi
 
 srcdir = os.path.abspath(os.path.dirname(__file__))
-with open(os.path.join(srcdir, "generate.py")) as h:
-    exec(h.read())
+if srcdir not in sys.path:
+    sys.path.insert(0, srcdir)
 
 
-def api_build(
+def build_api(
     module="api",
     shmem_h="shmem.h",
     shmem_ctx_t='...*',
     shmem_team_t='...*',
 ):
+    from apicodegen import generate
     ffi = cffi.FFI()
     with open(os.path.join(srcdir, "libshmem.h")) as h:
         code = h.read()
@@ -64,7 +66,7 @@ def api_build(
 
 
 def ffibuilder():
-    return api_build()
+    return build_api()
 
 
 if __name__ == '__main__':
@@ -72,4 +74,9 @@ if __name__ == '__main__':
     cc = fficompiler.search('OSHCC', 'oshcc')
     ld = fficompiler.search('OSHLD')
     with fficompiler(cc, ld):
-        ffibuilder().compile()
+        cwd = os.getcwd()
+        try:
+            os.chdir(srcdir)
+            ffibuilder().compile()
+        finally:
+            os.chdir(cwd)

@@ -8,7 +8,7 @@ OSHRUN := $(firstword \
 
 .PHONY: build
 build:
-	$(PYTHON) setup.py $(opt) build build_ext --inplace
+	$(PYTHON) setup.py $(opt) build build_ext --inplace $(opt)
 
 .PHONY: test
 test:
@@ -20,8 +20,8 @@ test-%:
 
 .PHONY: lint
 lint:
-	-pycodestyle shmem4py
-	-flake8 shmem4py
+	-pycodestyle src/shmem4py
+	-flake8 src/shmem4py
 	-pylint shmem4py
 
 .PHONY: cover cover-html
@@ -36,14 +36,20 @@ cover-html: cover
 
 .PHONY: clean
 clean:
-	-$(RM) -r build shmem4py/*.so shmem4py.egg-info
+	-$(RM) -r build src/shmem4py/*.so src/shmem4py.egg-info
 	-$(RM) -r */__pycache__ */*/__pycache__
 	-$(RM) -r .coverage* htmlcov/
 	-$(RM) -r .mypy_cache
 
+.PHONY: develop develop-uninstall
+develop:
+	$(PYTHON) setup.py develop --prefix='' --user $(opt)
+develop-uninstall:
+	$(PYTHON) setup.py develop --prefix='' --user --uninstall $(opt)
+
 .PHONY: install uninstall
 install:
-	$(PYTHON) setup.py $(opt) install --prefix='' --user
+	$(PYTHON) setup.py $(opt) install --prefix='' --user $(opt)
 uninstall:
 	-$(RM) -r $(shell $(PYTHON) -m site --user-site)/shmem4py
 	-$(RM) -r $(shell $(PYTHON) -m site --user-site)/shmem4py-*-py*.egg-info

@@ -303,6 +303,5 @@ def generate():
 
 
 if __name__ == '__main__':
-    import os
     for code in generate():
         print(code.strip(), end='\n')
