@@ -23,7 +23,6 @@ class TestAMO(unittest.TestCase):
         for t in types_ext:
             with self.subTest(type=t):
                 src = shmem.array(mype, dtype=t)
-                shmem.barrier_all()
                 val = shmem.atomic_fetch(src, nxpe)
                 self.assertEqual(val, nxpe)
                 shmem.free(src)
@@ -47,7 +46,6 @@ class TestAMO(unittest.TestCase):
         for t in types_ext:
             with self.subTest(type=t):
                 tgt = shmem.array(-1, dtype=t)
-                shmem.barrier_all()
                 val = shmem.atomic_swap(tgt, nxpe, nxpe)
                 shmem.barrier_all()
                 self.assertEqual(tgt, mype)
@@ -62,23 +60,26 @@ class TestAMO(unittest.TestCase):
         for t in types_std:
             with self.subTest(type=t):
                 tgt = shmem.array(0, dtype=t)
-                shmem.barrier_all()
                 #
+                shmem.sync_all()
                 val = shmem.atomic_compare_swap(tgt, 1, nxpe, nxpe)
                 shmem.barrier_all()
                 self.assertEqual(tgt, 0)
                 self.assertEqual(val, 0)
                 #
+                shmem.sync_all()
                 val = shmem.atomic_compare_swap(tgt, 0, nxpe, nxpe)
                 shmem.barrier_all()
                 self.assertEqual(tgt, mype)
                 self.assertEqual(val, 0)
                 #
+                shmem.sync_all()
                 val = shmem.atomic_compare_swap(tgt, nxpe, 0, nxpe)
                 shmem.barrier_all()
                 self.assertEqual(tgt, 0)
                 self.assertEqual(val, nxpe)
                 #
+                shmem.sync_all()
                 val = shmem.atomic_compare_swap(tgt, npes, 0, nxpe)
                 shmem.barrier_all()
                 self.assertEqual(tgt, 0)
@@ -93,16 +94,15 @@ class TestAMO(unittest.TestCase):
         for t in types_std:
             with self.subTest(type=t):
                 tgt = shmem.array(0, dtype=t)
-                shmem.barrier_all()
                 for i in range(3):
+                    shmem.sync_all()
                     op = shmem.AMO_INC
                     val = shmem.atomic_fetch_op(tgt, None, op, nxpe)
-                    shmem.barrier_all()
                     self.assertEqual(val, i)
                 for i in range(3):
+                    shmem.sync_all()
                     op = shmem.AMO_ADD
                     val = shmem.atomic_fetch_op(tgt, 1, op, nxpe)
-                    shmem.barrier_all()
                     self.assertEqual(val, 3 + i)
                 shmem.free(tgt)
         for t in types_ext:
@@ -122,13 +122,12 @@ class TestAMO(unittest.TestCase):
             with self.subTest(type=t):
                 tgt = shmem.array(0, dtype=t)
                 for i in range(3):
-                    shmem.barrier_all()
+                    shmem.sync_all()
                     op = shmem.AMO_INC
                     val = shmem.atomic_fetch(tgt, nxpe)
                     shmem.atomic_op(tgt, None, op, nxpe)
                     self.assertEqual(val, i)
                 for i in range(3):
-                    shmem.barrier_all()
                     op = shmem.AMO_ADD
                     val = shmem.atomic_fetch(tgt, nxpe)
                     shmem.atomic_op(tgt, 1, op, nxpe)
@@ -151,14 +150,11 @@ class TestAMO(unittest.TestCase):
         for t in types_std:
             with self.subTest(type=t):
                 tgt = shmem.array(0, dtype=t)
-                shmem.barrier_all()
                 for i in range(3):
                     val = shmem.atomic_fetch_inc(tgt, nxpe)
-                    shmem.barrier_all()
                     self.assertEqual(val, i)
                 for i in range(3):
                     val = shmem.atomic_fetch_add(tgt, 1, nxpe)
-                    shmem.barrier_all()
                     self.assertEqual(val, 3 + i)
                 shmem.free(tgt)
 
@@ -170,12 +166,12 @@ class TestAMO(unittest.TestCase):
             with self.subTest(type=t):
                 tgt = shmem.array(0, dtype=t)
                 for i in range(3):
-                    shmem.barrier_all()
+                    shmem.sync_all()
                     val = shmem.atomic_fetch(tgt, nxpe)
                     shmem.atomic_inc(tgt, nxpe)
                     self.assertEqual(val, i)
                 for i in range(3):
-                    shmem.barrier_all()
+                    shmem.sync_all()
                     val = shmem.atomic_fetch(tgt, nxpe)
                     shmem.atomic_add(tgt, 1, nxpe)
                     self.assertEqual(val, 3 + i)
@@ -188,20 +184,16 @@ class TestAMO(unittest.TestCase):
         for t in types_bit:
             with self.subTest(type=t):
                 tgt = shmem.array(0, dtype=t)
-                shmem.barrier_all()
                 for i in range(5):
                     val = shmem.atomic_fetch_or(tgt, 1<<i, nxpe)
-                    shmem.barrier_all()
                     self.assertEqual(val, 2**i-1)
                 for i in reversed(range(5)):
                     val = shmem.atomic_fetch_xor(tgt, 1<<i, nxpe)
-                    shmem.barrier_all()
                     self.assertEqual(val, 2**(i+1)-1)
                 shmem.atomic_set(tgt, 2**5-1, nxpe)
                 shmem.barrier_all()
                 for i in reversed(range(5)):
                     val = shmem.atomic_fetch_and(tgt, 2**i-1, nxpe)
-                    shmem.barrier_all()
                     self.assertEqual(val, 2**(i+1)-1)
                 shmem.free(tgt)
 
@@ -218,14 +210,12 @@ class TestAMO(unittest.TestCase):
                     shmem.atomic_or(tgt, 1<<i, nxpe)
                     self.assertEqual(val, 2**i-1)
                 for i in reversed(range(5)):
-                    shmem.barrier_all()
                     val = shmem.atomic_fetch(tgt, nxpe)
                     shmem.atomic_xor(tgt, 1<<i, nxpe)
                     self.assertEqual(val, 2**(i+1)-1)
                 shmem.barrier_all()
                 shmem.atomic_set(tgt, 2**5-1, nxpe)
                 for i in reversed(range(5)):
-                    shmem.barrier_all()
                     val = shmem.atomic_fetch(tgt, nxpe)
                     shmem.atomic_and(tgt, 2**i-1, nxpe)
                     self.assertEqual(val, 2**(i+1)-1)
@@ -254,8 +244,8 @@ class TestAMONBI(unittest.TestCase):
             with self.subTest(type=t):
                 val = np.array(0, dtype=t)
                 src = shmem.array(mype, dtype=t)
-                shmem.barrier_all()
                 #
+                shmem.sync_all()
                 shmem.atomic_fetch_nbi(val, src, nxpe)
                 shmem.quiet()
                 self.assertEqual(val, nxpe)
@@ -278,14 +268,15 @@ class TestAMONBI(unittest.TestCase):
             with self.subTest(type=t):
                 val = np.array(0, dtype=t)
                 tgt = shmem.array(-1, dtype=t)
-                shmem.barrier_all()
                 #
+                shmem.sync_all()
                 shmem.atomic_swap_nbi(val, tgt, nxpe, nxpe)
                 shmem.quiet()
                 self.assertEqual(val, np.array(-1, dtype=t))
                 shmem.sync_all()
                 self.assertEqual(tgt, mype)
                 #
+                shmem.sync_all()
                 shmem.atomic_swap_nbi(val, tgt, mype, nxpe)
                 shmem.quiet()
                 self.assertEqual(val, np.array(nxpe, dtype=t))
@@ -303,26 +294,29 @@ class TestAMONBI(unittest.TestCase):
             with self.subTest(type=t):
                 val = np.array(0, dtype=t)
                 tgt = shmem.array(0, dtype=t)
-                shmem.barrier_all()
                 #
+                shmem.sync_all()
                 shmem.atomic_compare_swap_nbi(val, tgt, 1, nxpe, nxpe)
                 shmem.quiet()
                 self.assertEqual(val, 0)
                 shmem.sync_all()
                 self.assertEqual(tgt, 0)
                 #
+                shmem.sync_all()
                 shmem.atomic_compare_swap_nbi(val, tgt, 0, nxpe, nxpe)
                 shmem.quiet()
                 self.assertEqual(val, 0)
                 shmem.sync_all()
                 self.assertEqual(tgt, mype)
                 #
+                shmem.sync_all()
                 shmem.atomic_compare_swap_nbi(val, tgt, nxpe, 0, nxpe)
                 shmem.quiet()
                 self.assertEqual(val, nxpe)
                 shmem.sync_all()
                 self.assertEqual(tgt, 0)
                 #
+                shmem.sync_all()
                 shmem.atomic_compare_swap_nbi(val, tgt, npes, 0, nxpe)
                 shmem.quiet()
                 self.assertEqual(val, 0)
@@ -339,7 +333,6 @@ class TestAMONBI(unittest.TestCase):
             with self.subTest(type=t):
                 val = np.array(0, dtype=t)
                 tgt = shmem.array(0, dtype=t)
-                shmem.barrier_all()
                 for i in range(3):
                     op = shmem.AMO_INC
                     shmem.atomic_fetch_op_nbi(val, tgt, None, op, nxpe)
@@ -370,7 +363,6 @@ class TestAMONBI(unittest.TestCase):
             with self.subTest(type=t):
                 val = np.array(0, dtype=t)
                 tgt = shmem.array(0, dtype=t)
-                shmem.barrier_all()
                 for i in range(3):
                     shmem.atomic_fetch_inc_nbi(val, tgt, nxpe)
                     shmem.quiet()
@@ -389,7 +381,6 @@ class TestAMONBI(unittest.TestCase):
             with self.subTest(type=t):
                 val = np.array(0, dtype=t)
                 tgt = shmem.array(0, dtype=t)
-                shmem.barrier_all()
                 for i in range(5):
                     shmem.atomic_fetch_or_nbi(val, tgt, 1<<i, nxpe)
                     shmem.quiet()
@@ -399,7 +390,7 @@ class TestAMONBI(unittest.TestCase):
                     shmem.quiet()
                     self.assertEqual(val, 2**(i+1)-1)
                 shmem.atomic_set(tgt, 2**5-1, nxpe)
-                shmem.barrier_all()
+                shmem.quiet()
                 for i in reversed(range(5)):
                     shmem.atomic_fetch_and_nbi(val, tgt, 2**i-1, nxpe)
                     shmem.quiet()
