@@ -19,8 +19,15 @@ from .api import ffi, lib
 
 # ---
 
+import sys  # pylint: disable=wrong-import-order
+
+if sys.version_info >= (3, 11):  # pragma: no cover
+    from enum import StrEnum as _StrEnum
+else:  # pragma: no cover
+    class _StrEnum(str, _enum.Enum):
+        __str__ = str.__str__
+
 if _typing.TYPE_CHECKING:  # pragma: no cover
-    import sys
 
     from typing import (
         Any,
@@ -57,6 +64,8 @@ if _typing.TYPE_CHECKING:  # pragma: no cover
     CtxHandle = NewType('CtxHandle', ffi.CData)     #: Context handle.
     TeamHandle = NewType('TeamHandle', ffi.CData)   #: Team handle.
     LockHandle = NewType('LockHandle', ffi.CData)   #: Lock handle.
+
+del sys
 
 # ---
 
@@ -1265,7 +1274,7 @@ def atomic_fetch_xor_nbi(
     _shmem_amo_nbi(ctx, 'fetch_xor', fetch, target, value, pe)
 
 
-class AMO(str, _enum.Enum):
+class AMO(_StrEnum):
     """
     """
     SET: str = 'set'
@@ -1602,7 +1611,7 @@ def alltoalls(
         shmem_alltoalls(team, target, source, tst, sst, size, itemsize)
 
 
-class OP(str, _enum.Enum):
+class OP(_StrEnum):
     """
     """
     AND:  str = 'and'
