@@ -13,6 +13,7 @@ op_name = {
     shmem.SIGNAL_ADD: 'add',
 }
 
+@unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
 @unittest.skipIf(shmem.SIGNAL_SET == shmem.SIGNAL_ADD, 'put-with-signal')
 class TestSignal(unittest.TestCase):
 

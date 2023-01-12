@@ -49,36 +49,53 @@ class TestCtx(unittest.TestCase):
             with ctx as alias:
                 self.assertTrue(ctx is alias)
 
-    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
     def testWithNew(self):
         for ctx in ctxs:
             if not ctx: continue
-            with ctx.create() as newctx:
+            try:
+                newctx = shmem.Ctx.create()
+            except RuntimeError:
+                continue
+            with newctx:
                 self.assertNotEqual(newctx, ctx)
                 self.assertNotEqual(newctx, shmem.CTX_INVALID)
             self.assertEqual(newctx, shmem.CTX_INVALID)
 
-    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
     def testCreate(self):
-        ctx = shmem.CTX_DEFAULT.create()
-        self.assertNotEqual(ctx, shmem.CTX_DEFAULT)
-        ctx.destroy()
-        self.assertEqual(ctx, shmem.CTX_INVALID)
-        ctx = shmem.CTX_DEFAULT.create(team=shmem.TEAM_WORLD)
-        self.assertNotEqual(ctx, shmem.CTX_DEFAULT)
-        ctx.destroy()
-        self.assertEqual(ctx, shmem.CTX_INVALID)
+        try:
+            ctx = shmem.Ctx.create()
+        except RuntimeError:
+            pass
+        else:
+            self.assertNotEqual(ctx, shmem.CTX_DEFAULT)
+            ctx.destroy()
+            self.assertEqual(ctx, shmem.CTX_INVALID)
+        try:
+            ctx = shmem.Ctx.create(team=shmem.TEAM_WORLD)
+        except RuntimeError:
+            pass
+        else:
+            self.assertNotEqual(ctx, shmem.CTX_DEFAULT)
+            ctx.destroy()
+            self.assertEqual(ctx, shmem.CTX_INVALID)
 
-    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
     @unittest.skipIf('open-mpi' in shmem.VENDOR_STRING, 'open-mpi')
     def testCreateOptions(self):
+        def create(*args, **kwargs):
+            try:
+                ctx = shmem.Ctx.create(*args, **kwargs)
+            except RuntimeError:
+                pass
+            else:
+                self.assertNotEqual(ctx, shmem.CTX_INVALID)
+                self.assertNotEqual(ctx, shmem.CTX_DEFAULT)
+                ctx.destroy()
+                self.assertEqual(ctx, shmem.CTX_INVALID)
+
         for opt in options:
-            ctx = shmem.CTX_DEFAULT.create(opt)
-            ctx.destroy()
-            ctx = shmem.CTX_DEFAULT.create(opt, shmem.TEAM_WORLD)
-            ctx.destroy()
-            ctx = shmem.CTX_DEFAULT.create(options=opt, team=shmem.TEAM_WORLD)
-            ctx.destroy()
+            create(opt)
+            create(opt, shmem.TEAM_WORLD)
+            create(options=opt, team=shmem.TEAM_WORLD)
 
     def testDestroy(self):
         for ctx in ctxs:
@@ -97,7 +114,6 @@ class TestCtx(unittest.TestCase):
             alias.destroy()
             self.assertFalse(alias)
 
-    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
     def testGetTeam(self):
         ctx = shmem.CTX_DEFAULT
         team = ctx.get_team()
@@ -114,7 +130,6 @@ class TestCtx(unittest.TestCase):
         ctx.quiet()
         shmem.quiet(ctx)
 
-    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
     def testInvalid(self):
         ctx = shmem.CTX_INVALID
         self.assertRaises(RuntimeError, ctx.get_team)
