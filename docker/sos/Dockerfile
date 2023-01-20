@@ -1,3 +1,5 @@
+# adapted from https://github.com/Sandia-OpenSHMEM/SOS/blob/master/scripts/docker/Dockerfile
+
 FROM ubuntu:22.04
 
 ENV INSTALL_DIR=/home/sos
