@@ -24,14 +24,14 @@ RUN cd $INSTALL_DIR                                                             
 
 # Build OpenMPI
 RUN cd $INSTALL_DIR                                                                     && \
-    wget -c https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.3.tar.bz2   && \
-    tar xf openmpi-4.1.3.tar.bz2                                                        && \
-    cd openmpi-4.1.3                                                                    && \
-    ./configure --enable-oshmem --prefix=$INSTALL_DIR/openmpi-4.1.3/install                \
+    wget -c https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.4.tar.bz2   && \
+    tar xf openmpi-4.1.4.tar.bz2                                                        && \
+    cd openmpi-4.1.4                                                                    && \
+    ./configure --enable-oshmem --prefix=$INSTALL_DIR/openmpi-4.1.4/install                \
                 --with-ucx=/home/shmem/ucx-1.12.1/install                               && \
     make -j && make install
 
-ENV PATH="/home/shmem/openmpi-4.1.3/install/bin:${PATH}" \
+ENV PATH="/home/shmem/openmpi-4.1.4/install/bin:${PATH}" \
     OMPI_ALLOW_RUN_AS_ROOT=1 \
     OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
 
