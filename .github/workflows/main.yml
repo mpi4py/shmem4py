@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shmem: [sos, oshmem, oshmem_ubuntu]
+        shmem: [sos, oshmem, oshmem_ubuntu, oshmpi]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
