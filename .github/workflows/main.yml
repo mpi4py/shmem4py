@@ -1,0 +1,27 @@
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: '44 4 * * 0'
+
+jobs:
+  shmem_matrix:
+    strategy:
+      fail-fast: false
+      matrix:
+        shmem: [sos, oshmem]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: jpribyl/action-docker-layer-caching@v0.1.1
+        with:
+          key: ${{ matrix.shmem }}-1-{hash}
+          restore-keys: |
+            ${{ matrix.shmem }}-1-
+      - name: Build Docker container
+        run: docker build -t local docker/${{ matrix.shmem }}/
+      - name: run shmem4py test
+        run: docker run -v $PWD:/repo -w/repo local /bin/bash -c "make -j && make install && make test"
+      - name: clean docker cache
+        run: docker image prune --all --force --filter "until=168h"
