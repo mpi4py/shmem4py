@@ -45,7 +45,8 @@ class TestReduce(unittest.TestCase):
         npes = shmem.n_pes()
         for t in ops['sum']:
             with self.subTest(type=t):
-                tgt = shmem.array(-1, dtype=t)
+                ini = np.array(-1).astype(t)
+                tgt = shmem.array(ini, dtype=t)
                 src = shmem.full(1, mype, dtype=t)
                 shmem.barrier_all()
                 shmem.reduce(tgt, src)
@@ -59,7 +60,8 @@ class TestReduce(unittest.TestCase):
         npes = team.n_pes()
         for t in ops['sum']:
             with self.subTest(type=t):
-                tgt = shmem.array(-1, dtype=t)
+                ini = np.array(-1).astype(t)
+                tgt = shmem.array(ini, dtype=t)
                 src = shmem.full(1, mype, dtype=t)
                 shmem.barrier_all()
                 shmem.reduce(tgt, src, team=team)
@@ -74,7 +76,7 @@ class TestReduce(unittest.TestCase):
             reducefn = ufunc[op].reduce
             for t in types:
                 with self.subTest(type=t, op=op):
-                    ini = np.array(-1, dtype=t)
+                    ini = np.array(-1).astype(t)
                     val = reducefn(np.arange(1, npes+1, dtype=t), dtype=t)
                     tgt = shmem.full(2, ini, dtype=t)
                     src = shmem.full(1, mype+1, dtype=t)
@@ -94,7 +96,7 @@ class TestReduce(unittest.TestCase):
         for op, types in ops.items():
             reducefn = ufunc[op].reduce
             for t in types:
-                ini = np.array(-1, dtype=t)
+                ini = np.array(-1).astype(t)
                 val = reducefn(np.arange(1, npes+1, dtype=t), dtype=t)
                 tgt = shmem.full(npes+2, ini, dtype=t)
                 src = shmem.full(npes+2, mype+1, dtype=t)
@@ -117,7 +119,7 @@ class TestReduce(unittest.TestCase):
             reducefn = ufunc[op].reduce
             for t in types:
                 with self.subTest(type=t, op=op):
-                    ini = np.array(-1, dtype=t)
+                    ini = np.array(-1).astype(t)
                     val = reducefn(np.arange(1, npes+1, dtype=t), dtype=t)
                     tgt = shmem.full(2, ini, dtype=t)
                     src = shmem.full(1, mype+1, dtype=t)

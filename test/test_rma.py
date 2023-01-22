@@ -18,7 +18,7 @@ class TestRMA(unittest.TestCase):
         for t in types:
             src = np.full(2, nxpe, dtype=t)
             dst = shmem.empty(2, dtype=t)
-            dst[...] = init = np.array(-1, dtype=t)
+            dst[...] = init = np.array(-1).astype(t)
             ctx = shmem.CTX_DEFAULT
             shmem.barrier_all()
             shmem.put(dst, src, nxpe, size=1, ctx=ctx)
@@ -34,7 +34,7 @@ class TestRMA(unittest.TestCase):
         for t in types:
             src = shmem.full(2, mype, dtype=t)
             dst = np.empty(2, dtype=t)
-            dst[...] = init = np.array(-1, dtype=t)
+            dst[...] = init = np.array(-1).astype(t)
             ctx = shmem.CTX_DEFAULT
             shmem.barrier_all()
             shmem.get(dst, src, nxpe, size=1, ctx=ctx)
@@ -77,7 +77,7 @@ class TestRMA(unittest.TestCase):
             if t in "FDG": continue
             src = np.full(12, nxpe, dtype=t)
             tgt = shmem.empty(12, dtype=t)
-            val = np.array(-1, dtype=t)
+            val = np.array(-1).astype(t)
             for tst in range(1, 12):
                 with self.subTest(t=t, tst=tst):
                     tgt[...] = val
@@ -106,7 +106,7 @@ class TestRMA(unittest.TestCase):
             if t in "FDG": continue
             src = shmem.full(12, mype, dtype=t)
             tgt = np.empty(12, dtype=t)
-            val = np.array(-1, dtype=t)
+            val = np.array(-1).astype(t)
             for tst in range(1, 12):
                 with self.subTest(t=t, tst=tst):
                     tgt[...] = val

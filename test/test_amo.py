@@ -33,7 +33,8 @@ class TestAMO(unittest.TestCase):
         nxpe = (mype + 1) % npes
         for t in types_ext:
             with self.subTest(type=t):
-                tgt = shmem.array(-1, dtype=t)
+                ini = np.array(-1).astype(t)
+                tgt = shmem.array(ini, dtype=t)
                 shmem.atomic_set(tgt, nxpe, nxpe)
                 shmem.barrier_all()
                 self.assertEqual(tgt, mype)
@@ -45,11 +46,12 @@ class TestAMO(unittest.TestCase):
         nxpe = (mype + 1) % npes
         for t in types_ext:
             with self.subTest(type=t):
-                tgt = shmem.array(-1, dtype=t)
+                ini = np.array(-1).astype(t)
+                tgt = shmem.array(ini, dtype=t)
                 val = shmem.atomic_swap(tgt, nxpe, nxpe)
                 shmem.barrier_all()
                 self.assertEqual(tgt, mype)
-                self.assertEqual(val, np.array(-1, dtype=t))
+                self.assertEqual(val, np.array(-1).astype(t))
                 shmem.free(tgt)
 
     @unittest.skipIf('open-mpi' in shmem.VENDOR_STRING, 'open-mpi')
@@ -267,12 +269,13 @@ class TestAMONBI(unittest.TestCase):
         for t in types_ext:
             with self.subTest(type=t):
                 val = np.array(0, dtype=t)
-                tgt = shmem.array(-1, dtype=t)
+                ini = np.array(-1).astype(t)
+                tgt = shmem.array(ini, dtype=t)
                 #
                 shmem.sync_all()
                 shmem.atomic_swap_nbi(val, tgt, nxpe, nxpe)
                 shmem.quiet()
-                self.assertEqual(val, np.array(-1, dtype=t))
+                self.assertEqual(val, np.array(-1).astype(t))
                 shmem.sync_all()
                 self.assertEqual(tgt, mype)
                 #

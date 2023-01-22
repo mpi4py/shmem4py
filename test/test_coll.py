@@ -56,7 +56,7 @@ class TestColl(unittest.TestCase):
                     for root in range(npes):
                         with self.subTest(type=t, size=n, root=root):
                             tgt[...] = npes
-                            src[...] = -1
+                            src[...] = np.array(-1).astype(t)
                             src[0, :] = mype
                             shmem.barrier_all()
                             shmem.broadcast(tgt, src, root, size=n)
@@ -178,7 +178,7 @@ class TestColl(unittest.TestCase):
                 tgt = shmem.empty((npes, tst), dtype=t)
                 src = shmem.empty((npes, sst), dtype=t)
                 tgt[...] = npes
-                src[...] = -1
+                src[...] = np.array(-1).astype(t)
                 src[:, 0] = mype
                 shmem.barrier_all()
                 shmem.alltoalls(tgt, src, tst=tst, sst=sst)
@@ -202,7 +202,7 @@ class TestColl(unittest.TestCase):
                 tgt = shmem.empty((3, npes, tst), dtype=t)
                 src = shmem.empty((5, npes, sst), dtype=t)
                 tgt[...] = npes
-                src[...] = -1
+                src[...] = np.array(-1).astype(t)
                 src[0, :, 0] = mype
                 shmem.barrier_all()
                 shmem.alltoalls(tgt, src, tst=tst, sst=sst, size=1)
