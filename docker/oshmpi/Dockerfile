@@ -16,7 +16,7 @@ RUN apt-get update -y && apt-get install -y \
 RUN mkdir /home/shmem
 
 RUN cd $INSTALL_DIR                                                                        && \
-    git clone https://github.com/pmodels/oshmpi --recurse-submodules                       && \
+    git clone https://github.com/dalcinl/oshmpi -b fix-api-1.5 --recurse-submodules        && \
     cd oshmpi                                                                              && \
     ./autogen.sh                                                                           && \
     ./configure CC=/usr/bin/mpicc CXX=/usr/bin/mpicxx --prefix=$INSTALL_DIR/oshmpi/install && \
