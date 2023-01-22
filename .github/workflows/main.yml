@@ -27,8 +27,8 @@ jobs:
       - name: Build Docker container
         run: docker build -t local docker/${{ matrix.shmem }}/
       - name: run shmem4py test-1
-        run: docker run --shm-size 128mb -v $PWD:/repo -w/repo local /bin/bash -c "pip install . && make test-1 opt=-v"
+        run: docker run -v $PWD:/repo -w/repo local /bin/bash -c "pip install . && make test-1 opt=-v"
       - name: run shmem4py test-2
-        run: docker run --shm-size 128mb -v $PWD:/repo -w/repo local /bin/bash -c "pip install . && make test-2 opt=-v"
+        run: docker run -v $PWD:/repo -w/repo local /bin/bash -c "pip install . && make test-2 opt=-v"
       - name: clean docker cache
         run: docker image prune --all --force --filter "until=168h"
