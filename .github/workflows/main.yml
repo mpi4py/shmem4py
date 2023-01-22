@@ -1,5 +1,10 @@
 on:
   push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
   workflow_dispatch:
   schedule:
     - cron: '44 4 * * 0'
@@ -9,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shmem: [sos, oshmem, oshmem_ubuntu, oshmpi]
+        shmem: [sos, oshmem, oshmem_ubuntu, oshmpi, osss]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,6 +27,6 @@ jobs:
       - name: Build Docker container
         run: docker build -t local docker/${{ matrix.shmem }}/
       - name: run shmem4py test
-        run: docker run -v $PWD:/repo -w/repo local /bin/bash -c "make -j && make install && make test"
+        run: docker run -v $PWD:/repo -w/repo local /bin/bash -c "pip install . && make test-1 test-2 opt=-v"
       - name: clean docker cache
         run: docker image prune --all --force --filter "until=168h"
