@@ -2,8 +2,8 @@
 
 FROM ubuntu:22.04
 
-ENV INSTALL_DIR=/home/sos
-RUN mkdir /home/sos
+ENV INSTALL_DIR=/home/shmem
+RUN mkdir /home/shmem
 ENV DEBIAN_FRONTEND=noninteractive
 ENV CC=gcc
 ENV CXX=g++
@@ -48,7 +48,7 @@ RUN cd $INSTALL_DIR                                                             
     make -j && make install                                                                 && \
     make check TESTS= -j
 
-ENV PATH="/home/sos/SOS/install/bin:${PATH}"
+ENV PATH="/home/shmem/SOS/install/bin:${PATH}"
 
 WORKDIR $INSTALL_DIR/SOS/examples
 
