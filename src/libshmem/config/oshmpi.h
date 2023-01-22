@@ -20,6 +20,6 @@
 #define PySHMEM_HAVE_shmem_alltoallsmem 1
 #define PySHMEM_HAVE_shmem_reduce 1
 #define PySHMEM_HAVE_shmem_wait_test_many 1
-/*#define PySHMEM_HAVE_shmem_pcontrol 1*/
+#define PySHMEM_HAVE_shmem_pcontrol 1
 
 #endif

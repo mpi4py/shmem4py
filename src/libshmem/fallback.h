@@ -532,15 +532,6 @@ PySHMEM_APPLY_STD_RMA_TYPES(PySHMEM_ALLTOALL)
 
 /* --- */
 
-#define PySHMEM_ALLTOALLS_BIT(N, dest, source, dst, sst, size, elsz)  \
-  do {                                                                \
-    if ((elsz) == (N>>3)) {                                           \
-      shmem_alltoalls##N(dest, source, dst, sst, size,                \
-                         0, 0, shmem_n_pes(), _py_shmem_pSync()) ;    \
-      return 0;                                                       \
-    }                                                                 \
-  } while(0)
-
 #if !defined(PySHMEM_HAVE_shmem_alltoallsmem)
 
 static
@@ -561,26 +552,55 @@ int shmem_alltoallsmem(shmem_team_t team,
 
 #endif
 
+#if defined(PySHMEM_HAVE_shmem_alltoalls)
+
+#define PySHMEM_ALLTOALLSMEM_X(N, team, dest, source, dst, sst, size, elsz)  \
+  do {                                                                       \
+    if ((elsz) % (N>>3) == 0) {                                              \
+      ptrdiff_t i, n = (ptrdiff_t) (elsz) / (N>>3);                          \
+      for (i = 0; i < n; i++) {                                              \
+        uint##N##_t *d = (uint##N##_t*) (dest) + i;                          \
+        const uint##N##_t *s = (uint##N##_t*) (source) + i;                  \
+        int ierr = shmem_uint##N##_alltoalls((team), d, s,                   \
+                                             (dst) * n, (sst) * n, size);    \
+        if (ierr) return ierr;                                               \
+      }                                                                      \
+      return 0;                                                              \
+    }                                                                        \
+  } while(0)                                                              /**/
+
+#else
+
+#define PySHMEM_ALLTOALLSMEM_X(N, team, dest, source, dst, sst, size, elsz)  \
+  do {                                                                       \
+    if ((team) != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;              \
+    if ((elsz) % (N>>3) == 0) {                                              \
+      ptrdiff_t i, n = (ptrdiff_t) (elsz) / (N>>3);                          \
+      for (i = 0; i < n; i++) {                                              \
+        uint##N##_t *d = (uint##N##_t*) (dest) + i;                          \
+        const uint##N##_t *s = (const uint##N##_t*) (source) + i;            \
+        shmem_alltoalls##N(d, s, (dst) * n, (sst) * n, (size),               \
+                           0, 0, shmem_n_pes(), _py_shmem_pSync()) ;         \
+      }                                                                      \
+      return 0;                                                              \
+    }                                                                        \
+  } while(0)                                                              /**/
+
+#endif
+
 static
 int shmem_alltoallsmem_x(shmem_team_t team,
                          void *dest, const void *source,
                          ptrdiff_t dst, ptrdiff_t sst,
                          size_t size, size_t eltsize)
 {
+  PySHMEM_ALLTOALLSMEM_X(64, team, dest, source, dst, sst, size, eltsize);
+  PySHMEM_ALLTOALLSMEM_X(32, team, dest, source, dst, sst, size, eltsize);
 #if defined(PySHMEM_HAVE_shmem_alltoalls)
-  switch (eltsize) {
-  case (1): return shmem_uint8_alltoalls (team, (uint8_t*)  dest, (uint8_t*)  source, dst, sst, size);
-  case (2): return shmem_uint16_alltoalls(team, (uint16_t*) dest, (uint16_t*) source, dst, sst, size);
-  case (4): return shmem_uint32_alltoalls(team, (uint32_t*) dest, (uint32_t*) source, dst, sst, size);
-  case (8): return shmem_uint64_alltoalls(team, (uint64_t*) dest, (uint64_t*) source, dst, sst, size);
-  }
-  return PySHMEM_UNAVAILABLE;
-#else
-  if (team != SHMEM_TEAM_WORLD) return PySHMEM_UNAVAILABLE;
-  PySHMEM_ALLTOALLS_BIT(64, dest, source, dst, sst, size, eltsize);
-  PySHMEM_ALLTOALLS_BIT(32, dest, source, dst, sst, size, eltsize);
-  return PySHMEM_UNAVAILABLE;
+  PySHMEM_ALLTOALLSMEM_X(16, team, dest, source, dst, sst, size, eltsize);
+  PySHMEM_ALLTOALLSMEM_X(8 , team, dest, source, dst, sst, size, eltsize);
 #endif
+  return PySHMEM_UNAVAILABLE;
 }
 
 #if !defined(PySHMEM_HAVE_shmem_alltoalls)

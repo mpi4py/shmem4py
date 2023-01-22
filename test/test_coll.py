@@ -172,8 +172,7 @@ class TestColl(unittest.TestCase):
             with self.subTest(type=t):
                 itemsize = np.dtype(t).itemsize
                 if not shmem_15:
-                    if itemsize not in (4, 8): continue
-                if itemsize > 8: continue
+                    if itemsize < 4: continue
                 tst, sst = 3, 5
                 tgt = shmem.empty((npes, tst), dtype=t)
                 src = shmem.empty((npes, sst), dtype=t)
@@ -196,8 +195,7 @@ class TestColl(unittest.TestCase):
             with self.subTest(type=t):
                 itemsize = np.dtype(t).itemsize
                 if not shmem_15:
-                    if itemsize not in (4, 8): continue
-                if itemsize > 8: continue
+                    if itemsize < 4: continue
                 tst, sst = 3, 5
                 tgt = shmem.empty((3, npes, tst), dtype=t)
                 src = shmem.empty((5, npes, sst), dtype=t)
@@ -213,22 +211,6 @@ class TestColl(unittest.TestCase):
                 self.assertTrue(np.all(tgt[1:, :, :] == npes))
                 shmem.free(tgt)
                 shmem.free(src)
-
-    def testAllToAllStrideUnsupported(self):
-        mype = shmem.my_pe()
-        npes = shmem.n_pes()
-        t = 'D'
-        tst, sst = 3, 5
-        tgt = shmem.empty((3, npes, tst), dtype=t)
-        src = shmem.empty((5, npes, sst), dtype=t)
-        tgt[...] = npes
-        src[...] = -1
-        src[0, :, 0] = mype
-        shmem.barrier_all()
-        self.assertRaises(
-            NotImplementedError, shmem.alltoalls,
-            tgt, src, tst=tst, sst=sst, size=1,
-        )
 
 
 if __name__ == '__main__':

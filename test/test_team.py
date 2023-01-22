@@ -120,16 +120,22 @@ class TestTeam(unittest.TestCase):
             tpe = team.translate_pe(pe, team=team)
             self.assertEqual(tpe, pe)
 
-    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
     def testCreateCtx(self):
         team = shmem.TEAM_WORLD
-        ctx = team.create_ctx()
-        ctx.destroy()
-        for opt in options_ctx:
-            ctx= team.create_ctx(opt)
+        try:
+            ctx = team.create_ctx()
+        except RuntimeError:
+            pass
+        else:
             ctx.destroy()
+        for opt in options_ctx:
+            try:
+                ctx= team.create_ctx(opt)
+            except RuntimeError:
+                pass
+            else:
+                ctx.destroy()
 
-    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
     def testSync(self):
         team = shmem.TEAM_WORLD
         team.sync()

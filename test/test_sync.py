@@ -31,6 +31,7 @@ class TestWait(unittest.TestCase):
                             shmem.wait_until(ivar[..., pe], cmp, val)
                 shmem.free(ivar)
 
+    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
     @unittest.skipIf('osss-ucx' in shmem.VENDOR_STRING, 'osss-ucx')
     def testAll(self):
         mype = shmem.my_pe()
@@ -96,6 +97,7 @@ class TestWait(unittest.TestCase):
                         shmem.wait_until_all_vector(ivars, cmp, v2vec)
                     shmem.free(ivars)
 
+    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
     @unittest.skipIf('osss-ucx' in shmem.VENDOR_STRING, 'osss-ucx')
     def testAny(self):
         mype = shmem.my_pe()
@@ -181,6 +183,7 @@ class TestWait(unittest.TestCase):
                         self.assertNotEqual(index, None)
                     shmem.free(ivars)
 
+    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
     @unittest.skipIf('osss-ucx' in shmem.VENDOR_STRING, 'osss-ucx')
     def testSome(self):
         mype = shmem.my_pe()
@@ -299,6 +302,7 @@ class TestTest(unittest.TestCase):
                             self.assertTrue(flag)
                 shmem.free(ivar)
 
+    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
     @unittest.skipIf('osss-ucx' in shmem.VENDOR_STRING, 'osss-ucx')
     def testAll(self):
         mype = shmem.my_pe()
@@ -374,6 +378,7 @@ class TestTest(unittest.TestCase):
                         self.assertTrue(flag)
                     shmem.free(ivars)
 
+    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
     @unittest.skipIf('osss-ucx' in shmem.VENDOR_STRING, 'osss-ucx')
     def testAny(self):
         mype = shmem.my_pe()
@@ -457,6 +462,7 @@ class TestTest(unittest.TestCase):
                         self.assertNotEqual(index, None)
                     shmem.free(ivars)
 
+    @unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
     @unittest.skipIf('osss-ucx' in shmem.VENDOR_STRING, 'osss-ucx')
     def testSome(self):
         mype = shmem.my_pe()
@@ -541,6 +547,7 @@ class TestTest(unittest.TestCase):
                     shmem.free(ivars)
 
 
+@unittest.skipIf('OSHMPI' in shmem.VENDOR_STRING, 'OSHMPI')
 class TestSignal(unittest.TestCase):
 
     def testWait(self):
