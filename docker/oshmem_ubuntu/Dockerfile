@@ -10,13 +10,12 @@ RUN apt-get update -y && apt-get install -y \
   automake                                  \
   libtool                                   \
   wget                                      \
-  valgrind                                  \
   python3 python3-pip python-is-python3
 
-RUN cd $INSTALL_DIR                                                    && \
-    git clone https://github.com/openucx/ucx                           && \
-    cd ucx && ./autogen.sh                                             && \
-    ./contrib/configure-devel --prefix=$INSTALL_DIR/ucx-master/install && \
+RUN cd $INSTALL_DIR                                      && \
+    git clone https://github.com/openucx/ucx             && \
+    cd ucx && ./autogen.sh                               && \
+    ./configure --prefix=$INSTALL_DIR/ucx-master/install && \
     make -j && make install
 
 RUN cd $INSTALL_DIR                                                                   && \
