@@ -49,5 +49,4 @@ RUN cd $INSTALL_DIR                                                             
     make check TESTS= -j
 
 ENV PATH="/home/shmem/SOS/install/bin:${PATH}"
-
 RUN python -m pip install numpy cffi setuptools
