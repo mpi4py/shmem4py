@@ -1,6 +1,7 @@
 FROM ubuntu:latest
 
 ENV INSTALL_DIR=/home/shmem
+RUN mkdir /home/shmem
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -y && apt-get install -y \
@@ -12,8 +13,6 @@ RUN apt-get update -y && apt-get install -y \
   libtool                                   \
   mpich                                     \
   python3 python3-pip python-is-python3
-
-RUN mkdir /home/shmem
 
 RUN cd $INSTALL_DIR                                                                        && \
     git clone https://github.com/dalcinl/oshmpi -b fix-api-1.5 --recurse-submodules        && \
