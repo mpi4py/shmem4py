@@ -13,15 +13,6 @@ RUN dnf update -y && \
 ENV CC=gcc
 ENV CXX=g++
 
-# Build Libevent
-RUN cd $INSTALL_DIR                                                                                                    && \
-    wget -c https://github.com/libevent/libevent/releases/download/release-2.1.10-stable/libevent-2.1.10-stable.tar.gz && \
-    tar -xzvf libevent-2.1.10-stable.tar.gz                                                                            && \
-    cd libevent-2.1.10-stable                                                                                          && \
-    ./autogen.sh                                                                                                       && \
-    ./configure --prefix=$INSTALL_DIR/libevent-2.1.10-stable/install                                                   && \
-    make clean all install
-
 # Build Libfabric
 RUN cd $INSTALL_DIR                                                                  && \
     git clone -b v1.13.x --depth 10 https://github.com/ofiwg/libfabric.git libfabric && \

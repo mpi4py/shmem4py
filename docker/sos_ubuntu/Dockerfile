@@ -17,17 +17,9 @@ RUN apt-get update -y && apt-get install -y \
   libtool                                   \
   flex                                      \
   libhwloc-dev                              \
+  libevent-dev                              \
   mpich                                     \
   python3 python3-pip python-is-python3
-
-# Build Libevent
-RUN cd $INSTALL_DIR                                                                                                    && \
-    wget -c https://github.com/libevent/libevent/releases/download/release-2.1.10-stable/libevent-2.1.10-stable.tar.gz && \
-    tar -xzvf libevent-2.1.10-stable.tar.gz                                                                            && \
-    cd libevent-2.1.10-stable                                                                                          && \
-    ./autogen.sh                                                                                                       && \
-    ./configure --prefix=$INSTALL_DIR/libevent-2.1.10-stable/install                                                   && \
-    make clean all install
 
 # Build Libfabric
 RUN cd $INSTALL_DIR                                                                 && \
