@@ -1,6 +1,6 @@
 # adapted from https://github.com/Sandia-OpenSHMEM/SOS/blob/master/scripts/docker/Dockerfile
 
-FROM ubuntu:22.04
+FROM ubuntu:latest
 
 ENV INSTALL_DIR=/home/shmem
 RUN mkdir /home/shmem
