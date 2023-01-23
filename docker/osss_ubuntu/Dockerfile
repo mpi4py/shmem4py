@@ -11,7 +11,6 @@ RUN apt-get update -y && apt-get install -y \
   wget                                      \
   automake                                  \
   libtool                                   \
-  mpich                                     \
   pkg-config                                \
   libpmix-bin libpmix-dev                   \
   python3 python3-pip python-is-python3
