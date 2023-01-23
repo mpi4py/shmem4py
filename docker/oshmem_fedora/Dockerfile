@@ -8,10 +8,10 @@ RUN dnf update -y && \
                    pmix pmix-devel libevent libevent-devel python3 python3-devel python3-pip && \
     dnf clean all
 
-RUN cd $INSTALL_DIR                                      && \
-    git clone https://github.com/openucx/ucx             && \
-    cd ucx && ./autogen.sh                               && \
-    ./configure --prefix=$INSTALL_DIR/ucx-master/install && \
+RUN cd $INSTALL_DIR                                                                                                  && \
+    git clone https://github.com/openucx/ucx                                                                         && \
+    cd ucx && ./autogen.sh                                                                                           && \
+    ./configure --prefix=$INSTALL_DIR/ucx-master/install --disable-debug --disable-assertions --disable-params-check && \
     make -j && make install
 
 RUN cd $INSTALL_DIR                                                                   && \
