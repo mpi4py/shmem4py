@@ -21,9 +21,9 @@ class Rc:
     initialize : bool
         Automatic initialization at import (default: True).
     threads : bool
-        Request for thread support (default: False).
-    thread_level : {'multiple', 'serialized', 'funneled', 'single'}
-        Level of thread support to request (default: 'multiple').
+        Request initialization with thread support (default: True).
+    thread_level : {"multiple", "serialized", "funneled", "single"}
+        Level of thread support to request (default: "multiple").
     finalize : None or bool
         Automatic finalization at exit (default: None).
 
@@ -35,21 +35,25 @@ class Rc:
     finalize: Optional[bool] = None
 
     def __init__(self, **kwargs: Any) -> None:
+        """Initialize options."""
         self(**kwargs)
 
     def __setattr__(self, name: str, value: Any) -> None:
+        """Set option."""
         if not hasattr(self, name):
-            raise TypeError(f"object has no attribute '{name}'")
+            raise TypeError(f"object has no attribute {name!r}")
         super().__setattr__(name, value)
 
     def __call__(self, **kwargs: Any) -> None:
+        """Update options."""
         for key in kwargs:
             if not hasattr(self, key):
-                raise TypeError(f"unexpected argument '{key}'")
+                raise TypeError(f"unexpected argument {key!r}")
         for key, value in kwargs.items():
             setattr(self, key, value)
 
     def __repr__(self) -> str:
+        """Return repr(self)."""
         return f'<{__name__}.rc>'
 
 
