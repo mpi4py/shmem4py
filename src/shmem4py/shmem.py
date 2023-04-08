@@ -330,13 +330,21 @@ class Ctx:
         return Team(team[0])
 
     def fence(self) -> None:
-        """
+        """Ensures ordering of delivery of operations on symmetric data objects.
+
+        All operations on symmetric data objects issued to a particular PE on
+        the given context prior to the call to ``fence`` are guaranteed to be
+        delivered before any subsequent operations on symmetric data objects to
+        the same PE.
         """
         ctx = self.ob_ctx
         lib.shmem_ctx_fence(ctx)
 
     def quiet(self) -> None:
-        """
+        """Waits for completion of outstanding operations on symmetric data objects issued by a PE.
+
+        Ensures completion of all operations on symmetric data objects issued
+        by the calling PE on the given context.
         """
         ctx = self.ob_ctx
         lib.shmem_ctx_quiet(ctx)
@@ -418,7 +426,20 @@ class Team:
         config: Optional[Mapping[str, int]] = None,
         **kwargs: int,
     ) -> Team:
-        """
+        """Creates a team from a subset of the existing parent team PEs.
+
+        This routine must be called by all PEs in the parent team.
+
+        Args:
+            start: The lowest PE number of the subset of PEs from the parent
+                team that will form the new team.
+            stride: The stride between team PE numbers in the parent team that
+                comprise the subset of PEs that will form the new team.
+            size: The number of PEs from the parent team in the subset of PEs
+                that will form the new team. ``size`` must be a positive
+                integer.
+            config: A pointer to the configuration parameters for the new team.
+                TODO: more info needed
         """
         team = self.ob_team
         if size is None:
@@ -442,7 +463,7 @@ class Team:
         return Team(tnew[0])
 
     def get_config(self) -> Dict[str, int]:
-        """
+        """Returns the configuration parameters of a given team.
         """
         team = self.ob_team
         conf = ffi.new('shmem_team_config_t*')
@@ -505,7 +526,10 @@ class Team:
         return Ctx(ctx[0])
 
     def sync(self) -> None:
-        """
+        """Registers the arrival of a PE at a synchronization point.
+
+        This routine does not return until all other PEs in a given team or
+        active set arrive at this synchronization point.
         """
         team = self.ob_team
         ierr = lib.shmem_team_sync(team)
@@ -1782,19 +1806,33 @@ def _shmem_collective(ctype, name, size):
 
 
 def barrier_all() -> None:
-    """
+    """Registers the arrival of a PE at a barrier, waits for others.
+
+    This routine blocks the calling PE until all PEs have called
+    ``barrier_all``. Prior to synchronizing with other PEs, ``barrier_all``
+    ensures completion of all previously issued memory stores and remote memory
+    updates issued on the default context.
     """
     lib.shmem_barrier_all()
 
 
 def sync_all() -> None:
-    """
+    """Registers the arrival of a PE at a synchronization point, waits for all others.
+
+    This routine blocks the calling PE until all PEs in the world team have
+    called `sync_all`.
     """
     lib.shmem_sync_all()
 
 
 def sync(team: Optional[Team] = None) -> None:
-    """
+    """Registers the arrival of a PE at a synchronization point, waits for others.
+
+    This routine does not return until all other PEs in a given team or
+    active set arrive at this synchronization point.
+
+    Args:
+        team: The team over which to perform the operation.
     """
     if team is None:
         lib.shmem_sync_all()
@@ -1810,7 +1848,15 @@ def broadcast(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """
+    """Copies the ``source`` from ``root`` to ``target`` on participating PEs.
+
+    Args:
+        target: Symmetric address of destination data object.
+        source: Symmetric address of the source data object.
+        root: Zero-based ordinal of the PE, with respect to the team or active
+            set, from which the data is copied.
+        size: The number of elements in ``source`` and ``target`` arrays.
+        team: The team over which to perform the operation.
     """
     team, _ = _parse_team(team)
     ctype, target, source, size = _parse_bcast(target, source, size)
@@ -1906,7 +1952,16 @@ def reduce(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """
+    """Performs a specified reduction across a set of PEs.
+
+    Args:
+        target: Symmetric address of an array, of length ``size`` elements, to
+            receive the result of the reduction routine.
+        source: Symmetric address of an array, of length ``size`` elements,
+            that contains one element for each separate reduction routine.
+        op: The reduction operation to perform.
+        size: The number of elements in the ``target`` and ``source`` arrays.
+        team: The team over which to perform the operation.
     """
     op = _parse_reduce_op(op)
     team_ = team.ob_team if team is not None else lib.SHMEM_TEAM_WORLD
@@ -1922,7 +1977,15 @@ def and_reduce(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """
+    """Performs a bitwise AND reduction across a set of PEs.
+
+    Args:
+        target: Symmetric address of an array, of length ``size`` elements, to
+            receive the result of the reduction routine.
+        source: Symmetric address of an array, of length ``size`` elements,
+            that contains one element for each separate reduction routine.
+        size: The number of elements in the ``target`` and ``source`` arrays.
+        team: The team over which to perform the operation.
     """
     reduce(target, source, OP_AND, size, team)
 
@@ -1933,7 +1996,15 @@ def or_reduce(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """
+    """Performs a bitwise OR reduction across a set of PEs.
+
+    Args:
+        target: Symmetric address of an array, of length ``size`` elements, to
+            receive the result of the reduction routine.
+        source: Symmetric address of an array, of length ``size`` elements,
+            that contains one element for each separate reduction routine.
+        size: The number of elements in the ``target`` and ``source`` arrays.
+        team: The team over which to perform the operation.
     """
     reduce(target, source, OP_OR, size, team)
 
@@ -1944,7 +2015,15 @@ def xor_reduce(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """
+    """Performs a bitwise exclusive OR (XOR) reduction across a set of PEs.
+
+    Args:
+        target: Symmetric address of an array, of length ``size`` elements, to
+            receive the result of the reduction routine.
+        source: Symmetric address of an array, of length ``size`` elements,
+            that contains one element for each separate reduction routine.
+        size: The number of elements in the ``target`` and ``source`` arrays.
+        team: The team over which to perform the operation.
     """
     reduce(target, source, OP_XOR, size, team)
 
@@ -1955,7 +2034,15 @@ def max_reduce(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """
+    """Performs a maximum-value reduction across a set of PEs.
+
+    Args:
+        target: Symmetric address of an array, of length ``size`` elements, to
+            receive the result of the reduction routine.
+        source: Symmetric address of an array, of length ``size`` elements,
+            that contains one element for each separate reduction routine.
+        size: The number of elements in the ``target`` and ``source`` arrays.
+        team: The team over which to perform the operation.
     """
     reduce(target, source, OP_MAX, size, team)
 
@@ -1966,7 +2053,15 @@ def min_reduce(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """
+    """Performs a minimum-value reduction across a set of PEs.
+
+    Args:
+        target: Symmetric address of an array, of length ``size`` elements, to
+            receive the result of the reduction routine.
+        source: Symmetric address of an array, of length ``size`` elements,
+            that contains one element for each separate reduction routine.
+        size: The number of elements in the ``target`` and ``source`` arrays.
+        team: The team over which to perform the operation.
     """
     reduce(target, source, OP_MIN, size, team)
 
@@ -1977,7 +2072,15 @@ def sum_reduce(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """
+    """Performs a sum reduction across a set of PEs.
+
+    Args:
+        target: Symmetric address of an array, of length ``size`` elements, to
+            receive the result of the reduction routine.
+        source: Symmetric address of an array, of length ``size`` elements,
+            that contains one element for each separate reduction routine.
+        size: The number of elements in the ``target`` and ``source`` arrays.
+        team: The team over which to perform the operation.
     """
     reduce(target, source, OP_SUM, size, team)
 
@@ -1988,7 +2091,15 @@ def prod_reduce(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """
+    """Performs a product reduction across a set of PEs.
+
+    Args:
+        target: Symmetric address of an array, of length ``size`` elements, to
+            receive the result of the reduction routine.
+        source: Symmetric address of an array, of length ``size`` elements,
+            that contains one element for each separate reduction routine.
+        size: The number of elements in the ``target`` and ``source`` arrays.
+        team: The team over which to perform the operation.
     """
     reduce(target, source, OP_PROD, size, team)
 
