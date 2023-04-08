@@ -91,8 +91,7 @@ VENDOR_STRING: str = ffi.string(lib.SHMEM_VENDOR_STRING).decode()
 
 
 def info_get_version() -> Tuple[int, int]:
-    """Returns the major and minor version of the library implementation.
-    """
+    """Returns the major and minor version of the library implementation."""
     major = ffi.new('int*')
     minor = ffi.new('int*')
     lib.shmem_info_get_version(major, minor)
@@ -100,8 +99,7 @@ def info_get_version() -> Tuple[int, int]:
 
 
 def info_get_name() -> str:
-    """Returns the vendor-defined name string.
-    """
+    """Returns the vendor-defined name string."""
     name = ffi.new('char[]', lib.SHMEM_MAX_NAME_LEN)
     lib.shmem_info_get_name(name)
     return ffi.string(name).decode()
@@ -176,8 +174,7 @@ def init_thread(requested: THREAD = THREAD_MULTIPLE) -> THREAD:
 
 
 def query_thread() -> THREAD:
-    """Returns the level of thread support provided by the library.
-    """
+    """Returns the level of thread support provided by the library."""
     provided = ffi.new('int*', lib.SHMEM_THREAD_SINGLE)
     lib.shmem_query_thread(provided)
     return THREAD(provided[0])
@@ -287,7 +284,15 @@ class Ctx:
         options: int = 0,
         team: Optional[Team] = None,
     ) -> Ctx:
-        """
+        """Create a communication context.
+
+        Args:
+            options: The set of options requested for the given context.
+                Multiple options may be requested by combining them with a
+                bitwise OR operation; otherwise, 0 can be given if no options
+                are requested. TODO: bitwise OR?
+            team: If the team is specified, the communication context is
+                created from this ``team``.
         """
         ctx = ffi.new('shmem_ctx_t*', lib.SHMEM_CTX_INVALID)
         if team is None:
@@ -300,8 +305,7 @@ class Ctx:
         return Ctx(ctx[0])
 
     def destroy(self) -> None:
-        """
-        """
+        """Destroy the communication context."""
         if self is CTX_DEFAULT:
             return
         if self is CTX_INVALID:
@@ -315,8 +319,7 @@ class Ctx:
         lib.shmem_ctx_destroy(ctx)
 
     def get_team(self) -> Team:
-        """
-        """
+        """Retrieve the team associated with the communication context."""
         ctx = self.ob_ctx
         team = ffi.new('shmem_team_t*', lib.SHMEM_TEAM_INVALID)
         ierr = lib.shmem_ctx_get_team(ctx, team)
@@ -387,8 +390,7 @@ class Team:
         self.destroy()
 
     def destroy(self) -> None:
-        """
-        """
+        """Destroy the team."""
         if self is TEAM_WORLD:
             return
         if self is TEAM_SHARED:
@@ -446,16 +448,14 @@ class Team:
         return {attr: getattr(conf, attr) for attr in dir(conf)}
 
     def my_pe(self) -> int:
-        """Returns the number of the calling PE within the team.
-        """
+        """Returns the number of the calling PE within the team."""
         team = self.ob_team
         mype = lib.shmem_team_my_pe(team)
         _chkint(mype, "shmem_team_my_pe")
         return mype
 
     def n_pes(self) -> int:
-        """Returns the number of PEs in the team.
-        """
+        """Returns the number of PEs in the team."""
         team = self.ob_team
         npes = lib.shmem_team_n_pes(team)
         _chkint(npes, "shmem_team_n_pes")
@@ -518,14 +518,12 @@ TEAM_INVALID: Team = Team(lib.SHMEM_TEAM_INVALID)
 
 
 def my_pe() -> int:
-    """Returns the number of the calling PE.
-    """
+    """Returns the number of the calling PE."""
     return lib.shmem_my_pe()
 
 
 def n_pes() -> int:
-    """Returns the number of PEs running in a program.
-    """
+    """Returns the number of PEs running in a program."""
     return lib.shmem_n_pes()
 
 
@@ -1079,7 +1077,12 @@ def atomic_set(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Writes ``value`` into ``target`` on PE ``pe``.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        value: The operand to the atomic set operation.
+        pe: The PE number on which ``target`` is to be updated.
     """
     _shmem_amo(ctx, 'set', target, value, pe)
 
@@ -1089,7 +1092,11 @@ def atomic_inc(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Increments ``target`` data object on PE ``pe``.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        pe: The PE number on which ``target`` is to be updated.
     """
     _shmem_amo(ctx, 'inc', target, None, pe)
 
@@ -1100,7 +1107,12 @@ def atomic_add(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Adds ``value`` to ``target`` on PE ``pe`` and atomically updates ``target``.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        value: The operand to the atomic add operation.
+        pe: The PE number on which ``target`` is to be updated.
     """
     _shmem_amo(ctx, 'add', target, value, pe)
 
@@ -1111,7 +1123,12 @@ def atomic_and(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Perform bitwise AND on ``target`` on PE ``pe`` with the operand ``value``.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        value: The operand to the bitwise AND operation.
+        pe: The PE number on which ``target`` is to be updated.
     """
     _shmem_amo(ctx, 'and', target, value, pe)
 
@@ -1122,7 +1139,12 @@ def atomic_or(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Perform bitwise OR on ``target`` on PE ``pe`` with the operand ``value``.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        value: The operand to the bitwise OR operation.
+        pe: The PE number on which ``target`` is to be updated.
     """
     _shmem_amo(ctx, 'or', target, value, pe)
 
@@ -1133,7 +1155,12 @@ def atomic_xor(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Perform bitwise XOR on ``target`` on PE ``pe`` with the operand ``value``.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        value: The operand to the bitwise XOR operation.
+        pe: The PE number on which ``target`` is to be updated.
     """
     _shmem_amo(ctx, 'xor', target, value, pe)
 
@@ -1143,7 +1170,11 @@ def atomic_fetch(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """
+    """Fetches the value of a remote data object.
+
+    Args:
+        source: Symmetric address of the source data object.
+        pe: The PE number from which ``source`` is to be fetched.
     """
     return _shmem_amo(ctx, 'fetch', source, pe, readonly=True)
 
@@ -1154,7 +1185,12 @@ def atomic_swap(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """
+    """Writes ``value`` into ``target`` on PE ``pe`` and returns the previous value.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        value: The value to be atomically written to the remote PE.
+        pe: The PE number on which ``target`` is to be updated.
     """
     return _shmem_amo(ctx, 'swap', target, value, pe)
 
@@ -1423,7 +1459,13 @@ def del_signal(signal: SigAddr) -> None:
 
 
 def signal_fetch(signal: SigAddr) -> int:
-    """
+    """Fetches the signal update on a local data object.
+
+    Args:
+        signal: Local address of the remotely accessible signal variable.
+
+    Returns:
+        The contents of the signal data object at the calling PE. #TODO: is it obvious?
     """
     return lib.shmem_signal_fetch(signal)
 
