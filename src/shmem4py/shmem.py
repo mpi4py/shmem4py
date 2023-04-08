@@ -1083,6 +1083,8 @@ def atomic_set(
         target: Symmetric address of the destination data object.
         value: The operand to the atomic set operation.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     _shmem_amo(ctx, 'set', target, value, pe)
 
@@ -1097,6 +1099,8 @@ def atomic_inc(
     Args:
         target: Symmetric address of the destination data object.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     _shmem_amo(ctx, 'inc', target, None, pe)
 
@@ -1113,6 +1117,8 @@ def atomic_add(
         target: Symmetric address of the destination data object.
         value: The operand to the atomic add operation.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     _shmem_amo(ctx, 'add', target, value, pe)
 
@@ -1129,6 +1135,8 @@ def atomic_and(
         target: Symmetric address of the destination data object.
         value: The operand to the bitwise AND operation.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     _shmem_amo(ctx, 'and', target, value, pe)
 
@@ -1145,6 +1153,8 @@ def atomic_or(
         target: Symmetric address of the destination data object.
         value: The operand to the bitwise OR operation.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     _shmem_amo(ctx, 'or', target, value, pe)
 
@@ -1161,6 +1171,8 @@ def atomic_xor(
         target: Symmetric address of the destination data object.
         value: The operand to the bitwise XOR operation.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     _shmem_amo(ctx, 'xor', target, value, pe)
 
@@ -1175,6 +1187,8 @@ def atomic_fetch(
     Args:
         source: Symmetric address of the source data object.
         pe: The PE number from which ``source`` is to be fetched.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     return _shmem_amo(ctx, 'fetch', source, pe, readonly=True)
 
@@ -1191,6 +1205,8 @@ def atomic_swap(
         target: Symmetric address of the destination data object.
         value: The value to be atomically written to the remote PE.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     return _shmem_amo(ctx, 'swap', target, value, pe)
 
@@ -1202,7 +1218,7 @@ def atomic_compare_swap(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Conditionally update ``target`` on PE ``pe`` and return its prior contents.
+    """Conditionally update ``target`` on PE ``pe`` and return its prior value.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1211,6 +1227,8 @@ def atomic_compare_swap(
             the ``target``; otherwise, the ``target`` is unchanged.
         value: The value to be atomically written to the remote PE.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     return _shmem_amo(ctx, 'compare_swap', target, cond, value, pe)
 
@@ -1220,11 +1238,13 @@ def atomic_fetch_inc(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Increments ``target`` on PE ``pe`` and returns its prior contents.
+    """Increments ``target`` on PE ``pe`` and returns its prior value.
 
     Args:
         target: Symmetric address of the destination data object.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     return _shmem_amo(ctx, 'fetch_inc', target, None, pe)
 
@@ -1235,12 +1255,14 @@ def atomic_fetch_add(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Adds ``value`` to ``target`` on PE ``pe`` and returns its prior contents.
+    """Adds ``value`` to ``target`` on PE ``pe`` and returns its prior value.
 
     Args:
         target: Symmetric address of the destination data object.
         value: The operand to the atomic fetch-and-add operation.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     return _shmem_amo(ctx, 'fetch_add', target, value, pe)
 
@@ -1251,12 +1273,14 @@ def atomic_fetch_and(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Performs a bitwise AND on ``target`` at PE ``pe`` with the operand value and returns its prior contents.
+    """Performs a bitwise AND on ``target`` at PE ``pe`` with the operand value and returns its prior value.
 
     Args:
         target: Symmetric address of the destination data object.
         value: The operand to the bitwise AND operation.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
 """
     return _shmem_amo(ctx, 'fetch_and', target, value, pe)
 
@@ -1267,12 +1291,14 @@ def atomic_fetch_or(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Performs a bitwise OR on ``target`` at PE ``pe`` with the operand value and returns its prior contents.
+    """Performs a bitwise OR on ``target`` at PE ``pe`` with the operand value and returns its prior value.
 
     Args:
         target: Symmetric address of the destination data object.
         value: The operand to the bitwise OR operation.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     return _shmem_amo(ctx, 'fetch_or', target, value, pe)
 
@@ -1283,12 +1309,14 @@ def atomic_fetch_xor(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Performs a bitwise XOR on ``target`` at PE ``pe`` with the operand value and returns its prior contents.
+    """Performs a bitwise XOR on ``target`` at PE ``pe`` with the operand value and returns its prior value.
 
     Args:
         target: Symmetric address of the destination data object.
         value: The operand to the bitwise XOR operation.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     return _shmem_amo(ctx, 'fetch_xor', target, value, pe)
 
@@ -1308,6 +1336,8 @@ def atomic_fetch_nbi(
         fetch: Local address of data object to be updated.
         source: Symmetric address of the source data object.
         pe: The PE number from which ``source`` is to be fetched.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     _shmem_amo_nbi(ctx, 'fetch', fetch, source, pe, readonly=True)
 
@@ -1319,7 +1349,7 @@ def atomic_swap_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Writes ``value`` into ``target`` on PE ``pe`` and fetches prior value to local ``fetch``.
+    """Writes ``value`` into ``target`` on PE ``pe`` and fetches prior value to ``fetch``.
 
     *Nonblocking*. The operation is considered complete after a subsequent call
     to ``quiet``.
@@ -1329,6 +1359,8 @@ def atomic_swap_nbi(
         target: Symmetric address of the destination data object.
         value: The value to be atomically written to the remote PE.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     _shmem_amo_nbi(ctx, 'swap', fetch, target, value, pe)
 
@@ -1341,7 +1373,7 @@ def atomic_compare_swap_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Conditionally updates ``target`` and fetches its prior contents .
+    """Conditionally updates ``target`` and fetches its prior value to ``fetch``.
 
     *Nonblocking*. The operation is considered complete after a subsequent call
     to ``quiet``.
@@ -1354,6 +1386,8 @@ def atomic_compare_swap_nbi(
             the ``target``; otherwise, the ``target`` is unchanged.
         value: The value to be atomically written to the remote PE.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     _shmem_amo_nbi(ctx, 'compare_swap', fetch, target, cond, value, pe)
 
@@ -1364,7 +1398,7 @@ def atomic_fetch_inc_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Increments ``target`` on PE ``pe`` and fetches its prior contents.
+    """Increments ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
 
     *Nonblocking*.
 
@@ -1374,6 +1408,8 @@ def atomic_fetch_inc_nbi(
         fetch: Local address of data object to be updated.
         target: Symmetric address of the destination data object.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     _shmem_amo_nbi(ctx, 'fetch_inc', fetch, target, None, pe)
 
@@ -1385,7 +1421,7 @@ def atomic_fetch_add_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Adds ``value`` to ``target`` on PE ``pe`` and fetches its prior contents.
+    """Adds ``value`` to ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
 
     *Nonblocking*. The operation is considered complete after a subsequent call
     to ``quiet``.
@@ -1395,6 +1431,8 @@ def atomic_fetch_add_nbi(
         target: Symmetric address of the destination data object.
         value: The value to be the atomic fetch-and-add operation.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     _shmem_amo_nbi(ctx, 'fetch_add', fetch, target, value, pe)
 
@@ -1406,7 +1444,7 @@ def atomic_fetch_and_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Performs bitwise AND on ``target`` on PE ``pe`` and fetches its prior contents.
+    """Performs bitwise AND on ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
 
     *Nonblocking*. The operation is considered complete after a subsequent call
     to ``quiet``.
@@ -1416,6 +1454,8 @@ def atomic_fetch_and_nbi(
         target: Symmetric address of the destination data object.
         value: The operand to the bitwise AND operation.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     _shmem_amo_nbi(ctx, 'fetch_and', fetch, target, value, pe)
 
@@ -1427,7 +1467,7 @@ def atomic_fetch_or_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Performs bitwise OR on ``target`` on PE ``pe`` and fetches its prior contents.
+    """Performs bitwise OR on ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
 
     *Nonblocking*. The operation is considered complete after a subsequent call
     to ``quiet``.
@@ -1437,6 +1477,8 @@ def atomic_fetch_or_nbi(
         target: Symmetric address of the destination data object.
         value: The operand to the bitwise OR operation.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     _shmem_amo_nbi(ctx, 'fetch_or', fetch, target, value, pe)
 
@@ -1448,7 +1490,7 @@ def atomic_fetch_xor_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Performs bitwise XOR on ``target`` on PE ``pe`` and fetches its prior contents.
+    """Performs bitwise XOR on ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
 
     *Nonblocking*. The operation is considered complete after a subsequent call
     to ``quiet``.
@@ -1458,6 +1500,8 @@ def atomic_fetch_xor_nbi(
         target: Symmetric address of the destination data object.
         value: The operand to the bitwise XOR operation.
         pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     _shmem_amo_nbi(ctx, 'fetch_xor', fetch, target, value, pe)
 
@@ -1488,8 +1532,16 @@ def atomic_op(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
-    """
+    """Performs operation ``op`` on ``target`` on PE ``pe`` with the operand ``value``.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        value: The operand to the bitwise XOR operation.
+        op: The operation to be performed.
+        pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
+"""
     op = _parse_amo_op(op)
     _shmem_amo(ctx, f'{op}', target, value, pe)
 
@@ -1501,7 +1553,15 @@ def atomic_fetch_op(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """
+    """Performs operation ``op`` on ``target`` on PE ``pe`` and returns the prior value.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        value: The operand to the bitwise XOR operation.
+        op: The operation to be performed.
+        pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     op = _parse_amo_op(op)
     return _shmem_amo(ctx, f'fetch_{op}', target, value, pe)
@@ -1515,7 +1575,16 @@ def atomic_fetch_op_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Performs operation ``op`` on ``target`` on PE ``pe`` and fetch the prior value to ``fetch``.
+
+    Args:
+        fetch: Local address of data object to be updated.
+        target: Symmetric address of the destination data object.
+        value: The operand to the bitwise XOR operation.
+        op: The operation to be performed.
+        pe: The PE number on which ``target`` is to be updated.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     op = _parse_amo_op(op)
     return _shmem_amo_nbi(ctx, f'fetch_{op}', fetch, target, value, pe)
@@ -2006,7 +2075,16 @@ def wait_until(
     cmp: CMP,
     value: Number,
 ) -> None:
-    """
+    """Waits until the value ``ivar`` satisfies a condition.
+
+    Blocks until the value ``ivar`` at the calling PE satisfies the condition
+    ``ivar cmp value`` at the calling PE, where ``cmp`` is the comparison
+    operator.
+
+    Args:
+        ivar: Symmetric address of a remotely accessible data object.
+        cmp: The comparison operator that compares ``ivar`` with ``value``.
+        value: The value to be compared with ``ivar``.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivar = _parse_sync_ivar(ivar)
@@ -2020,7 +2098,20 @@ def wait_until_all(
     value: Number,
     status: Optional[Sequence[int]] = None,
 ) -> None:
-    """
+    """Waits until all variables satisfy a condition.
+
+    Blocks until all values specified in ``ivars`` not excluded by ``status``
+    satisfy the condition ``ivar cmp value`` at the calling PE, where ``cmp``
+    is the comparison operator.
+
+    Args:
+        ivars: Symmetric address of remotely accessible data objects.
+        cmp: The comparison operator that compares elements of ``ivars`` with
+            ``value``.
+        value: The value to be compared with elements of ``ivars``.
+        status: An optional mask array of length ``len(ivars)`` indicating
+            which elements of ``ivars`` are excluded from the wait set. Nonzero
+            values exclude the corresponding element from the wait set.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2035,7 +2126,23 @@ def wait_until_any(
     value: Number,
     status: Optional[Sequence[int]] = None,
 ) -> Optional[int]:
-    """
+    """Waits until any one variable satisfies a condition.
+
+    Blocks until any one entry in the wait set specified by ``ivars`` not
+    excluded by ``status`` satisfies the condition ``ivar cmp value`` at the
+    calling PE, where ``cmp`` is the comparison operator.
+
+    Args:
+        ivars: Symmetric address of remotely accessible data objects.
+        cmp: The comparison operator that compares elements of ``ivars`` with
+            ``value``.
+        value: The value to be compared with elements of ``ivars``.
+        status: An optional mask array of length ``len(ivars)`` indicating
+            which elements of ``ivars`` are excluded from the wait set. Nonzero
+            values exclude the corresponding element from the wait set.
+
+    Returns:
+        The index of entry ``i`` of ``ivars`` that satisfied the condition.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2051,7 +2158,23 @@ def wait_until_some(
     value: Number,
     status: Optional[Sequence[int]] = None,
 ) -> List[int]:
-    """
+    """Waits until at least one variable satisfies a condition.
+
+    Blocks until at least one entry in the wait set specified by ``ivars`` not
+    excluded by ``status`` satisfies the condition ``ivar cmp value`` at the
+    calling PE, where ``cmp`` is the comparison operator.
+
+    Args:
+        ivars: Symmetric address of remotely accessible data objects.
+        cmp: The comparison operator that compares elements of ``ivars`` with
+            ``value``.
+        value: The value to be compared with elements of ``ivars``.
+        status: An optional mask array of length ``len(ivars)`` indicating
+            which elements of ``ivars`` are excluded from the wait set. Nonzero
+            values exclude the corresponding element from the wait set.
+
+    Returns:
+        A list of indices of entries of ``ivars`` that satisfy the condition.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2068,7 +2191,21 @@ def wait_until_all_vector(
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
 ) -> None:
-    """
+    """Waits until all variables satisfy the specified conditions.
+
+    Blocks until all values specified in ``ivars`` not excluded by ``status``
+    satisfy the condition ``ivars[i] cmp values[i]`` at the calling PE,
+    where ``cmp`` is the comparison operator.
+
+    Args:
+        ivars: Symmetric address of remotely accessible data objects.
+        cmp: The comparison operator that compares elements of ``ivars`` with
+            the elements of ``values``.
+        values: Local array containing values to be compared with the
+            respective elements of ``ivars``.
+        status: An optional mask array of length ``len(ivars)`` indicating
+            which elements of ``ivars`` are excluded from the wait set. Nonzero
+            values exclude the corresponding element from the wait set.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2084,7 +2221,24 @@ def wait_until_any_vector(
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
 ) -> Optional[int]:
-    """
+    """Waits until any one variable satisfies the specified conditions.
+
+    Blocks until any one value specified in ``ivars`` not excluded by
+    ``status`` satisfies the condition ``ivars[i] cmp values[i]`` at the
+    calling PE, where ``cmp`` is the comparison operator.
+
+    Args:
+        ivars: Symmetric address of remotely accessible data objects.
+        cmp: The comparison operator that compares elements of ``ivars`` with
+            the elements of ``values``.
+        values: Local array containing values to be compared with the
+            respective elements of ``ivars``.
+        status: An optional mask array of length ``len(ivars)`` indicating
+            which elements of ``ivars`` are excluded from the wait set. Nonzero
+            values exclude the corresponding element from the wait set.
+
+    Returns:
+        The index of entry ``i`` of ``ivars`` that satisfies the condition.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2101,7 +2255,24 @@ def wait_until_some_vector(
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
 ) -> List[int]:
-    """
+    """Waits until at least one variable satisfies the specified conditions.
+
+    Blocks until any one value specified in ``ivars`` not excluded by
+    ``status`` satisfies the condition ``ivars[i] cmp values[i]`` at the
+    calling PE, where ``cmp`` is the comparison operator.
+
+    Args:
+        ivars: Symmetric address of remotely accessible data objects.
+        cmp: The comparison operator that compares elements of ``ivars`` with
+            the elements of ``values``.
+        values: Local array containing values to be compared with the
+            respective elements of ``ivars``.
+        status: An optional mask array of length ``len(ivars)`` indicating
+            which elements of ``ivars`` are excluded from the wait set. Nonzero
+            values exclude the corresponding element from the wait set.
+
+    Returns:
+        A list of indices of entries of ``ivars`` that satisfy the condition.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2118,7 +2289,12 @@ def test(
     cmp: CMP,
     value: Number,
 ) -> bool:
-    """
+    """Indicates whether a variable on the local PE meets the specified condition.
+
+    Args:
+        ivar: Symmetric address of remotely accessible data object.
+        cmp: The comparison operator that compares ``ivar`` with ``value``.
+        value: The value to be compared with ``ivar``.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivar = _parse_sync_ivar(ivar)
