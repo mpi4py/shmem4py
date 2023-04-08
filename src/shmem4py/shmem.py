@@ -2513,7 +2513,16 @@ def signal_wait_until(
 
 
 def fence(ctx: Optional[Ctx] = None) -> None:
-    """
+    """Ensures ordering of delivery of operations on symmetric data objects.
+
+    All operations on symmetric data objects issued to a particular PE on the
+    given context prior to the call to ``fence`` are guaranteed to be delivered
+    before any subsequent operations on symmetric data objects to the same PE.
+
+    Args:
+        ctx: A context handle specifying the context on which to perform the
+            operation. When this argument is not provided, the operation is
+            performed on the default context.
     """
     if ctx is None:
         lib.shmem_fence()
@@ -2522,7 +2531,16 @@ def fence(ctx: Optional[Ctx] = None) -> None:
 
 
 def quiet(ctx: Optional[Ctx] = None) -> None:
-    """
+    """Waits for completion of outstanding operations on symmetric data objects issued by a PE.
+
+    Ensures completion of all operations on symmetric data objects issued by
+    the calling PE on the given context.
+
+    Args:
+        ctx: A context handle specifying the context on which to perform the
+            operation. When this argument is not provided, the operation is
+            performed on the default context.
+
     """
     if ctx is None:
         lib.shmem_quiet()
@@ -2613,7 +2631,10 @@ class Lock:
 
 
 def pcontrol(level: int = 1) -> None:
-    """
+    """Allows the user to control profiling.
+
+    Args:
+        level: The profiling level.
     """
     lib.shmem_pcontrol(level)
 
