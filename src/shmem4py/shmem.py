@@ -139,7 +139,7 @@ def finalize() -> None:
 
     This only terminates the shmem portion of a program, not the entire
     program. All processes that represent the PEs will still exist after the
-    call to `shmem_finalize` returns, but they will no longer have access to
+    call to `finalize` returns, but they will no longer have access to
     resources that have been released.
     """
     lib.shmem_finalize()
@@ -1170,7 +1170,7 @@ def atomic_fetch(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Fetches the value of a remote data object.
+    """Returns the value of a ``source`` on PE ``pe``.
 
     Args:
         source: Symmetric address of the source data object.
@@ -1185,7 +1185,7 @@ def atomic_swap(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Writes ``value`` into ``target`` on PE ``pe`` and returns the previous value.
+    """Writes ``value`` into ``target`` on PE ``pe`` and returns the prior value.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1202,7 +1202,15 @@ def atomic_compare_swap(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """
+    """Conditionally update ``target`` on PE ``pe`` and return its prior contents.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        cond: ``cond`` is compared to the remote ``target`` value. If ``cond``
+            and the remote ``target`` are equal, then ``value`` is swapped into
+            the ``target``; otherwise, the ``target`` is unchanged.
+        value: The value to be atomically written to the remote PE.
+        pe: The PE number on which ``target`` is to be updated.
     """
     return _shmem_amo(ctx, 'compare_swap', target, cond, value, pe)
 
@@ -1212,7 +1220,11 @@ def atomic_fetch_inc(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """
+    """Increments ``target`` on PE ``pe`` and returns its prior contents.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        pe: The PE number on which ``target`` is to be updated.
     """
     return _shmem_amo(ctx, 'fetch_inc', target, None, pe)
 
@@ -1223,7 +1235,12 @@ def atomic_fetch_add(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """
+    """Adds ``value`` to ``target`` on PE ``pe`` and returns its prior contents.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        value: The operand to the atomic fetch-and-add operation.
+        pe: The PE number on which ``target`` is to be updated.
     """
     return _shmem_amo(ctx, 'fetch_add', target, value, pe)
 
@@ -1234,8 +1251,13 @@ def atomic_fetch_and(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """
-    """
+    """Performs a bitwise AND on ``target`` at PE ``pe`` with the operand value and returns its prior contents.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        value: The operand to the bitwise AND operation.
+        pe: The PE number on which ``target`` is to be updated.
+"""
     return _shmem_amo(ctx, 'fetch_and', target, value, pe)
 
 
@@ -1245,7 +1267,12 @@ def atomic_fetch_or(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """
+    """Performs a bitwise OR on ``target`` at PE ``pe`` with the operand value and returns its prior contents.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        value: The operand to the bitwise OR operation.
+        pe: The PE number on which ``target`` is to be updated.
     """
     return _shmem_amo(ctx, 'fetch_or', target, value, pe)
 
@@ -1256,7 +1283,12 @@ def atomic_fetch_xor(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """
+    """Performs a bitwise XOR on ``target`` at PE ``pe`` with the operand value and returns its prior contents.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        value: The operand to the bitwise XOR operation.
+        pe: The PE number on which ``target`` is to be updated.
     """
     return _shmem_amo(ctx, 'fetch_xor', target, value, pe)
 
@@ -1267,7 +1299,15 @@ def atomic_fetch_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Fetches the value of ``source`` on PE ``pe`` to local ``fetch``.
+
+    *Nonblocking*. The operation is considered complete after a subsequent call
+    to ``quiet``.
+
+    Args:
+        fetch: Local address of data object to be updated.
+        source: Symmetric address of the source data object.
+        pe: The PE number from which ``source`` is to be fetched.
     """
     _shmem_amo_nbi(ctx, 'fetch', fetch, source, pe, readonly=True)
 
@@ -1279,7 +1319,16 @@ def atomic_swap_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Writes ``value`` into ``target`` on PE ``pe`` and fetches prior value to local ``fetch``.
+
+    *Nonblocking*. The operation is considered complete after a subsequent call
+    to ``quiet``.
+
+    Args:
+        fetch: Local address of data object to be updated.
+        target: Symmetric address of the destination data object.
+        value: The value to be atomically written to the remote PE.
+        pe: The PE number on which ``target`` is to be updated.
     """
     _shmem_amo_nbi(ctx, 'swap', fetch, target, value, pe)
 
@@ -1292,7 +1341,19 @@ def atomic_compare_swap_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Conditionally updates ``target`` and fetches its prior contents .
+
+    *Nonblocking*. The operation is considered complete after a subsequent call
+    to ``quiet``.
+
+    Args:
+        fetch: Local address of data object to be updated.
+        target: Symmetric address of the destination data object.
+        cond: ``cond`` is compared to the remote ``target`` value. If ``cond``
+            and the remote ``target`` are equal, then ``value`` is swapped into
+            the ``target``; otherwise, the ``target`` is unchanged.
+        value: The value to be atomically written to the remote PE.
+        pe: The PE number on which ``target`` is to be updated.
     """
     _shmem_amo_nbi(ctx, 'compare_swap', fetch, target, cond, value, pe)
 
@@ -1303,7 +1364,16 @@ def atomic_fetch_inc_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Increments ``target`` on PE ``pe`` and fetches its prior contents.
+
+    *Nonblocking*.
+
+    The operation is considered complete after a subsequent call to ``quiet``.
+
+    Args:
+        fetch: Local address of data object to be updated.
+        target: Symmetric address of the destination data object.
+        pe: The PE number on which ``target`` is to be updated.
     """
     _shmem_amo_nbi(ctx, 'fetch_inc', fetch, target, None, pe)
 
@@ -1315,7 +1385,16 @@ def atomic_fetch_add_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Adds ``value`` to ``target`` on PE ``pe`` and fetches its prior contents.
+
+    *Nonblocking*. The operation is considered complete after a subsequent call
+    to ``quiet``.
+
+    Args:
+        fetch: Local address of data object to be updated.
+        target: Symmetric address of the destination data object.
+        value: The value to be the atomic fetch-and-add operation.
+        pe: The PE number on which ``target`` is to be updated.
     """
     _shmem_amo_nbi(ctx, 'fetch_add', fetch, target, value, pe)
 
@@ -1327,7 +1406,16 @@ def atomic_fetch_and_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Performs bitwise AND on ``target`` on PE ``pe`` and fetches its prior contents.
+
+    *Nonblocking*. The operation is considered complete after a subsequent call
+    to ``quiet``.
+
+    Args:
+        fetch: Local address of data object to be updated.
+        target: Symmetric address of the destination data object.
+        value: The operand to the bitwise AND operation.
+        pe: The PE number on which ``target`` is to be updated.
     """
     _shmem_amo_nbi(ctx, 'fetch_and', fetch, target, value, pe)
 
@@ -1339,7 +1427,16 @@ def atomic_fetch_or_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Performs bitwise OR on ``target`` on PE ``pe`` and fetches its prior contents.
+
+    *Nonblocking*. The operation is considered complete after a subsequent call
+    to ``quiet``.
+
+    Args:
+        fetch: Local address of data object to be updated.
+        target: Symmetric address of the destination data object.
+        value: The operand to the bitwise OR operation.
+        pe: The PE number on which ``target`` is to be updated.
     """
     _shmem_amo_nbi(ctx, 'fetch_or', fetch, target, value, pe)
 
@@ -1351,7 +1448,16 @@ def atomic_fetch_xor_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Performs bitwise XOR on ``target`` on PE ``pe`` and fetches its prior contents.
+
+    *Nonblocking*. The operation is considered complete after a subsequent call
+    to ``quiet``.
+
+    Args:
+        fetch: Local address of data object to be updated.
+        target: Symmetric address of the destination data object.
+        value: The operand to the bitwise XOR operation.
+        pe: The PE number on which ``target`` is to be updated.
     """
     _shmem_amo_nbi(ctx, 'fetch_xor', fetch, target, value, pe)
 
@@ -1465,7 +1571,8 @@ def signal_fetch(signal: SigAddr) -> int:
         signal: Local address of the remotely accessible signal variable.
 
     Returns:
-        The contents of the signal data object at the calling PE. #TODO: is it obvious?
+        The contents of the signal data object at the calling PE.
+        TODO: is it obvious?
     """
     return lib.shmem_signal_fetch(signal)
 
