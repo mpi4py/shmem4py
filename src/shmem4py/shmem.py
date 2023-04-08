@@ -129,7 +129,7 @@ def init() -> None:
     """A collective operation that allocates and initializes the needed resources.
 
     All PEs must call this routine before any other OpenSHMEM routine. It
-    must be matched with a call to `shmem_finalize` at the end of the program.
+    must be matched with a call to `finalize` at the end of the program.
     """
     lib.shmem_init()
 
@@ -158,7 +158,16 @@ def global_exit(status: int = 0) -> NoReturn:  # pragma: no cover
 
 
 def init_thread(requested: THREAD = THREAD_MULTIPLE) -> THREAD:
-    """
+    """Initialize the OpenSHMEM library with support for the provided thread level.
+
+    Either `init` or `init_thread` should be used to initialize the program.
+
+    Args:
+        requested: The thread level support requested by the user.
+
+    Returns:
+        The thread level support provided by the implementation.
+        # TODO: what is returned if failed?
     """
     provided = ffi.new('int*', lib.SHMEM_THREAD_SINGLE)
     ierr = lib.shmem_init_thread(requested, provided)
@@ -167,7 +176,7 @@ def init_thread(requested: THREAD = THREAD_MULTIPLE) -> THREAD:
 
 
 def query_thread() -> THREAD:
-    """
+    """Returns the level of thread support provided by the library.
     """
     provided = ffi.new('int*', lib.SHMEM_THREAD_SINGLE)
     lib.shmem_query_thread(provided)
@@ -437,7 +446,7 @@ class Team:
         return {attr: getattr(conf, attr) for attr in dir(conf)}
 
     def my_pe(self) -> int:
-        """
+        """Returns the number of the calling PE within the team.
         """
         team = self.ob_team
         mype = lib.shmem_team_my_pe(team)
@@ -445,7 +454,7 @@ class Team:
         return mype
 
     def n_pes(self) -> int:
-        """
+        """Returns the number of PEs in the team.
         """
         team = self.ob_team
         npes = lib.shmem_team_n_pes(team)
@@ -457,7 +466,15 @@ class Team:
         pe: Optional[int] = None,
         team: Optional[Team] = None,
     ) -> int:
-        """
+        """Translate a given PE number from one team to the corresponding PE number in another team.
+
+        Args:
+            pe: PE number in the source team.
+                If the PE number is not specified, the calling PE number is
+                used.
+            team: Destination team.
+                If the destination team is not specified, the world team is
+                used.
         """
         src_team = self.ob_team
         if pe is None:
