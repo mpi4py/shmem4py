@@ -2105,7 +2105,8 @@ def wait_until_all(
     is the comparison operator.
 
     Args:
-        ivars: Symmetric address of remotely accessible data objects.
+        ivars: Symmetric address of an array of remotely accessible data
+            objects.
         cmp: The comparison operator that compares elements of ``ivars`` with
             ``value``.
         value: The value to be compared with elements of ``ivars``.
@@ -2133,7 +2134,8 @@ def wait_until_any(
     calling PE, where ``cmp`` is the comparison operator.
 
     Args:
-        ivars: Symmetric address of remotely accessible data objects.
+        ivars: Symmetric address of an array of remotely accessible data
+            objects.
         cmp: The comparison operator that compares elements of ``ivars`` with
             ``value``.
         value: The value to be compared with elements of ``ivars``.
@@ -2165,7 +2167,8 @@ def wait_until_some(
     calling PE, where ``cmp`` is the comparison operator.
 
     Args:
-        ivars: Symmetric address of remotely accessible data objects.
+        ivars: Symmetric address of an array of remotely accessible data
+            objects.
         cmp: The comparison operator that compares elements of ``ivars`` with
             ``value``.
         value: The value to be compared with elements of ``ivars``.
@@ -2198,7 +2201,8 @@ def wait_until_all_vector(
     where ``cmp`` is the comparison operator.
 
     Args:
-        ivars: Symmetric address of remotely accessible data objects.
+        ivars: Symmetric address of an array of remotely accessible data
+            objects.
         cmp: The comparison operator that compares elements of ``ivars`` with
             the elements of ``values``.
         values: Local array containing values to be compared with the
@@ -2228,7 +2232,8 @@ def wait_until_any_vector(
     calling PE, where ``cmp`` is the comparison operator.
 
     Args:
-        ivars: Symmetric address of remotely accessible data objects.
+        ivars: Symmetric address of an array of remotely accessible data
+            objects.
         cmp: The comparison operator that compares elements of ``ivars`` with
             the elements of ``values``.
         values: Local array containing values to be compared with the
@@ -2262,7 +2267,8 @@ def wait_until_some_vector(
     calling PE, where ``cmp`` is the comparison operator.
 
     Args:
-        ivars: Symmetric address of remotely accessible data objects.
+        ivars: Symmetric address of an array of remotely accessible data
+            objects.
         cmp: The comparison operator that compares elements of ``ivars`` with
             the elements of ``values``.
         values: Local array containing values to be compared with the
@@ -2309,7 +2315,17 @@ def test_all(
     value: Number,
     status: Optional[Sequence[int]] = None,
 ) -> bool:
-    """
+    """Indicates whether all variables on the local PE meet the specified condition.
+
+    Args:
+        ivars: Symmetric address of an array of remotely accessible data
+            objects.
+        cmp: The comparison operator that compares elements of ``ivars`` with
+            ``value``.
+        value: The value to be compared with elements of ``ivars``.
+        status: An optional mask array of length ``len(ivars)`` indicating
+            which elements of ``ivars`` are excluded from the test set. Nonzero
+            values exclude the corresponding element from the test set.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2325,7 +2341,20 @@ def test_any(
     value: Number,
     status: Optional[Sequence[int]] = None,
 ) -> Optional[int]:
-    """
+    """Indicates whether any one variable on the local PE meets the specified condition.
+
+    Args:
+        ivars: Symmetric address of an array of remotely accessible data
+            objects.
+        cmp: The comparison operator that compares elements of ``ivars`` with
+            ``value``.
+        value: The value to be compared with elements of ``ivars``.
+        status: An optional mask array of length ``len(ivars)`` indicating
+            which elements of ``ivars`` are excluded from the test set. Nonzero
+            values exclude the corresponding element from the test set.
+
+    Returns:
+        The index of entry ``i`` of ``ivars`` that satisfies the condition.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2341,7 +2370,20 @@ def test_some(
     value: Number,
     status: Optional[Sequence[int]] = None,
 ) -> List[int]:
-    """
+    """Indicates whether at least one variable on the local PE meets the specified condition.
+
+    Args:
+        ivars: Symmetric address of an array of remotely accessible data
+            objects.
+        cmp: The comparison operator that compares elements of ``ivars`` with
+            ``value``.
+        value: The value to be compared with elements of ``ivars``.
+        status: An optional mask array of length ``len(ivars)`` indicating
+            which elements of ``ivars`` are excluded from the test set. Nonzero
+            values exclude the corresponding element from the test set.
+
+    Returns:
+        A list of indices of entries of ``ivars`` that satisfy the condition.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2358,7 +2400,21 @@ def test_all_vector(
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
 ) -> bool:
-    """
+    """Indicates whether all variables on the local PE meets the specified conditions.
+
+    Args:
+        ivars: Symmetric address of an array of remotely accessible data
+            objects.
+        cmp: The comparison operator that compares elements of ``ivars`` with
+            the elements ``values``.
+        values: Local array containing values to be compared with the
+            respective elements of ``ivars``.
+        status: An optional mask array of length ``len(ivars)`` indicating
+            which elements of ``ivars`` are excluded from the test set. Nonzero
+            values exclude the corresponding element from the test set.
+
+    Returns:
+        A list of indices of entries of ``ivars`` that satisfy the condition.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2374,7 +2430,21 @@ def test_any_vector(
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
 ) -> Optional[int]:
-    """
+    """Indicates whether any one variable on the local PE meets its specified condition.
+
+    Args:
+        ivars: Symmetric address of an array of remotely accessible data
+            objects.
+        cmp: The comparison operator that compares elements of ``ivars`` with
+            the elements ``values``.
+        values: Local array containing values to be compared with the
+            respective elements of ``ivars``.
+        status: An optional mask array of length ``len(ivars)`` indicating
+            which elements of ``ivars`` are excluded from the test set. Nonzero
+            values exclude the corresponding element from the test set.
+
+    Returns:
+        The index of entry ``i`` of ``ivars`` that satisfies the condition.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2391,7 +2461,21 @@ def test_some_vector(
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
 ) -> List[int]:
-    """
+    """Indicates whether at least one variable on the local PE meets its specified condition.
+
+    Args:
+        ivars: Symmetric address of an array of remotely accessible data
+            objects.
+        cmp: The comparison operator that compares elements of ``ivars`` with
+            the elements ``values``.
+        values: Local array containing values to be compared with the
+            respective elements of ``ivars``.
+        status: An optional mask array of length ``len(ivars)`` indicating
+            which elements of ``ivars`` are excluded from the test set. Nonzero
+            values exclude the corresponding element from the test set.
+
+    Returns:
+        A list of indices of entries of ``ivars`` that satisfy the condition.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2408,7 +2492,17 @@ def signal_wait_until(
     cmp: CMP,
     value: Number,
 ) -> int:
-    """
+    """Waits for a variable on the local PE to change from a signaling operation.
+
+    Args:
+        signal: Local address of the source signal variable.
+        cmp: The comparison operator that compares ``signal`` with ``value``.
+        value: The value against which the object poitned to by ``signal`` will
+            be compared.
+
+    Returns:
+        The contents of the signal data object, ``signal``, at the calling PE
+        that satisfies the wait condition.
     """
     cmp = _parse_cmp(cmp)
     signal = _parse_signal(signal)
