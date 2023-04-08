@@ -91,7 +91,7 @@ VENDOR_STRING: str = ffi.string(lib.SHMEM_VENDOR_STRING).decode()
 
 
 def info_get_version() -> Tuple[int, int]:
-    """
+    """Returns the major and minor version of the library implementation.
     """
     major = ffi.new('int*')
     minor = ffi.new('int*')
@@ -100,7 +100,7 @@ def info_get_version() -> Tuple[int, int]:
 
 
 def info_get_name() -> str:
-    """
+    """Returns the vendor-defined name string.
     """
     name = ffi.new('char[]', lib.SHMEM_MAX_NAME_LEN)
     lib.shmem_info_get_name(name)
@@ -126,19 +126,32 @@ THREAD_MULTIPLE:   THREAD = THREAD.MULTIPLE
 
 
 def init() -> None:
-    """
+    """A collective operation that allocates and initializes the needed resources.
+
+    All PEs must call this routine before any other OpenSHMEM routine. It
+    must be matched with a call to `shmem_finalize` at the end of the program.
     """
     lib.shmem_init()
 
 
 def finalize() -> None:
-    """
+    """A collective operation that releases all the used resources used
+
+    Requires all PEs to participate in the call.
+
+    This only terminates the shmem portion of a program, not the entire
+    program. All processes that represent the PEs will still exist after the
+    call to `shmem_finalize` returns, but they will no longer have access to
+    resources that have been released.
     """
     lib.shmem_finalize()
 
 
 def global_exit(status: int = 0) -> NoReturn:  # pragma: no cover
-    """
+    """A routine that allows any PE to force termination of an entire program.
+
+    Args:
+        status: The exit status of the main program.
     """
     lib.shmem_global_exit(status)
     raise SystemExit(status)  # unreachable
@@ -488,19 +501,22 @@ TEAM_INVALID: Team = Team(lib.SHMEM_TEAM_INVALID)
 
 
 def my_pe() -> int:
-    """
+    """Returns the number of the calling PE.
     """
     return lib.shmem_my_pe()
 
 
 def n_pes() -> int:
-    """
+    """Returns the number of PEs running in a program.
     """
     return lib.shmem_n_pes()
 
 
 def pe_accessible(pe: int) -> bool:
-    """
+    """Determines whether a PE is accessible.
+
+    Args:
+        pe: The PE number to check for accessibility from the local PE.
     """
     return bool(lib.shmem_pe_accessible(pe))
 
@@ -509,7 +525,11 @@ def addr_accessible(
     addr: NDArray[Any],
     pe: int,
 ) -> bool:
-    """
+    """Determines whether an address is accessible from the specified remote PE.
+
+    Args:
+        addr: Local address of data object to query. #TODO: is "address" appropriate?
+        pe: The id of a remote PE.
     """
     caddr = _getbuffer(addr, readonly=True)[0]
     return bool(lib.shmem_addr_accessible(caddr, pe))
@@ -519,7 +539,16 @@ def ptr(
     target: NDArray[T],
     pe: int,
 ) -> Optional[NDArray[T]]:
-    """
+    """Returns a local pointer to a symmetric data object on the specified PE.
+
+    Args:
+        target: The symmetric address of the remotely accessible data object.
+        pe: The PE number on which ``target`` is to be accessed.
+
+    Returns:
+        A local pointer to the remotely accessible ``target`` data object is
+        returned when it can be accessed using memory loads and stores.
+        Otherwise, `None` is returned.
     """
     caddr = _getbuffer(target, readonly=True)[0]
     cdata = lib.shmem_ptr(caddr, pe)
