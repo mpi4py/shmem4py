@@ -2970,7 +2970,7 @@ class Lock:
 
 
 def pcontrol(level: int = 1) -> None:
-    """Allows the user to control profiling.
+    """Allow the user to control profiling.
 
     Args:
         level: The profiling level.
