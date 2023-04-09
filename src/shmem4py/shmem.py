@@ -311,8 +311,8 @@ class Ctx:
         Args:
             options: The set of options requested for the given context.
                 Multiple options may be requested by combining them with a
-                bitwise OR operation; otherwise, 0 can be given if no options
-                are requested. TODO: bitwise OR?
+                `*bitwise or* operation <operator.or_>`; otherwise, 0 can be given if no options
+                are requested. 
             team: If the team is specified, the communication context is
                 created from this ``team``.
         """
