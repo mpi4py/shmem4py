@@ -19,9 +19,6 @@ from .api import ffi, lib
 
 # ---
 
-
-#TODO: all "address", "points" ...
-
 import sys  # pylint: disable=wrong-import-order
 
 if sys.version_info >= (3, 11):  # pragma: no cover
@@ -102,7 +99,7 @@ def info_get_version() -> Tuple[int, int]:
 
 
 def info_get_name() -> str:
-    """Return the vendor-defined name string."""
+    """Return the vendor-defined name string of the library implementation."""
     name = ffi.new('char[]', lib.SHMEM_MAX_NAME_LEN)
     lib.shmem_info_get_name(name)
     return ffi.string(name).decode()
@@ -112,7 +109,7 @@ def info_get_name() -> str:
 
 
 class THREAD(_enum.IntEnum):
-    """Threading support.
+    """Threading support levels.
 
     Attributes:
         SINGLE: A single-threaded program. A hybrid program should not request
@@ -138,18 +135,17 @@ THREAD_MULTIPLE:   THREAD = THREAD.MULTIPLE
 
 
 def init() -> None:
-    """A collective operation that allocates and initializes the needed resources.
+    """Allocate and initialize the needed resources. Collective.
 
-    All PEs must call this routine before any other OpenSHMEM routine. It
-    must be matched with a call to `finalize` at the end of the program.
+    All PEs must call this routine, or `init_thread`, before any other
+    OpenSHMEM routine. It must be matched with a call to `finalize` at the end
+    of the program.
     """
     lib.shmem_init()
 
 
 def finalize() -> None:
-    """A collective operation that releases all the used resources used
-
-    Requires all PEs to participate in the call.
+    """Release all the used resources. Collective.
 
     This only terminates the shmem portion of a program, not the entire
     program. All processes that represent the PEs will still exist after the
@@ -160,7 +156,7 @@ def finalize() -> None:
 
 
 def global_exit(status: int = 0) -> NoReturn:  # pragma: no cover
-    """A routine that allows any PE to force termination of an entire program.
+    """Force termination of an entire program. Can be called by any PE.
 
     Args:
         status: The exit status of the main program.
@@ -237,7 +233,7 @@ _initialize()
 
 
 class CTX(_enum.IntFlag):
-    """Context options.
+    """Context creation options.
 
     Attributes:
         PRIVATE: The given context will be used only by the thread that created
@@ -306,17 +302,14 @@ class Ctx:
         options: int = 0,
         team: Optional[Team] = None,
     ) -> Ctx:
-        """Create a communication context.
+        """Create and return a communication context.
 
         Args:
-            options: The set of options requested for the given context.
+            options: The set of options requested for the given context. Valid
+                options are the enumerations listed in the `CTX` class.
                 Multiple options may be requested by combining them with a
-                `*bitwise or* operation <operator.or_>`; otherwise, 0 can be
-                given if no options are requested.
-
-                # TODO: link to CTX? why is the type not CTX?
-                # The options are those in the CTX enum, also exposed as CTX_PRIVATE/SERIALIZED/NOSTORE
-
+                *bitwise or* operation. ``0`` can be used if no options are
+                requested.
             team: If the team is specified, the communication context is
                 created from this ``team``.
         """
@@ -449,7 +442,7 @@ class Team:
         config: Optional[Mapping[str, int]] = None,
         **kwargs: int,
     ) -> Team:
-        """Create a team from a subset of the existing parent team PEs.
+        """Create and return a team from a subset of the existing parent team PEs.
 
         This routine must be called by all PEs in the parent team.
 
@@ -459,10 +452,11 @@ class Team:
             stride: The stride between team PE numbers in the parent team that
                 comprise the subset of PEs that will form the new team.
             size: The number of PEs from the parent team in the subset of PEs
-                that will form the new team. ``size`` must be a positive
-                integer.
+                that will form the new team. If ``None``, the size is
+                automatically determined.
             config: A pointer to the configuration parameters for the new team.
-                TODO: more info needed
+                TODO: more info needed 9.4.3
+            **kwargs: TODO:
         """
         team = self.ob_team
         if size is None:
@@ -486,7 +480,7 @@ class Team:
         return Team(tnew[0])
 
     def get_config(self) -> Dict[str, int]:
-        """Return the configuration parameters of a given team."""
+        """Return the configuration parameters of the team."""
         team = self.ob_team
         conf = ffi.new('shmem_team_config_t*')
         mask = lib.SHMEM_TEAM_NUM_CONTEXTS
@@ -515,12 +509,9 @@ class Team:
         """Translate a given PE number from one team to the corresponding PE number in another team.
 
         Args:
-            pe: PE number in the source team.
-                If the PE number is not specified, the calling PE number is
-                used.
-            team: Destination team.
-                If the destination team is not specified, the world team is
-                used.
+            pe: PE number in the source team. If `None`, defaults to the
+                calling PE number.
+            team: Destination team. If `None`, defaults to the world team.
         """
         src_team = self.ob_team
         if pe is None:
@@ -542,7 +533,11 @@ class Team:
         """Create a communication context from the team.
 
         Args:
-            options: The set of options requested for the given context.
+            options: The set of options requested for the given context. Valid
+                options are the enumerations listed in the `CTX` class.
+                Multiple options may be requested by combining them with a
+                *bitwise or* operation. ``0`` can be used if no options are
+                requested.
         """
         team = self.ob_team
         ctx = ffi.new('shmem_ctx_t*', lib.SHMEM_CTX_INVALID)
@@ -580,7 +575,7 @@ def n_pes() -> int:
 
 
 def pe_accessible(pe: int) -> bool:
-    """Determine whether a PE is accessible.
+    """Return whether a PE is accessible.
 
     Args:
         pe: The PE number to check for accessibility from the local PE.
@@ -592,7 +587,7 @@ def addr_accessible(
     addr: NDArray[Any],
     pe: int,
 ) -> bool:
-    """Determine whether an address is accessible from the specified remote PE.
+    """Return whether an address is accessible from the specified remote PE.
 
     Args:
         addr: Local address of data object to query. #TODO: is "address" appropriate?
@@ -607,9 +602,10 @@ def ptr(
     pe: int,
 ) -> Optional[NDArray[T]]:
     """Return a local pointer to a symmetric data object on the specified PE.
+    #TODO: it's not a pointer, it's a numpy array with remote memory backing it?
 
     Args:
-        target: The symmetric address of the remotely accessible data object.
+        target: The symmetric destination array.
         pe: The PE number on which ``target`` is to be accessed.
 
     Returns:
@@ -736,7 +732,15 @@ def _get_allocator(
 
 
 class MALLOC(_enum.IntFlag):
-    """
+    """Memory allocation hints.
+
+    Attributes:
+        ATOMICS_REMOTE: The hint to the memory allocation routine which
+            specifies that the allocated memory will be used for atomic
+            variables.
+        SIGNAL_REMOTE: The hint to the memory allocation routine which
+            specifies that the allocated memory will be used for signal
+            variables.
     """
     ATOMICS_REMOTE: int = lib.SHMEM_MALLOC_ATOMICS_REMOTE
     SIGNAL_REMOTE:  int = lib.SHMEM_MALLOC_SIGNAL_REMOTE
@@ -761,6 +765,8 @@ def alloc(
         align: If provided, an aligned symmetric address whose value is a
             multiple of alignment is returned.
         hints: A bit array of hints provided by the user to the implementation.
+            Valid hints are defined as enumerations in `MALLOC` and can be
+            combined using the bitwise OR operator.
         clear: If ``True``, the allocated memory is cleared to zero.
     """
     allocator = _get_allocator(align, hints, clear)
@@ -773,7 +779,7 @@ def alloc(
 
 
 def free(mem: Union[memoryview, NDArray[Any]]) -> None:
-    """Deallocate memory to which ``mem`` points.
+    """Deallocate memory of ``mem``.
 
     Args:
         mem: The object to be deallocated.
@@ -830,7 +836,6 @@ def new_array(
     clear: bool = True,
 ) -> NDArray[Any]:
     """Return a new NumPy array allocated from the symmetric heap.
-    TODO: what's * argument?
 
     Args:
         shape: The shape of the array.
@@ -838,11 +843,15 @@ def new_array(
         order: The memory layout of the array. If ``'C'``, the array is
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
-    TODO: keyword args only
         align: If provided, an aligned symmetric address whose value is a
-            multiple of alignment is returned.
+            multiple of alignment is returned. Can be provided as a keyword
+            argument only.
         hints: A bit array of hints provided by the user to the implementation.
-        clear: If ``True``, the allocated memory is cleared to zero.
+            Valid hints are defined as enumerations in `MALLOC` and can be
+            combined using the bitwise OR operator. Can be provided as a
+            keyword argument only.
+        clear: If ``True``, the allocated memory is cleared to zero. Can be
+            provided as a keyword argument only.
     """
     dtype = np.dtype(dtype)
     count = np.prod(shape, dtype='p')
@@ -876,10 +885,15 @@ def array(
             inferred from the memory contents.
         order: The memory layout of the array. If ``'C'``, the array is
             contiguous in memory (row major). If ``'F'``, the array is Fortran
-            contiguous (column major).
+            contiguous (column major). Can be provided as a keyword argument
+            only.
         align: If provided, an aligned symmetric address whose value is a
-            multiple of alignment is returned.
+            multiple of alignment is returned. Can be provided as a keyword
+            argument only.
         hints: A bit array of hints provided by the user to the implementation.
+            Valid hints are defined as enumerations in `MALLOC` and can be
+            combined using the bitwise OR operator. Can be provided as a
+            keyword argument only.
     """
     tmp = np.array(obj, dtype, copy=False, order=order)
     a = new_array(tmp.size, tmp.dtype, align=align, hints=hints, clear=False)
@@ -908,8 +922,12 @@ def empty(
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
         align: If provided, an aligned symmetric address whose value is a
-            multiple of alignment is returned.
+            multiple of alignment is returned. Can be provided as a keyword
+            argument only.
         hints: A bit array of hints provided by the user to the implementation.
+            Valid hints are defined as enumerations in `MALLOC` and can be
+            combined using the bitwise OR operator. Can be provided as a
+            keyword argument only.
     """
     a = new_array(shape, dtype, order, align=align, hints=hints, clear=False)
     return a
@@ -932,8 +950,12 @@ def zeros(
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
         align: If provided, an aligned symmetric address whose value is a
-            multiple of alignment is returned.
+            multiple of alignment is returned. Can be provided as a keyword
+            argument only.
         hints: A bit array of hints provided by the user to the implementation.
+            Valid hints are defined as enumerations in `MALLOC` and can be
+            combined using the bitwise OR operator. Can be provided as a
+            keyword argument only.
     """
     a = new_array(shape, dtype, order, align=align, hints=hints, clear=True)
     return a
@@ -956,8 +978,12 @@ def ones(
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
         align: If provided, an aligned symmetric address whose value is a
-            multiple of alignment is returned.
+            multiple of alignment is returned. Can be provided as a keyword
+            argument only.
         hints: A bit array of hints provided by the user to the implementation.
+            Valid hints are defined as enumerations in `MALLOC` and can be
+            combined using the bitwise OR operator. Can be provided as a
+            keyword argument only.
     """
     a = new_array(shape, dtype, order, align=align, hints=hints, clear=False)
     np.copyto(a, 1, casting='unsafe')
@@ -974,7 +1000,7 @@ def full(
     align: Optional[int] = None,
     hints: Optional[int] = None,
 ) -> NDArray[Any]:
-    """Return a new ``fill_value``-filled NumPy array allocated from the symmetric heap.
+    """Return a new ``fill_value``-initialized NumPy array allocated from the symmetric heap.
 
     Args:
         shape: The shape of the array.
@@ -984,8 +1010,12 @@ def full(
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
         align: If provided, an aligned symmetric address whose value is a
-            multiple of alignment is returned.
+            multiple of alignment is returned. Can be provided as a keyword
+            argument only.
         hints: A bit array of hints provided by the user to the implementation.
+            Valid hints are defined as enumerations in `MALLOC` and can be
+            combined using the bitwise OR operator. Can be provided as a
+            keyword argument only.
     """
     if dtype is None:
         dtype = np.array(fill_value).dtype
@@ -1105,7 +1135,7 @@ def put(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copy data from a ``source`` to ``target`` on PE ``pe``.
+    """Copy data from local ``source`` to ``target`` on PE ``pe``.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1291,7 +1321,7 @@ def atomic_set(
 
 
 def atomic_inc(
-    target,
+    target: NDArray[Any],
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
@@ -1307,7 +1337,7 @@ def atomic_inc(
 
 
 def atomic_add(
-    target,
+    target: NDArray[Any],
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
@@ -1325,7 +1355,7 @@ def atomic_add(
 
 
 def atomic_and(
-    target,
+    target: NDArray[Any],
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
@@ -1343,7 +1373,7 @@ def atomic_and(
 
 
 def atomic_or(
-    target,
+    target: NDArray[Any],
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
@@ -1361,7 +1391,7 @@ def atomic_or(
 
 
 def atomic_xor(
-    target,
+    target: NDArray[Any],
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
