@@ -791,7 +791,17 @@ def fromalloc(
     dtype: DTypeLike = None,
     order: Literal['C', 'F'] = 'C',
 ) -> NDArray[Any]:
-    """
+    """Return a NumPy array interpreted from the buffer allocated from the symmetric heap.
+
+    Args:
+        mem: The memory to be converted interpreted as a NumPy array.
+        shape: The shape of the array. If ``None``, the shape is inferred from
+            the size of the memory.
+        dtype: The data type of the array. If ``None``, the data type is
+            inferred from the memory contents.
+        order: The memory layout of the array. If ``'C'``, the array is
+            contiguous in memory (row major). If ``'F'``, the array is Fortran
+            contiguous (column major).
     """
     assert isinstance(mem, memoryview), type(mem)
     assert isinstance(mem.obj, ffi.buffer), type(mem.obj)
@@ -815,7 +825,19 @@ def new_array(
     hints: Optional[int] = None,
     clear: bool = True,
 ) -> NDArray[Any]:
-    """
+    """Return a new NumPy array allocated from the symmetric heap.
+    TODO: what's * argument?
+
+    Args:
+        shape: The shape of the array.
+        dtype: The data type of the array.
+        order: The memory layout of the array. If ``'C'``, the array is
+            contiguous in memory (row major). If ``'F'``, the array is Fortran
+            contiguous (column major).
+        align: If provided, an aligned symmetric address whose value is a
+            multiple of alignment is returned.
+        hints: A bit array of hints provided by the user to the implementation.
+        clear: If ``True``, the allocated memory is cleared to zero.
     """
     dtype = np.dtype(dtype)
     count = np.prod(shape, dtype='p')
@@ -824,7 +846,10 @@ def new_array(
 
 
 def del_array(a: NDArray[Any]) -> None:
-    """
+    """Delete the array.
+
+    Args:
+        a: The array to be deleted.
     """
     assert isinstance(a, np.ndarray), type(a)
     free(a)
@@ -838,7 +863,18 @@ def array(
     align: Optional[int] = None,
     hints: Optional[int] = None,
 ) -> NDArray[Any]:
-    """
+    """Return a new NumPy array allocated from the symmetric heap with contents of ``obj``.
+
+    Args:
+        obj: The data to be copied to a NumPy array.
+        dtype: The data type of the array. If ``None``, the data type is
+            inferred from the memory contents.
+        order: The memory layout of the array. If ``'C'``, the array is
+            contiguous in memory (row major). If ``'F'``, the array is Fortran
+            contiguous (column major).
+        align: If provided, an aligned symmetric address whose value is a
+            multiple of alignment is returned.
+        hints: A bit array of hints provided by the user to the implementation.
     """
     tmp = np.array(obj, dtype, copy=False, order=order)
     a = new_array(tmp.size, tmp.dtype, align=align, hints=hints, clear=False)
@@ -858,7 +894,17 @@ def empty(
     align: Optional[int] = None,
     hints: Optional[int] = None,
 ) -> NDArray[Any]:
-    """
+    """Return a new empty NumPy array allocated from the symmetric heap.
+
+    Args:
+        shape: The shape of the array.
+        dtype: The data type of the array.
+        order: The memory layout of the array. If ``'C'``, the array is
+            contiguous in memory (row major). If ``'F'``, the array is Fortran
+            contiguous (column major).
+        align: If provided, an aligned symmetric address whose value is a
+            multiple of alignment is returned.
+        hints: A bit array of hints provided by the user to the implementation.
     """
     a = new_array(shape, dtype, order, align=align, hints=hints, clear=False)
     return a
@@ -872,7 +918,17 @@ def zeros(
     align: Optional[int] = None,
     hints: Optional[int] = None,
 ) -> NDArray[Any]:
-    """
+    """Return a new 0-initialized NumPy array allocated from the symmetric heap.
+
+    Args:
+        shape: The shape of the array.
+        dtype: The data type of the array.
+        order: The memory layout of the array. If ``'C'``, the array is
+            contiguous in memory (row major). If ``'F'``, the array is Fortran
+            contiguous (column major).
+        align: If provided, an aligned symmetric address whose value is a
+            multiple of alignment is returned.
+        hints: A bit array of hints provided by the user to the implementation.
     """
     a = new_array(shape, dtype, order, align=align, hints=hints, clear=True)
     return a
@@ -886,7 +942,17 @@ def ones(
     align: Optional[int] = None,
     hints: Optional[int] = None,
 ) -> NDArray[Any]:
-    """
+    """Return a new 1-initialized NumPy array allocated from the symmetric heap.
+
+    Args:
+        shape: The shape of the array.
+        dtype: The data type of the array.
+        order: The memory layout of the array. If ``'C'``, the array is
+            contiguous in memory (row major). If ``'F'``, the array is Fortran
+            contiguous (column major).
+        align: If provided, an aligned symmetric address whose value is a
+            multiple of alignment is returned.
+        hints: A bit array of hints provided by the user to the implementation.
     """
     a = new_array(shape, dtype, order, align=align, hints=hints, clear=False)
     np.copyto(a, 1, casting='unsafe')
@@ -903,7 +969,18 @@ def full(
     align: Optional[int] = None,
     hints: Optional[int] = None,
 ) -> NDArray[Any]:
-    """
+    """Return a new ``fill_value``-filled NumPy array allocated from the symmetric heap.
+
+    Args:
+        shape: The shape of the array.
+        fill_value: The value to fill the array with.
+        dtype: The data type of the array.
+        order: The memory layout of the array. If ``'C'``, the array is
+            contiguous in memory (row major). If ``'F'``, the array is Fortran
+            contiguous (column major).
+        align: If provided, an aligned symmetric address whose value is a
+            multiple of alignment is returned.
+        hints: A bit array of hints provided by the user to the implementation.
     """
     if dtype is None:
         dtype = np.array(fill_value).dtype
@@ -1745,7 +1822,7 @@ _signal_ctype: ffi.CType = ffi.typeof('uint64_t*')
 
 
 def new_signal() -> SigAddr:
-    """
+    """Create a signal data object.
     """
     hints = lib.SHMEM_MALLOC_SIGNAL_REMOTE
     allocator = _get_allocator(hints=hints)
@@ -1754,7 +1831,10 @@ def new_signal() -> SigAddr:
 
 
 def del_signal(signal: SigAddr) -> None:
-    """
+    """Delete a signal data object.
+
+    Args:
+        signal: A signal data object to be deleted.
     """
     assert ffi.typeof(signal) is _signal_ctype
     ffi.release(signal)
@@ -1774,7 +1854,7 @@ def signal_fetch(signal: SigAddr) -> int:
 
 
 class SIGNAL(_enum.IntEnum):
-    """Signal operations. TODO: Should this be auto generated?
+    """Signal operations.
 
     Attributes:
         SET: An update to signal data object is an atomic set operation. It
@@ -2879,7 +2959,7 @@ _lock_ctype: ffi.CType = ffi.typeof('long*')
 
 
 def new_lock() -> LockHandle:
-    """
+    """Create a lock object.
     """
     allocator = _get_allocator()
     lock = allocator(_lock_ctype)  # type: ignore[call-arg]
@@ -2887,7 +2967,10 @@ def new_lock() -> LockHandle:
 
 
 def del_lock(lock: LockHandle) -> None:
-    """
+    """Delete a lock object.
+
+    Args:
+        lock: A lock object to be deleted.
     """
     assert ffi.typeof(lock) is _lock_ctype
     ffi.release(lock)
@@ -2948,7 +3031,7 @@ class Lock:
         self._lock = new_lock()
 
     def destroy(self) -> None:
-        """
+        """Destroy the lock object.
         """
         lock = self._lock
         self._lock = None
@@ -2956,7 +3039,12 @@ class Lock:
             del_lock(lock)
 
     def acquire(self, blocking: bool = True) -> bool:
-        """
+        """Acquire a lock.
+
+        Args:
+            blocking: If `True`, wait until the lock is acquired. If `False`,
+                return `True` if the lock is acquired and `False` otherwise
+                (i.e., lock was already set).
         """
         lock = self._lock
         assert lock is not None
