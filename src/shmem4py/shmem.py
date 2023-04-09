@@ -482,8 +482,7 @@ class Team:
         return Team(tnew[0])
 
     def get_config(self) -> Dict[str, int]:
-        """Returns the configuration parameters of a given team.
-        """
+        """Returns the configuration parameters of a given team."""
         team = self.ob_team
         conf = ffi.new('shmem_team_config_t*')
         mask = lib.SHMEM_TEAM_NUM_CONTEXTS
