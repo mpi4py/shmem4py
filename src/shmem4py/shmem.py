@@ -2907,7 +2907,7 @@ def test_lock(lock: LockHandle) -> bool:
 
 
 def clear_lock(lock: LockHandle) -> None:
-    """Releases a lock previously set by `set_lock` or `test_lock`.
+    """Release a lock previously set by `set_lock` or `test_lock`.
 
     After performing a `quiet` operation on the default context to ensure that
     all symmetric memory accesses that occurred during the critical region are
