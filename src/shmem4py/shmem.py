@@ -311,8 +311,12 @@ class Ctx:
         Args:
             options: The set of options requested for the given context.
                 Multiple options may be requested by combining them with a
-                `*bitwise or* operation <operator.or_>`; otherwise, 0 can be given if no options
-                are requested. 
+                `*bitwise or* operation <operator.or_>`; otherwise, 0 can be
+                given if no options are requested.
+
+                # TODO: link to CTX? why is the type not CTX?
+                # The options are those in the CTX enum, also exposed as CTX_PRIVATE/SERIALIZED/NOSTORE
+
             team: If the team is specified, the communication context is
                 created from this ``team``.
         """
@@ -834,6 +838,7 @@ def new_array(
         order: The memory layout of the array. If ``'C'``, the array is
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
+    TODO: keyword args only
         align: If provided, an aligned symmetric address whose value is a
             multiple of alignment is returned.
         hints: A bit array of hints provided by the user to the implementation.
@@ -1268,7 +1273,7 @@ def _shmem_amo_nbi(ctx, name, fetch, remote, *args, readonly=False):
 
 
 def atomic_set(
-    target,
+    target: NDArray[Any],
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
@@ -1276,7 +1281,7 @@ def atomic_set(
     """Write ``value`` into ``target`` on PE ``pe``.
 
     Args:
-        target: Symmetric address of the destination data object.
+        target: Symmetric array of size ``1`` where data will be written.
         value: The operand to the atomic set operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -2063,8 +2068,8 @@ def sync(team: Optional[Team] = None) -> None:
 
 
 def broadcast(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     root: int,
     size: Optional[int] = None,
     team: Optional[Team] = None,
@@ -2072,8 +2077,8 @@ def broadcast(
     """Copy the ``source`` from ``root`` to ``target`` on participating PEs.
 
     Args:
-        target: Symmetric address of destination data object.
-        source: Symmetric address of the source data object.
+        target: Symmetric destination array.
+        source: Symmetric source array.
         root: Zero-based ordinal of the PE, with respect to the team or active
             set, from which the data is copied.
         size: The number of elements in ``source`` and ``target`` arrays.
@@ -2201,7 +2206,7 @@ def alltoalls(
 class OP(_StrEnum):
     """Reduction operation.
 
-    Attributes:
+    Attributes: #TODO: is attributes the right section?
         AND:  Bitwise AND.
         OR:   Bitwise OR.
         XOR:  Bitwise XOR.
@@ -3018,7 +3023,6 @@ def clear_lock(lock: LockHandle) -> None:
             array of length 1.
     """
     lib.shmem_clear_lock(lock)
-    #TODO: is there a difference between clear lock and release lock?
 
 
 class Lock:
@@ -3031,8 +3035,7 @@ class Lock:
         self._lock = new_lock()
 
     def destroy(self) -> None:
-        """Destroy the lock object.
-        """
+        """Destroy the lock object."""
         lock = self._lock
         self._lock = None
         if lock is not None:
