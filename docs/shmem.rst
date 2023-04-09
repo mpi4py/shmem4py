@@ -86,6 +86,12 @@ Communication Management
 
 .. autoclass:: Ctx
 
+   .. automethod:: create
+   .. automethod:: destroy
+   .. automethod:: get_team
+   .. automethod:: fence
+   .. automethod:: quiet
+
 
 Remote Memory Access
 --------------------
