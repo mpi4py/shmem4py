@@ -517,7 +517,10 @@ class Team:
         self,
         options: int = 0,
     ) -> Ctx:
-        """
+        """Create a communication context from the team.
+
+        Args:
+            options: The set of options requested for the given context.
         """
         team = self.ob_team
         ctx = ffi.new('shmem_ctx_t*', lib.SHMEM_CTX_INVALID)
@@ -991,7 +994,16 @@ def put(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Copies data from a ``source`` to ``target`` on PE ``pe``.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        source: Local address of the data object containing the data to be
+            copied.
+        pe: PE number of the remote PE.
+        size: Number of elements in the ``target`` and ``source`` arrays.
+        ctx: A context handle specifying the context on which to perform
+            the operation.
     """
     _shmem_rma(ctx, 'put', target, source, size, pe)
 
@@ -1003,7 +1015,15 @@ def get(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Copies data from a specified PE.
+
+    Args:
+        target: Local address of the data object to be updated.
+        source: Symmetric address of the source data object.
+        pe: PE number of the remote PE.
+        size: Number of elements in the ``target`` and ``source`` arrays.
+        ctx: A context handle specifying the context on which to perform
+            the operation.
     """
     _shmem_rma(ctx, 'get', target, source, size, pe)
 
@@ -2683,21 +2703,48 @@ def del_lock(lock: LockHandle) -> None:
 
 
 def set_lock(lock: LockHandle) -> None:
-    """
+    """Sets a mutual exclusion lock after waiting for the lock to be freed.
+
+    Any other PE currently holding the lock can free the lock. If the lock is
+    currently set, the routine returns without waiting.
+
+    Args:
+        lock: Symmetric address of data object that is a scalar variable or an
+            array of length 1.
     """
     lib.shmem_set_lock(lock)
 
 
 def test_lock(lock: LockHandle) -> bool:
-    """
+    """Sets a mutual exclusion lock only if it is currently cleared.
+
+    By using this routine, a PE can avoid blocking on a set lock.
+
+    Args:
+        lock: Symmetric address of data object that is a scalar variable or an
+            array of length 1.
+
+    Returns:
+        Returns `False` if the lock was originally cleared and this call was
+        able to set the lock. A value of ``True`` is returned if the lock had
+        been set and the call returned without waiting to set the lock.
     """
     return bool(lib.shmem_test_lock(lock))
 
 
 def clear_lock(lock: LockHandle) -> None:
-    """
+    """Releases a lock previously set by `set_lock` or `test_lock`.
+
+    After performing a quiet operation on the default context to ensure that
+    all symmetric memory accesses that occurred during the critical region are
+    complete.
+
+    Args:
+        lock: Symmetric address of data object that is a scalar variable or an
+            array of length 1.
     """
     lib.shmem_clear_lock(lock)
+    #TODO: is there a difference between clear lock and release lock?
 
 
 class Lock:
