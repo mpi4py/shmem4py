@@ -94,7 +94,7 @@ VENDOR_STRING: str = ffi.string(lib.SHMEM_VENDOR_STRING).decode()
 
 
 def info_get_version() -> Tuple[int, int]:
-    """Returns the major and minor version of the library implementation."""
+    """Return the major and minor version of the library implementation."""
     major = ffi.new('int*')
     minor = ffi.new('int*')
     lib.shmem_info_get_version(major, minor)
@@ -102,7 +102,7 @@ def info_get_version() -> Tuple[int, int]:
 
 
 def info_get_name() -> str:
-    """Returns the vendor-defined name string."""
+    """Return the vendor-defined name string."""
     name = ffi.new('char[]', lib.SHMEM_MAX_NAME_LEN)
     lib.shmem_info_get_name(name)
     return ffi.string(name).decode()
@@ -187,7 +187,7 @@ def init_thread(requested: THREAD = THREAD_MULTIPLE) -> THREAD:
 
 
 def query_thread() -> THREAD:
-    """Returns the level of thread support provided by the library."""
+    """Return the level of thread support provided by the library."""
     provided = ffi.new('int*', lib.SHMEM_THREAD_SINGLE)
     lib.shmem_query_thread(provided)
     return THREAD(provided[0])
@@ -349,7 +349,7 @@ class Ctx:
         return Team(team[0])
 
     def fence(self) -> None:
-        """Ensures ordering of delivery of operations on symmetric data objects.
+        """Ensure ordering of delivery of operations on symmetric data objects.
 
         All operations on symmetric data objects issued to a particular PE on
         the given context prior to the call to ``fence`` are guaranteed to be
@@ -360,7 +360,7 @@ class Ctx:
         lib.shmem_ctx_fence(ctx)
 
     def quiet(self) -> None:
-        """Waits for completion of outstanding operations on symmetric data objects issued by a PE.
+        """Wait for completion of outstanding operations on symmetric data objects issued by a PE.
 
         Ensures completion of all operations on symmetric data objects issued
         by the calling PE on the given context.
@@ -445,7 +445,7 @@ class Team:
         config: Optional[Mapping[str, int]] = None,
         **kwargs: int,
     ) -> Team:
-        """Creates a team from a subset of the existing parent team PEs.
+        """Create a team from a subset of the existing parent team PEs.
 
         This routine must be called by all PEs in the parent team.
 
@@ -482,7 +482,7 @@ class Team:
         return Team(tnew[0])
 
     def get_config(self) -> Dict[str, int]:
-        """Returns the configuration parameters of a given team."""
+        """Return the configuration parameters of a given team."""
         team = self.ob_team
         conf = ffi.new('shmem_team_config_t*')
         mask = lib.SHMEM_TEAM_NUM_CONTEXTS
@@ -490,14 +490,14 @@ class Team:
         return {attr: getattr(conf, attr) for attr in dir(conf)}
 
     def my_pe(self) -> int:
-        """Returns the number of the calling PE within the team."""
+        """Return the number of the calling PE within the team."""
         team = self.ob_team
         mype = lib.shmem_team_my_pe(team)
         _chkint(mype, "shmem_team_my_pe")
         return mype
 
     def n_pes(self) -> int:
-        """Returns the number of PEs in the team."""
+        """Return the number of PEs in the team."""
         team = self.ob_team
         npes = lib.shmem_team_n_pes(team)
         _chkint(npes, "shmem_team_n_pes")
@@ -547,7 +547,7 @@ class Team:
         return Ctx(ctx[0])
 
     def sync(self) -> None:
-        """Registers the arrival of a PE at a synchronization point.
+        """Register the arrival of a PE at a synchronization point.
 
         This routine does not return until all other PEs in a given team or
         active set arrive at this synchronization point.
@@ -566,17 +566,17 @@ TEAM_INVALID: Team = Team(lib.SHMEM_TEAM_INVALID)
 
 
 def my_pe() -> int:
-    """Returns the number of the calling PE."""
+    """Return the number of the calling PE."""
     return lib.shmem_my_pe()
 
 
 def n_pes() -> int:
-    """Returns the number of PEs running in a program."""
+    """Return the number of PEs running in a program."""
     return lib.shmem_n_pes()
 
 
 def pe_accessible(pe: int) -> bool:
-    """Determines whether a PE is accessible.
+    """Determine whether a PE is accessible.
 
     Args:
         pe: The PE number to check for accessibility from the local PE.
@@ -588,7 +588,7 @@ def addr_accessible(
     addr: NDArray[Any],
     pe: int,
 ) -> bool:
-    """Determines whether an address is accessible from the specified remote PE.
+    """Determine whether an address is accessible from the specified remote PE.
 
     Args:
         addr: Local address of data object to query. #TODO: is "address" appropriate?
@@ -602,7 +602,7 @@ def ptr(
     target: NDArray[T],
     pe: int,
 ) -> Optional[NDArray[T]]:
-    """Returns a local pointer to a symmetric data object on the specified PE.
+    """Return a local pointer to a symmetric data object on the specified PE.
 
     Args:
         target: The symmetric address of the remotely accessible data object.
@@ -749,7 +749,7 @@ def alloc(
     hints: Optional[int] = None,
     clear: bool = True,
 ) -> memoryview:
-    """Returns memory allocated from the symmetric heap.
+    """Return memory allocated from the symmetric heap.
 
     Args:
         count: Number of elements to allocate.
@@ -769,7 +769,7 @@ def alloc(
 
 
 def free(mem: Union[memoryview, NDArray[Any]]) -> None:
-    """Deallocates memory to which ``mem`` points.
+    """Deallocate memory to which ``mem`` points.
 
     Args:
         mem: The object to be deallocated.
@@ -1023,7 +1023,7 @@ def put(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copies data from a ``source`` to ``target`` on PE ``pe``.
+    """Copy data from a ``source`` to ``target`` on PE ``pe``.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1044,7 +1044,7 @@ def get(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copies data from a specified PE.
+    """Copy data from a specified PE.
 
     Args:
         target: Local address of the data object to be updated.
@@ -1066,7 +1066,7 @@ def iput(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copies strided data to a specified PE.
+    """Copy strided data to a specified PE.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1095,7 +1095,7 @@ def iget(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copies strided data from a specified PE.
+    """Copy strided data from a specified PE.
 
     Args:
         target: Local address of the data object to be updated.
@@ -1121,7 +1121,7 @@ def put_nbi(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copies data from local ``source`` to ``target`` on PE ``pe``; **nonblocking**.
+    """Copy data from local ``source`` to ``target`` on PE ``pe``; **nonblocking**.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1140,7 +1140,7 @@ def get_nbi(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copies data from ``source`` on PE ``pe`` to local ``target``; **nonblocking**.
+    """Copy data from ``source`` on PE ``pe`` to local ``target``; **nonblocking**.
 
     Args:
         target: Local address of the data object to be updated.
@@ -1196,7 +1196,7 @@ def atomic_set(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Writes ``value`` into ``target`` on PE ``pe``.
+    """Write ``value`` into ``target`` on PE ``pe``.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1213,7 +1213,7 @@ def atomic_inc(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Increments ``target`` data object on PE ``pe``.
+    """Increment ``target`` data object on PE ``pe``.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1230,7 +1230,7 @@ def atomic_add(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Adds ``value`` to ``target`` on PE ``pe`` and atomically updates ``target``.
+    """Add ``value`` to ``target`` on PE ``pe`` and atomically updates ``target``.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1301,7 +1301,7 @@ def atomic_fetch(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Returns the value of a ``source`` on PE ``pe``.
+    """Return the value of a ``source`` on PE ``pe``.
 
     Args:
         source: Symmetric address of the source data object.
@@ -1318,7 +1318,7 @@ def atomic_swap(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Writes ``value`` into ``target`` on PE ``pe`` and returns the prior value.
+    """Write ``value`` into ``target`` on PE ``pe`` and returns the prior value.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1357,7 +1357,7 @@ def atomic_fetch_inc(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Increments ``target`` on PE ``pe`` and returns its prior value.
+    """Increment ``target`` on PE ``pe`` and returns its prior value.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1374,7 +1374,7 @@ def atomic_fetch_add(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Adds ``value`` to ``target`` on PE ``pe`` and returns its prior value.
+    """Add ``value`` to ``target`` on PE ``pe`` and returns its prior value.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1392,7 +1392,7 @@ def atomic_fetch_and(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Performs a bitwise AND on ``target`` at PE ``pe`` with the operand value and returns its prior value.
+    """Perform a bitwise AND on ``target`` at PE ``pe`` with the operand value and returns its prior value.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1410,7 +1410,7 @@ def atomic_fetch_or(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Performs a bitwise OR on ``target`` at PE ``pe`` with the operand value and returns its prior value.
+    """Perform a bitwise OR on ``target`` at PE ``pe`` with the operand value and returns its prior value.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1428,7 +1428,7 @@ def atomic_fetch_xor(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Performs a bitwise XOR on ``target`` at PE ``pe`` with the operand value and returns its prior value.
+    """Perform a bitwise XOR on ``target`` at PE ``pe`` with the operand value and returns its prior value.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1446,7 +1446,7 @@ def atomic_fetch_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Fetches the value of ``source`` on PE ``pe`` to local ``fetch``.
+    """Fetch the value of ``source`` on PE ``pe`` to local ``fetch``.
 
     **nonblocking**. The operation is considered complete after a subsequent call
     to ``quiet``.
@@ -1468,7 +1468,7 @@ def atomic_swap_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Writes ``value`` into ``target`` on PE ``pe`` and fetches prior value to ``fetch``.
+    """Write ``value`` into ``target`` on PE ``pe`` and fetches prior value to ``fetch``.
 
     **nonblocking**. The operation is considered complete after a subsequent call
     to ``quiet``.
@@ -1517,7 +1517,7 @@ def atomic_fetch_inc_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Increments ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
+    """Increment ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
 
     **nonblocking**.
 
@@ -1540,7 +1540,7 @@ def atomic_fetch_add_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Adds ``value`` to ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
+    """Add ``value`` to ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
 
     **nonblocking**. The operation is considered complete after a subsequent call
     to ``quiet``.
@@ -1563,7 +1563,7 @@ def atomic_fetch_and_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Performs bitwise AND on ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
+    """Perform bitwise AND on ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
 
     **nonblocking**. The operation is considered complete after a subsequent call
     to ``quiet``.
@@ -1586,7 +1586,7 @@ def atomic_fetch_or_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Performs bitwise OR on ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
+    """Perform bitwise OR on ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
 
     **nonblocking**. The operation is considered complete after a subsequent call
     to ``quiet``.
@@ -1609,7 +1609,7 @@ def atomic_fetch_xor_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Performs bitwise XOR on ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
+    """Perform bitwise XOR on ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
 
     **nonblocking**. The operation is considered complete after a subsequent call
     to ``quiet``.
@@ -1659,7 +1659,7 @@ def atomic_op(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Performs operation ``op`` on ``target`` on PE ``pe`` with the operand ``value``.
+    """Perform operation ``op`` on ``target`` on PE ``pe`` with the operand ``value``.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1680,7 +1680,7 @@ def atomic_fetch_op(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Performs operation ``op`` on ``target`` on PE ``pe`` and returns the prior value.
+    """Perform operation ``op`` on ``target`` on PE ``pe`` and returns the prior value.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1702,7 +1702,7 @@ def atomic_fetch_op_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Performs operation ``op`` on ``target`` on PE ``pe`` and fetch the prior value to ``fetch``.
+    """Perform operation ``op`` on ``target`` on PE ``pe`` and fetch the prior value to ``fetch``.
 
     Args:
         fetch: Local address of data object to be updated.
@@ -1761,7 +1761,7 @@ def del_signal(signal: SigAddr) -> None:
 
 
 def signal_fetch(signal: SigAddr) -> int:
-    """Fetches the signal update on a local data object.
+    """Fetch the signal update on a local data object.
 
     Args:
         signal: Local address of the remotely accessible signal variable.
@@ -1802,7 +1802,7 @@ def put_signal(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copies local ``source`` to ``target`` on PE ``pe`` and updates a remote flag to signal completion.
+    """Copy local ``source`` to ``target`` on PE ``pe`` and updates a remote flag to signal completion.
 
     Args:
         target: Symmetric address of the data object to be updated on the
@@ -1836,7 +1836,7 @@ def put_signal_nbi(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copies local ``source`` to ``target`` on PE ``pe`` and updates a remote flag to signal completion; **nonblocking**.
+    """Copy local ``source`` to ``target`` on PE ``pe`` and updates a remote flag to signal completion; **nonblocking**.
 
     The routine returns after initiating the operation. The operation is
     considered complete after a subsequent call to `quiet`.
@@ -1947,7 +1947,7 @@ def _shmem_collective(ctype, name, size):
 
 
 def barrier_all() -> None:
-    """Registers the arrival of a PE at a barrier, waits for others.
+    """Register the arrival of a PE at a barrier, waits for others.
 
     This routine blocks the calling PE until all PEs have called
     ``barrier_all``. Prior to synchronizing with other PEs, ``barrier_all``
@@ -1958,7 +1958,7 @@ def barrier_all() -> None:
 
 
 def sync_all() -> None:
-    """Registers the arrival of a PE at a synchronization point, waits for all others.
+    """Register the arrival of a PE at a synchronization point, waits for all others.
 
     This routine blocks the calling PE until all PEs in the world team have
     called `sync_all`.
@@ -1967,7 +1967,7 @@ def sync_all() -> None:
 
 
 def sync(team: Optional[Team] = None) -> None:
-    """Registers the arrival of a PE at a synchronization point, waits for others.
+    """Register the arrival of a PE at a synchronization point, waits for others.
 
     This routine does not return until all other PEs in a given team or
     active set arrive at this synchronization point.
@@ -1989,7 +1989,7 @@ def broadcast(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """Copies the ``source`` from ``root`` to ``target`` on participating PEs.
+    """Copy the ``source`` from ``root`` to ``target`` on participating PEs.
 
     Args:
         target: Symmetric address of destination data object.
@@ -2011,7 +2011,7 @@ def collect(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """Concatenates blocks of data from multiple PEs to an array in every PE participating in the collective routine.
+    """Concatenate blocks of data from multiple PEs to an array in every PE participating in the collective routine.
 
     **size** can vary from PE to PE.
 
@@ -2021,8 +2021,8 @@ def collect(
     ``source`` array into the ``target`` array.
 
     Args:
-        target: Symmetric address of an array large enough to accept the concatenation
-            of the source arrays on all participating PEs.
+        target: Symmetric address of an array large enough to accept the
+            concatenation of the source arrays on all participating PEs.
         source: Symmetric address of the source data object.
         size: The number of elements in ``source`` array.
         team: The team over which to perform the operation.
@@ -2039,15 +2039,15 @@ def fcollect(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """Concatenates blocks of data from multiple PEs to an array in every PE participating in the collective routine.
+    """Concatenate blocks of data from multiple PEs to an array in every PE participating in the collective routine.
 
     **size** must be the same value in all participating PEs.
 
     ``MPI_Allgather`` equivalent.
 
     Args:
-        target: Symmetric address of an array large enough to accept the concatenation
-            of the source arrays on all participating PEs.
+        target: Symmetric address of an array large enough to accept the
+            concatenation of the source arrays on all participating PEs.
         source: Symmetric address of the source data object.
         size: The number of elements in ``source`` array.
         team: The team over which to perform the operation.
@@ -2146,7 +2146,7 @@ def reduce(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """Performs a specified reduction across a set of PEs.
+    """Perform a specified reduction across a set of PEs.
 
     Args:
         target: Symmetric address of an array, of length ``size`` elements, to
@@ -2171,7 +2171,7 @@ def and_reduce(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """Performs a bitwise AND reduction across a set of PEs.
+    """Perform a bitwise AND reduction across a set of PEs.
 
     Args:
         target: Symmetric address of an array, of length ``size`` elements, to
@@ -2190,7 +2190,7 @@ def or_reduce(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """Performs a bitwise OR reduction across a set of PEs.
+    """Perform a bitwise OR reduction across a set of PEs.
 
     Args:
         target: Symmetric address of an array, of length ``size`` elements, to
@@ -2209,7 +2209,7 @@ def xor_reduce(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """Performs a bitwise exclusive OR (XOR) reduction across a set of PEs.
+    """Perform a bitwise exclusive OR (XOR) reduction across a set of PEs.
 
     Args:
         target: Symmetric address of an array, of length ``size`` elements, to
@@ -2228,7 +2228,7 @@ def max_reduce(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """Performs a maximum-value reduction across a set of PEs.
+    """Perform a maximum-value reduction across a set of PEs.
 
     Args:
         target: Symmetric address of an array, of length ``size`` elements, to
@@ -2247,7 +2247,7 @@ def min_reduce(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """Performs a minimum-value reduction across a set of PEs.
+    """Perform a minimum-value reduction across a set of PEs.
 
     Args:
         target: Symmetric address of an array, of length ``size`` elements, to
@@ -2266,7 +2266,7 @@ def sum_reduce(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """Performs a sum reduction across a set of PEs.
+    """Perform a sum reduction across a set of PEs.
 
     Args:
         target: Symmetric address of an array, of length ``size`` elements, to
@@ -2285,7 +2285,7 @@ def prod_reduce(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """Performs a product reduction across a set of PEs.
+    """Perform a product reduction across a set of PEs.
 
     Args:
         target: Symmetric address of an array, of length ``size`` elements, to
@@ -2383,7 +2383,7 @@ def wait_until(
     cmp: CMP,
     value: Number,
 ) -> None:
-    """Waits until the value ``ivar`` satisfies a condition.
+    """Wait until the value ``ivar`` satisfies a condition.
 
     Blocks until the value ``ivar`` at the calling PE satisfies the condition
     ``ivar cmp value`` at the calling PE, where ``cmp`` is the comparison
@@ -2406,7 +2406,7 @@ def wait_until_all(
     value: Number,
     status: Optional[Sequence[int]] = None,
 ) -> None:
-    """Waits until all variables satisfy a condition.
+    """Wait until all variables satisfy a condition.
 
     Blocks until all values specified in ``ivars`` not excluded by ``status``
     satisfy the condition ``ivar cmp value`` at the calling PE, where ``cmp``
@@ -2435,7 +2435,7 @@ def wait_until_any(
     value: Number,
     status: Optional[Sequence[int]] = None,
 ) -> Optional[int]:
-    """Waits until any one variable satisfies a condition.
+    """Wait until any one variable satisfies a condition.
 
     Blocks until any one entry in the wait set specified by ``ivars`` not
     excluded by ``status`` satisfies the condition ``ivar cmp value`` at the
@@ -2468,7 +2468,7 @@ def wait_until_some(
     value: Number,
     status: Optional[Sequence[int]] = None,
 ) -> List[int]:
-    """Waits until at least one variable satisfies a condition.
+    """Wait until at least one variable satisfies a condition.
 
     Blocks until at least one entry in the wait set specified by ``ivars`` not
     excluded by ``status`` satisfies the condition ``ivar cmp value`` at the
@@ -2502,7 +2502,7 @@ def wait_until_all_vector(
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
 ) -> None:
-    """Waits until all variables satisfy the specified conditions.
+    """Wait until all variables satisfy the specified conditions.
 
     Blocks until all values specified in ``ivars`` not excluded by ``status``
     satisfy the condition ``ivars[i] cmp values[i]`` at the calling PE,
@@ -2533,7 +2533,7 @@ def wait_until_any_vector(
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
 ) -> Optional[int]:
-    """Waits until any one variable satisfies the specified conditions.
+    """Wait until any one variable satisfies the specified conditions.
 
     Blocks until any one value specified in ``ivars`` not excluded by
     ``status`` satisfies the condition ``ivars[i] cmp values[i]`` at the
@@ -2568,7 +2568,7 @@ def wait_until_some_vector(
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
 ) -> List[int]:
-    """Waits until at least one variable satisfies the specified conditions.
+    """Wait until at least one variable satisfies the specified conditions.
 
     Blocks until any one value specified in ``ivars`` not excluded by
     ``status`` satisfies the condition ``ivars[i] cmp values[i]`` at the
@@ -2603,7 +2603,7 @@ def test(
     cmp: CMP,
     value: Number,
 ) -> bool:
-    """Indicates whether a variable on the local PE meets the specified condition.
+    """Indicate whether a variable on the local PE meets the specified condition.
 
     Args:
         ivar: Symmetric address of remotely accessible data object.
@@ -2623,7 +2623,7 @@ def test_all(
     value: Number,
     status: Optional[Sequence[int]] = None,
 ) -> bool:
-    """Indicates whether all variables on the local PE meet the specified condition.
+    """Indicate whether all variables on the local PE meet the specified condition.
 
     Args:
         ivars: Symmetric address of an array of remotely accessible data
@@ -2649,7 +2649,7 @@ def test_any(
     value: Number,
     status: Optional[Sequence[int]] = None,
 ) -> Optional[int]:
-    """Indicates whether any one variable on the local PE meets the specified condition.
+    """Indicate whether any one variable on the local PE meets the specified condition.
 
     Args:
         ivars: Symmetric address of an array of remotely accessible data
@@ -2678,7 +2678,7 @@ def test_some(
     value: Number,
     status: Optional[Sequence[int]] = None,
 ) -> List[int]:
-    """Indicates whether at least one variable on the local PE meets the specified condition.
+    """Indicate whether at least one variable on the local PE meets the specified condition.
 
     Args:
         ivars: Symmetric address of an array of remotely accessible data
@@ -2708,7 +2708,7 @@ def test_all_vector(
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
 ) -> bool:
-    """Indicates whether all variables on the local PE meets the specified conditions.
+    """Indicate whether all variables on the local PE meets the specified conditions.
 
     Args:
         ivars: Symmetric address of an array of remotely accessible data
@@ -2738,7 +2738,7 @@ def test_any_vector(
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
 ) -> Optional[int]:
-    """Indicates whether any one variable on the local PE meets its specified condition.
+    """Indicate whether any one variable on the local PE meets its specified condition.
 
     Args:
         ivars: Symmetric address of an array of remotely accessible data
@@ -2769,7 +2769,7 @@ def test_some_vector(
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
 ) -> List[int]:
-    """Indicates whether at least one variable on the local PE meets its specified condition.
+    """Indicate whether at least one variable on the local PE meets its specified condition.
 
     Args:
         ivars: Symmetric address of an array of remotely accessible data
@@ -2800,7 +2800,7 @@ def signal_wait_until(
     cmp: CMP,
     value: Number,
 ) -> int:
-    """Waits for a variable on the local PE to change from a signaling operation.
+    """Wait for a variable on the local PE to change from a signaling operation.
 
     Args:
         signal: Local address of the source signal variable.
@@ -2821,7 +2821,7 @@ def signal_wait_until(
 
 
 def fence(ctx: Optional[Ctx] = None) -> None:
-    """Ensures ordering of delivery of operations on symmetric data objects.
+    """Ensure ordering of delivery of operations on symmetric data objects.
 
     All operations on symmetric data objects issued to a particular PE on the
     given context prior to the call to ``fence`` are guaranteed to be delivered
@@ -2839,7 +2839,7 @@ def fence(ctx: Optional[Ctx] = None) -> None:
 
 
 def quiet(ctx: Optional[Ctx] = None) -> None:
-    """Waits for completion of outstanding operations on symmetric data objects issued by a PE.
+    """Wait for completion of outstanding operations on symmetric data objects issued by a PE.
 
     Ensures completion of all operations on symmetric data objects issued by
     the calling PE on the given context.
@@ -2877,7 +2877,7 @@ def del_lock(lock: LockHandle) -> None:
 
 
 def set_lock(lock: LockHandle) -> None:
-    """Sets a mutual exclusion lock after waiting for the lock to be freed.
+    """Set a mutual exclusion lock after waiting for the lock to be freed.
 
     Any other PE currently holding the lock can free the lock. If the lock is
     currently set, the routine returns without waiting.
@@ -2890,7 +2890,7 @@ def set_lock(lock: LockHandle) -> None:
 
 
 def test_lock(lock: LockHandle) -> bool:
-    """Sets a mutual exclusion lock only if it is currently cleared.
+    """Set a mutual exclusion lock only if it is currently cleared.
 
     By using this routine, a PE can avoid blocking on a set lock.
 
