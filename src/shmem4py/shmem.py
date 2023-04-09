@@ -112,7 +112,18 @@ def info_get_name() -> str:
 
 
 class THREAD(_enum.IntEnum):
-    """
+    """Threading support.
+
+    Attributes:
+        SINGLE: A single-threaded program. A hybrid program should not request
+            `SINGLE` at the initialization call of either OpenSHMEM or MPI but
+            request a different thread level at the initialization call of the
+            other model.
+        FUNNELED: Allows only the main thread to make communication calls.
+        SERIALIZED: Communication calls are not made concurrently by multiple
+            threads.
+        MULTIPLE: The program may be multithreaded and any thread may invoke
+            the OpenSHMEM interfaces.
     """
     SINGLE:     int = lib.SHMEM_THREAD_SINGLE
     FUNNELED:   int = lib.SHMEM_THREAD_FUNNELED
@@ -227,7 +238,16 @@ _initialize()
 
 
 class CTX(_enum.IntFlag):
-    """
+    """Context options.
+
+    Attributes:
+        PRIVATE: The given context will be used only by the thread that created
+            it.
+        SERIALIZED: The given context is shareable but will not be used by
+            multiple threads concurrently.
+        NOSTORE: `quiet` and `fence` operations performed on the given context
+            are not required to enforce completion and ordering of memory store
+            operations.
     """
     PRIVATE:    int = lib.SHMEM_CTX_PRIVATE
     SERIALIZED: int = lib.SHMEM_CTX_SERIALIZED
@@ -731,7 +751,15 @@ def alloc(
     hints: Optional[int] = None,
     clear: bool = True,
 ) -> memoryview:
-    """
+    """Returns memory allocated from the symmetric heap.
+
+    Args:
+        count: Number of elements to allocate.
+        size: Size of each element in bytes.
+        align: If provided, an aligned symmetric address whose value is a
+            multiple of alignment is returned.
+        hints: A bit array of hints provided by the user to the implementation.
+        clear: If ``True``, the allocated memory is cleared to zero.
     """
     allocator = _get_allocator(align, hints, clear)
     cdata = allocator('char[]', count*size)
@@ -743,7 +771,10 @@ def alloc(
 
 
 def free(mem: Union[memoryview, NDArray[Any]]) -> None:
-    """
+    """Deallocates memory to which ``mem`` points.
+
+    Args:
+        mem: The object to be deallocated.
     """
     if isinstance(mem, np.ndarray):
         mem = _typing.cast(memoryview, mem.base)
@@ -1597,7 +1628,15 @@ def atomic_fetch_xor_nbi(
 
 
 class AMO(_StrEnum):
-    """
+    """Atomic Memory Operations.
+
+    Attributes:
+        SET: Set. operation
+        INC: Increment operation.
+        ADD: Add operation.
+        AND: Bitwise AND operation.
+        OR: Bitwise OR operation.
+        XOR: Bitwise XOR operation.
     """
     SET: str = 'set'
     INC: str = 'inc'
@@ -1737,7 +1776,15 @@ def signal_fetch(signal: SigAddr) -> int:
 
 
 class SIGNAL(_enum.IntEnum):
-    """
+    """Signal operations. TODO: Should this be auto generated?
+
+    Attributes:
+        SET: An update to signal data object is an atomic set operation. It
+            writes an unsigned 64-bit value as a signal into the signal data
+            object on a remote PE as an atomic operation.
+        ADD: An update to signal data object is an atomic add operation. It
+            adds an unsigned 64-bit value as a signal into the signal data
+            object on a remote PE as an atomic operation.
     """
     SET: int = lib.SHMEM_SIGNAL_SET
     ADD: int = lib.SHMEM_SIGNAL_ADD
@@ -1966,7 +2013,21 @@ def collect(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """
+    """Concatenates blocks of data from multiple PEs to an array in every PE participating in the collective routine.
+
+    **size** can vary from PE to PE.
+
+    ``MPI_Allgatherv`` equivalent.
+
+    Performs a collective operation to concatenate ``size`` data items from the
+    ``source`` array into the ``target`` array.
+
+    Args:
+        target: Symmetric address of an array large enough to accept the concatenation
+            of the source arrays on all participating PEs.
+        source: Symmetric address of the source data object.
+        size: The number of elements in ``source`` array.
+        team: The team over which to perform the operation.
     """
     team, _ = _parse_team(team)
     ctype, target, source, size = _parse_collect(target, source, size)
@@ -1980,7 +2041,18 @@ def fcollect(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """
+    """Concatenates blocks of data from multiple PEs to an array in every PE participating in the collective routine.
+
+    **size** must be the same value in all participating PEs.
+
+    ``MPI_Allgather`` equivalent.
+
+    Args:
+        target: Symmetric address of an array large enough to accept the concatenation
+            of the source arrays on all participating PEs.
+        source: Symmetric address of the source data object.
+        size: The number of elements in ``source`` array.
+        team: The team over which to perform the operation.
     """
     team, npes = _parse_team(team)
     ctype, target, source, size = _parse_collect(target, source, size, npes)
