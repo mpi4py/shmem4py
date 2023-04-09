@@ -2119,7 +2119,16 @@ def alltoalls(
 
 
 class OP(_StrEnum):
-    """
+    """Reduction operation.
+
+    Attributes:
+        AND:  Bitwise AND.
+        OR:   Bitwise OR.
+        XOR:  Bitwise XOR.
+        MAX:  Maximum value.
+        MIN:  Minimum value.
+        SUM:  Sum.
+        PROD: Product.
     """
     AND:  str = 'and'
     OR:   str = 'or'
@@ -2302,7 +2311,15 @@ def prod_reduce(
 
 
 class CMP(_enum.IntEnum):
-    """
+    """Comparison operator.
+
+    Attributes:
+        EQ: Equal to.
+        NE: Not equal to.
+        GT: Greater than.
+        LE: Less than or equal to.
+        LT: Less than.
+        GE: Greater than or equal to.
     """
     EQ: int = lib.SHMEM_CMP_EQ
     NE: int = lib.SHMEM_CMP_NE
