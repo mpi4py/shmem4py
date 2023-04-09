@@ -179,7 +179,6 @@ def init_thread(requested: THREAD = THREAD_MULTIPLE) -> THREAD:
 
     Returns:
         The thread level support provided by the implementation.
-        # TODO: what is returned if failed?
     """
     provided = ffi.new('int*', lib.SHMEM_THREAD_SINGLE)
     ierr = lib.shmem_init_thread(requested, provided)
