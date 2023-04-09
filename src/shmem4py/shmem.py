@@ -1989,7 +1989,22 @@ def fcollect(
 
 
 def alltoall(target, source, size=None, team=None) -> None:
-    """
+    """Each PE participating in the operation exchanges data elements with all other participating PEs.
+
+    The total size of each PE's ``source`` object and ``target`` object is
+    ``size`` times the size of an element times ``N``, where N equals the
+    number of PEs participating in the operation. The source object contains
+    ``N`` blocks of data (where the size of each block is defined by ``size``)
+    and each block of data is sent to a different PE.
+
+    Args:
+        target: Symmetric address of a data object large enough to receive the
+            combined total of ``size`` elements from each PE in the active set.
+        source: Symmetric address of a data object that contains ``size``
+            elements of data for each PE in the active set, ordered according
+            to destination PE.
+        size: The number of elements to exchange for each PE.
+        team: The team over which to perform the operation.
     """
     team, npes = _parse_team(team)
     args = (target, source, size, npes)
@@ -2006,7 +2021,20 @@ def alltoalls(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """
+    """Each PE participating in the operation exchanges strided data elements with all other PEs participating in the operation.
+
+    Args:
+        target: Symmetric address of a data object large enough to receive the
+            combined total of ``size`` elements from each PE in the active set.
+        source: Symmetric address of a data object that contains ``size``
+            elements of data for each PE in the active set, ordered according
+            to destination PE.
+        tst: The stride between consecutive elements of the ``target`` data
+            object. The stride is scaled by the element size.
+        sst: The stride between consecutive elements of the ``source`` data
+            object. The stride is scaled by the element size.
+        size: The number of elements to exchange for each PE.
+        team: The team over which to perform the operation.
     """
     team, npes = _parse_team(team)
     args = (target, source, size, npes, tst, sst)
@@ -2811,7 +2839,7 @@ def test_lock(lock: LockHandle) -> bool:
 def clear_lock(lock: LockHandle) -> None:
     """Releases a lock previously set by `set_lock` or `test_lock`.
 
-    After performing a quiet operation on the default context to ensure that
+    After performing a `quiet` operation on the default context to ensure that
     all symmetric memory accesses that occurred during the critical region are
     complete.
 
@@ -2851,7 +2879,11 @@ class Lock:
         return not test_lock(lock)
 
     def release(self) -> None:
-        """
+        """Releases a lock previously set by `set_lock` or `test_lock`.
+
+        After performing a `quiet` operation on the default context to ensure
+        that all symmetric memory accesses that occurred during the critical
+        region are complete.
         """
         lock = self._lock
         assert lock is not None
