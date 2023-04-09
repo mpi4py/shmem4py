@@ -1037,7 +1037,22 @@ def iput(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Copies strided data to a specified PE.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        source: Local address of the data object containing the data to be
+            copied.
+        pe: PE number of the remote PE.
+        tst: The stride between consecutive elements of the ``target`` array.
+            The stride is scaled by the element size of the ``target`` array.
+            A value of ``1`` indicates contiguous data.
+        sst: The stride between consecutive elements of the ``source`` array.
+            The stride is scaled by the element size of the ``source`` array.
+            A value of ``1`` indicates contiguous data.
+        size: Number of elements in the ``target`` and ``source`` arrays.
+        ctx: A context handle specifying the context on which to perform
+            the operation.
     """
     _shmem_irma(ctx, 'put', target, source, tst, sst, size, pe)
 
@@ -1051,7 +1066,21 @@ def iget(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Copies strided data from a specified PE.
+
+    Args:
+        target: Local address of the data object to be updated.
+        source: Symmetric address of the source data object.
+        pe: PE number of the remote PE.
+        tst: The stride between consecutive elements of the ``target`` array.
+            The stride is scaled by the element size of the ``target`` array.
+            A value of ``1`` indicates contiguous data.
+        sst: The stride between consecutive elements of the ``source`` array.
+            The stride is scaled by the element size of the ``source`` array.
+            A value of ``1`` indicates contiguous data.
+        size: Number of elements in the ``target`` and ``source`` arrays.
+        ctx: A context handle specifying the context on which to perform
+            the operation.
     """
     _shmem_irma(ctx, 'get', target, source, tst, sst, size, pe)
 
@@ -1063,7 +1092,14 @@ def put_nbi(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Copies data from local ``source`` to ``target`` on PE ``pe``; **nonblocking**.
+
+    Args:
+        target: Symmetric address of the destination data object.
+        source: Local address of the object containing the data to be copied.
+        pe: PE number of the remote PE.
+        size: Number of elements in the ``target`` and ``source`` arrays.
+        ctx: A context handle specifying the context on which to perform
     """
     _shmem_rma_nbi(ctx, 'put', target, source, size, pe)
 
@@ -1075,7 +1111,14 @@ def get_nbi(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Copies data from ``source`` on PE ``pe`` to local ``target``; **nonblocking**.
+
+    Args:
+        target: Local address of the data object to be updated.
+        source: Symmetric address of the source data object.
+        pe: PE number of the remote PE.
+        size: Number of elements in the ``target`` and ``source`` arrays.
+        ctx: A context handle specifying the context on which to perform
     """
     _shmem_rma_nbi(ctx, 'get', target, source, size, pe)
 
@@ -1376,7 +1419,7 @@ def atomic_fetch_nbi(
 ) -> None:
     """Fetches the value of ``source`` on PE ``pe`` to local ``fetch``.
 
-    *Nonblocking*. The operation is considered complete after a subsequent call
+    **nonblocking**. The operation is considered complete after a subsequent call
     to ``quiet``.
 
     Args:
@@ -1398,7 +1441,7 @@ def atomic_swap_nbi(
 ) -> None:
     """Writes ``value`` into ``target`` on PE ``pe`` and fetches prior value to ``fetch``.
 
-    *Nonblocking*. The operation is considered complete after a subsequent call
+    **nonblocking**. The operation is considered complete after a subsequent call
     to ``quiet``.
 
     Args:
@@ -1422,7 +1465,7 @@ def atomic_compare_swap_nbi(
 ) -> None:
     """Conditionally updates ``target`` and fetches its prior value to ``fetch``.
 
-    *Nonblocking*. The operation is considered complete after a subsequent call
+    **nonblocking**. The operation is considered complete after a subsequent call
     to ``quiet``.
 
     Args:
@@ -1447,7 +1490,7 @@ def atomic_fetch_inc_nbi(
 ) -> None:
     """Increments ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
 
-    *Nonblocking*.
+    **nonblocking**.
 
     The operation is considered complete after a subsequent call to ``quiet``.
 
@@ -1470,7 +1513,7 @@ def atomic_fetch_add_nbi(
 ) -> None:
     """Adds ``value`` to ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
 
-    *Nonblocking*. The operation is considered complete after a subsequent call
+    **nonblocking**. The operation is considered complete after a subsequent call
     to ``quiet``.
 
     Args:
@@ -1493,7 +1536,7 @@ def atomic_fetch_and_nbi(
 ) -> None:
     """Performs bitwise AND on ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
 
-    *Nonblocking*. The operation is considered complete after a subsequent call
+    **nonblocking**. The operation is considered complete after a subsequent call
     to ``quiet``.
 
     Args:
@@ -1516,7 +1559,7 @@ def atomic_fetch_or_nbi(
 ) -> None:
     """Performs bitwise OR on ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
 
-    *Nonblocking*. The operation is considered complete after a subsequent call
+    **nonblocking**. The operation is considered complete after a subsequent call
     to ``quiet``.
 
     Args:
@@ -1539,7 +1582,7 @@ def atomic_fetch_xor_nbi(
 ) -> None:
     """Performs bitwise XOR on ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
 
-    *Nonblocking*. The operation is considered complete after a subsequent call
+    **nonblocking**. The operation is considered complete after a subsequent call
     to ``quiet``.
 
     Args:
@@ -1714,7 +1757,22 @@ def put_signal(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Copies local ``source`` to ``target`` on PE ``pe`` and updates a remote flag to signal completion.
+
+    Args:
+        target: Symmetric address of the data object to be updated on the
+            remote PE.
+        source: Local address of data object containing the data to be copied.
+        pe: PE number of the remote PE.
+        signal: Symmetric address of the signaldata object to be updated on the
+            remote PE as a signal.
+        value: The value that is used for updating the remote ``signal`` data
+            object.
+        sigop: Signal operator that represents the type of update to be
+            performed on the remote ``signal`` data object.
+        size: Number of elements in the ``target`` and ``source`` arrays.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     _shmem_rma_signal(
         ctx, 'put', '',
@@ -1733,7 +1791,25 @@ def put_signal_nbi(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """
+    """Copies local ``source`` to ``target`` on PE ``pe`` and updates a remote flag to signal completion; **nonblocking**.
+
+    The routine returns after initiating the operation. The operation is
+    considered complete after a subsequent call to `quiet`.
+
+    Args:
+        target: Symmetric address of the data object to be updated on the
+            remote PE.
+        source: Local address of data object containing the data to be copied.
+        pe: PE number of the remote PE.
+        signal: Symmetric address of the signaldata object to be updated on the
+            remote PE as a signal.
+        value: The value that is used for updating the remote ``signal`` data
+            object.
+        sigop: Signal operator that represents the type of update to be
+            performed on the remote ``signal`` data object.
+        size: Number of elements in the ``target`` and ``source`` arrays.
+        ctx: The context on which to perform the operation. If ``None``, the
+            default context is used.
     """
     _shmem_rma_signal(
         ctx, 'put', '_nbi',
