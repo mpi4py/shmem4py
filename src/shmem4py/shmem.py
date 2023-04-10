@@ -1129,8 +1129,8 @@ def _shmem_rma_nbi(ctx, name, target, source, size, pe):
 
 
 def put(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     pe: int,
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
@@ -1150,8 +1150,8 @@ def put(
 
 
 def get(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     pe: int,
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
@@ -1170,8 +1170,8 @@ def get(
 
 
 def iput(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     pe: int,
     tst: int = 1,
     sst: int = 1,
@@ -1199,8 +1199,8 @@ def iput(
 
 
 def iget(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     pe: int,
     tst: int = 1,
     sst: int = 1,
@@ -1227,13 +1227,15 @@ def iget(
 
 
 def put_nbi(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     pe: int,
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copy data from local ``source`` to ``target`` on PE ``pe``; **nonblocking**.
+    """Copy data from local ``source`` to ``target`` on PE ``pe``.
+
+    Nonblocking.
 
     Args:
         target: Symmetric address of the destination data object.
@@ -1246,13 +1248,15 @@ def put_nbi(
 
 
 def get_nbi(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     pe: int,
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copy data from ``source`` on PE ``pe`` to local ``target``; **nonblocking**.
+    """Copy data from ``source`` on PE ``pe`` to local ``target``.
+
+    Nonblocking.
 
     Args:
         target: Local address of the data object to be updated.
@@ -1425,12 +1429,12 @@ def atomic_fetch(
 
 
 def atomic_swap(
-    target,
+    target: NDArray[Any],
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Write ``value`` into ``target`` on PE ``pe`` and returns the prior value.
+    """Write ``value`` into ``target`` on PE ``pe`` and return the prior value.
 
     Args:
         target: Symmetric array of size ``1`` containing the destination value.
@@ -1443,8 +1447,8 @@ def atomic_swap(
 
 
 def atomic_compare_swap(
-    target,
-    cond,
+    target: NDArray[Any],
+    cond, #TODO: Number?
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
@@ -1465,11 +1469,11 @@ def atomic_compare_swap(
 
 
 def atomic_fetch_inc(
-    target,
+    target: NDArray[Any],
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Increment ``target`` on PE ``pe`` and returns its prior value.
+    """Increment ``target`` on PE ``pe`` and return its prior value.
 
     Args:
         target: Symmetric array of size ``1`` containing the destination value.
@@ -1481,12 +1485,12 @@ def atomic_fetch_inc(
 
 
 def atomic_fetch_add(
-    target,
+    target: NDArray[Any],
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Add ``value`` to ``target`` on PE ``pe`` and returns its prior value.
+    """Add ``value`` to ``target`` on PE ``pe`` and return its prior value.
 
     Args:
         target: Symmetric array of size ``1`` containing the destination value.
@@ -1499,12 +1503,12 @@ def atomic_fetch_add(
 
 
 def atomic_fetch_and(
-    target,
+    target: NDArray[Any],
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Perform a bitwise AND on ``target`` at PE ``pe`` with the operand value and returns its prior value.
+    """Perform a bitwise AND on ``target`` at PE ``pe`` with the operand value and return its prior value.
 
     Args:
         target: Symmetric array of size ``1`` containing the destination value.
@@ -1517,12 +1521,12 @@ def atomic_fetch_and(
 
 
 def atomic_fetch_or(
-    target,
+    target: NDArray[Any],
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Perform a bitwise OR on ``target`` at PE ``pe`` with the operand value and returns its prior value.
+    """Perform a bitwise OR on ``target`` at PE ``pe`` with the operand value and return its prior value.
 
     Args:
         target: Symmetric array of size ``1`` containing the destination value.
@@ -1535,12 +1539,12 @@ def atomic_fetch_or(
 
 
 def atomic_fetch_xor(
-    target,
+    target: NDArray[Any],
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Perform a bitwise XOR on ``target`` at PE ``pe`` with the operand value and returns its prior value.
+    """Perform a bitwise XOR on ``target`` at PE ``pe`` with the operand value and return its prior value.
 
     Args:
         target: Symmetric array of size ``1`` containing the destination value.
@@ -1553,14 +1557,14 @@ def atomic_fetch_xor(
 
 
 def atomic_fetch_nbi(
-    fetch,
-    source,
+    fetch: NDArray[T],
+    source: NDArray[T],
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
     """Fetch the value of ``source`` on PE ``pe`` to local ``fetch``.
 
-    **nonblocking**. The operation is considered complete after a subsequent call
+    Nonblocking. The operation is considered complete after a subsequent call
     to ``quiet``.
 
     Args:
@@ -1574,15 +1578,15 @@ def atomic_fetch_nbi(
 
 
 def atomic_swap_nbi(
-    fetch,
-    target,
+    fetch: NDArray[T],
+    target: NDArray[T],
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Write ``value`` into ``target`` on PE ``pe`` and fetches prior value to ``fetch``.
+    """Write ``value`` into ``target`` on PE ``pe`` and fetch its prior value to ``fetch``.
 
-    **nonblocking**. The operation is considered complete after a subsequent call
+    Nonblocking. The operation is considered complete after a subsequent call
     to ``quiet``.
 
     Args:
@@ -1597,16 +1601,16 @@ def atomic_swap_nbi(
 
 
 def atomic_compare_swap_nbi(
-    fetch,
-    target,
-    cond,
+    fetch: NDArray[T],
+    target: NDArray[T],
+    cond, #TODO:
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Conditionally updates ``target`` and fetches its prior value to ``fetch``.
+    """Conditionally update ``target`` and fetch its prior value to ``fetch``.
 
-    **nonblocking**. The operation is considered complete after a subsequent call
+    Nonblocking. The operation is considered complete after a subsequent call
     to ``quiet``.
 
     Args:
@@ -1624,14 +1628,14 @@ def atomic_compare_swap_nbi(
 
 
 def atomic_fetch_inc_nbi(
-    fetch,
-    target,
+    fetch: NDArray[T],
+    target: NDArray[T],
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Increment ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
+    """Increment ``target`` on PE ``pe`` and fetch its prior value to ``fetch``.
 
-    **nonblocking**.
+    Nonblocking.
 
     The operation is considered complete after a subsequent call to ``quiet``.
 
@@ -1646,15 +1650,15 @@ def atomic_fetch_inc_nbi(
 
 
 def atomic_fetch_add_nbi(
-    fetch,
-    target,
+    fetch: NDArray[T],
+    target: NDArray[T],
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Add ``value`` to ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
+    """Add ``value`` to ``target`` on PE ``pe`` and fetch its prior value to ``fetch``.
 
-    **nonblocking**. The operation is considered complete after a subsequent call
+    Nonblocking. The operation is considered complete after a subsequent call
     to ``quiet``.
 
     Args:
@@ -1669,15 +1673,15 @@ def atomic_fetch_add_nbi(
 
 
 def atomic_fetch_and_nbi(
-    fetch,
-    target,
+    fetch: NDArray[T],
+    target: NDArray[T],
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Perform bitwise AND on ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
+    """Perform bitwise AND on ``target`` on PE ``pe`` and fetch its prior value to ``fetch``.
 
-    **nonblocking**. The operation is considered complete after a subsequent call
+    Nonblocking. The operation is considered complete after a subsequent call
     to ``quiet``.
 
     Args:
@@ -1692,15 +1696,15 @@ def atomic_fetch_and_nbi(
 
 
 def atomic_fetch_or_nbi(
-    fetch,
-    target,
+    fetch: NDArray[T],
+    target: NDArray[T],
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Perform bitwise OR on ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
+    """Perform bitwise OR on ``target`` on PE ``pe`` and fetch its prior value to ``fetch``.
 
-    **nonblocking**. The operation is considered complete after a subsequent call
+    Nonblocking. The operation is considered complete after a subsequent call
     to ``quiet``.
 
     Args:
@@ -1715,15 +1719,15 @@ def atomic_fetch_or_nbi(
 
 
 def atomic_fetch_xor_nbi(
-    fetch,
-    target,
+    fetch: NDArray[T],
+    target: NDArray[T],
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Perform bitwise XOR on ``target`` on PE ``pe`` and fetches its prior value to ``fetch``.
+    """Perform bitwise XOR on ``target`` on PE ``pe`` and fetch its prior value to ``fetch``.
 
-    **nonblocking**. The operation is considered complete after a subsequent call
+    Nonblocking. The operation is considered complete after a subsequent call
     to ``quiet``.
 
     Args:
@@ -1765,7 +1769,7 @@ AMO_XOR: AMO = AMO.XOR
 
 
 def atomic_op(
-    target,
+    target: NDArray[Any],
     value: Number,
     op: AMO,
     pe: int,
@@ -1786,13 +1790,13 @@ def atomic_op(
 
 
 def atomic_fetch_op(
-    target,
+    target: NDArray[Any],
     value: Number,
     op: AMO,
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Perform operation ``op`` on ``target`` on PE ``pe`` and returns the prior value.
+    """Perform operation ``op`` on ``target`` on PE ``pe`` and return the prior value.
 
     Args:
         target: Symmetric array of size ``1`` containing the destination value.
@@ -1807,8 +1811,8 @@ def atomic_fetch_op(
 
 
 def atomic_fetch_op_nbi(
-    fetch,
-    target,
+    fetch: NDArray[T],
+    target: NDArray[T],
     value: Number,
     op: AMO,
     pe: int,
@@ -1857,8 +1861,7 @@ _signal_ctype: ffi.CType = ffi.typeof('uint64_t*')
 
 
 def new_signal() -> SigAddr:
-    """Create a signal data object.
-    """
+    """Create a signal data object."""
     hints = lib.SHMEM_MALLOC_SIGNAL_REMOTE
     allocator = _get_allocator(hints=hints)
     signal = allocator(_signal_ctype)  # type: ignore[call-arg]
@@ -1879,11 +1882,10 @@ def signal_fetch(signal: SigAddr) -> int:
     """Fetch the signal update on a local data object.
 
     Args:
-        signal: Local address of the remotely accessible signal variable.
+        signal: Local, remotely accessible signal variable.
 
     Returns:
         The contents of the signal data object at the calling PE.
-        TODO: is it obvious?
     """
     return lib.shmem_signal_fetch(signal)
 
@@ -1908,8 +1910,8 @@ SIGNAL_ADD: SIGNAL = SIGNAL.ADD
 
 
 def put_signal(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     pe: int,
     signal: SigAddr,
     value: int,
@@ -1917,15 +1919,14 @@ def put_signal(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copy local ``source`` to ``target`` on PE ``pe`` and updates a remote flag to signal completion.
+    """Copy local ``source`` to ``target`` on PE ``pe`` and update a remote flag to signal completion.
 
     Args:
-        target: Symmetric address of the data object to be updated on the
-            remote PE.
-        source: Local address of data object containing the data to be copied.
+        target: The symmetric destination array to be updated on the remote PE.
+        source: Local array containing the data to be copied.
         pe: PE number of the remote PE.
-        signal: Symmetric address of the signaldata object to be updated on the
-            remote PE as a signal.
+        signal: Symmetric signal object to be updated on the remote PE as a
+            signal.
         value: The value that is used for updating the remote ``signal`` data
             object.
         sigop: Signal operator that represents the type of update to be
@@ -1942,8 +1943,8 @@ def put_signal(
 
 
 def put_signal_nbi(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     pe: int,
     signal: SigAddr,
     value: int,
@@ -1951,18 +1952,19 @@ def put_signal_nbi(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copy local ``source`` to ``target`` on PE ``pe`` and updates a remote flag to signal completion; **nonblocking**.
+    """Copy local ``source`` to ``target`` on PE ``pe`` and update a remote flag to signal completion.
 
-    The routine returns after initiating the operation. The operation is
+    Nonblocking.
+
+    This routine returns after initiating the operation. The operation is
     considered complete after a subsequent call to `quiet`.
 
     Args:
-        target: Symmetric address of the data object to be updated on the
-            remote PE.
-        source: Local address of data object containing the data to be copied.
+        target: The symmetric destination array to be updated on the remote PE.
+        source: Local array containing the data to be copied.
         pe: PE number of the remote PE.
-        signal: Symmetric address of the signaldata object to be updated on the
-            remote PE as a signal.
+        signal: Symmetric signal object to be updated on the remote PE as a
+            signal.
         value: The value that is used for updating the remote ``signal`` data
             object.
         sigop: Signal operator that represents the type of update to be
@@ -2062,7 +2064,7 @@ def _shmem_collective(ctype, name, size):
 
 
 def barrier_all() -> None:
-    """Register the arrival of a PE at a barrier, waits for others.
+    """Register the arrival of a PE at a barrier, wait for others.
 
     This routine blocks the calling PE until all PEs have called
     ``barrier_all``. Prior to synchronizing with other PEs, ``barrier_all``
@@ -2073,7 +2075,7 @@ def barrier_all() -> None:
 
 
 def sync_all() -> None:
-    """Register the arrival of a PE at a synchronization point, waits for all others.
+    """Register the arrival of a PE at a synchronization point, wait for all others.
 
     This routine blocks the calling PE until all PEs in the world team have
     called `sync_all`.
@@ -2082,7 +2084,7 @@ def sync_all() -> None:
 
 
 def sync(team: Optional[Team] = None) -> None:
-    """Register the arrival of a PE at a synchronization point, waits for others.
+    """Register the arrival of a PE at a synchronization point, wait for others.
 
     This routine does not return until all other PEs in a given team or
     active set arrive at this synchronization point.
@@ -2732,7 +2734,7 @@ def test(
 
     Args:
         ivar: Symmetric array of size ``1`` containing the element that will
-            be compared.
+            be tested.
         cmp: The comparison operator that compares ``ivar`` with ``value``.
         value: The value to be compared with ``ivar``.
     """
@@ -2752,7 +2754,7 @@ def test_all(
     """Indicate whether all variables on the local PE meet the specified condition.
 
     Args:
-        ivars: Symmetric array of objects to be compared.
+        ivars: Symmetric array of objects to be tested.
         cmp: The comparison operator that compares elements of ``ivars`` with
             ``value``.
         value: The value to be compared with elements of ``ivars``.
@@ -2777,7 +2779,7 @@ def test_any(
     """Indicate whether any one variable on the local PE meets the specified condition.
 
     Args:
-        ivars: Symmetric array of objects to be compared.
+        ivars: Symmetric array of objects to be tested.
         cmp: The comparison operator that compares elements of ``ivars`` with
             ``value``.
         value: The value to be compared with elements of ``ivars``.
@@ -2805,7 +2807,7 @@ def test_some(
     """Indicate whether at least one variable on the local PE meets the specified condition.
 
     Args:
-        ivars: Symmetric array of objects to be compared.
+        ivars: Symmetric array of objects to be tested.
         cmp: The comparison operator that compares elements of ``ivars`` with
             ``value``.
         value: The value to be compared with elements of ``ivars``.
@@ -2834,7 +2836,7 @@ def test_all_vector(
     """Indicate whether all variables on the local PE meets the specified conditions.
 
     Args:
-        ivars: Symmetric array of objects to be compared.
+        ivars: Symmetric array of objects to be tested.
         cmp: The comparison operator that compares elements of ``ivars`` with
             the elements ``values``.
         values: Local array containing values to be compared with the
@@ -2863,7 +2865,7 @@ def test_any_vector(
     """Indicate whether any one variable on the local PE meets its specified condition.
 
     Args:
-        ivars: Symmetric array of objects to be compared.
+        ivars: Symmetric array of objects to be tested.
         cmp: The comparison operator that compares elements of ``ivars`` with
             the elements ``values``.
         values: Local array containing values to be compared with the
@@ -2893,7 +2895,7 @@ def test_some_vector(
     """Indicate whether at least one variable on the local PE meets its specified condition.
 
     Args:
-        ivars: Symmetric array of objects to be compared.
+        ivars: Symmetric array of objects to be tested.
         cmp: The comparison operator that compares elements of ``ivars`` with
             the elements ``values``.
         values: Local array containing values to be compared with the
@@ -2923,7 +2925,7 @@ def signal_wait_until(
     """Wait for a variable on the local PE to change from a signaling operation.
 
     Args:
-        signal: Local address of the source signal variable.
+        signal: Local symmetric source signal variable.
         cmp: The comparison operator that compares ``signal`` with ``value``.
         value: The value against which the object poitned to by ``signal`` will
             be compared.
@@ -2949,8 +2951,7 @@ def fence(ctx: Optional[Ctx] = None) -> None:
 
     Args:
         ctx: A context handle specifying the context on which to perform the
-            operation. When this argument is not provided, the operation is
-            performed on the default context.
+            operation. If `None`, defaults to the default context.
     """
     if ctx is None:
         lib.shmem_fence()
@@ -2966,9 +2967,7 @@ def quiet(ctx: Optional[Ctx] = None) -> None:
 
     Args:
         ctx: A context handle specifying the context on which to perform the
-            operation. When this argument is not provided, the operation is
-            performed on the default context.
-
+            operation. If `None`, defaults to the default context.
     """
     if ctx is None:
         lib.shmem_quiet()
