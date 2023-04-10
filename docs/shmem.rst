@@ -66,6 +66,8 @@ Memory Management
    ones
    full
 
+.. autoclass:: MALLOC
+
 .. autofunction:: alloc
 .. autofunction:: free
 .. autofunction:: fromalloc
@@ -83,6 +85,9 @@ Communication Management
 
 .. autosummary::
    Ctx
+
+.. autoclass::
+   CTX
 
 .. autoclass:: Ctx
 

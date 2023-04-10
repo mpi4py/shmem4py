@@ -308,7 +308,7 @@ class Ctx:
             options: The set of options requested for the given context. Valid
                 options are the enumerations listed in the `CTX` class.
                 Multiple options may be requested by combining them with a
-                *bitwise or* operation. ``0`` can be used if no options are
+                bitwise OR operation. ``0`` can be used if no options are
                 requested.
             team: If the team is specified, the communication context is
                 created from this ``team``.
@@ -536,7 +536,7 @@ class Team:
             options: The set of options requested for the given context. Valid
                 options are the enumerations listed in the `CTX` class.
                 Multiple options may be requested by combining them with a
-                *bitwise or* operation. ``0`` can be used if no options are
+                bitwise OR operation. ``0`` can be used if no options are
                 requested.
         """
         team = self.ob_team
@@ -2121,8 +2121,8 @@ def broadcast(
 
 
 def collect(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
@@ -2136,9 +2136,9 @@ def collect(
     ``source`` array into the ``target`` array.
 
     Args:
-        target: Symmetric address of an array large enough to accept the
+        target: Symmetric destination array large enough to accept the
             concatenation of the source arrays on all participating PEs.
-        source: Symmetric address of the source data object.
+        source: Symmetric source array.
         size: The number of elements in ``source`` array.
         team: The team over which to perform the operation.
     """
@@ -2149,8 +2149,8 @@ def collect(
 
 
 def fcollect(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
@@ -2161,9 +2161,9 @@ def fcollect(
     ``MPI_Allgather`` equivalent.
 
     Args:
-        target: Symmetric address of an array large enough to accept the
+        target: Symmetric destination array large enough to accept the
             concatenation of the source arrays on all participating PEs.
-        source: Symmetric address of the source data object.
+        source: Symmetric source array.
         size: The number of elements in ``source`` array.
         team: The team over which to perform the operation.
     """
@@ -2183,11 +2183,10 @@ def alltoall(target, source, size=None, team=None) -> None:
     and each block of data is sent to a different PE.
 
     Args:
-        target: Symmetric address of a data object large enough to receive the
+        target: Symmetric destination array large enough to receive the
             combined total of ``size`` elements from each PE in the active set.
-        source: Symmetric address of a data object that contains ``size``
-            elements of data for each PE in the active set, ordered according
-            to destination PE.
+        source: Symmetric source array that contains ``size`` elements of data
+            for each PE in the active set, ordered according to destination PE.
         size: The number of elements to exchange for each PE.
         team: The team over which to perform the operation.
     """
@@ -2199,8 +2198,8 @@ def alltoall(target, source, size=None, team=None) -> None:
 
 
 def alltoalls(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     tst: int = 1,
     sst: int = 1,
     size: Optional[int] = None,
@@ -2209,11 +2208,10 @@ def alltoalls(
     """Each PE participating in the operation exchanges strided data elements with all other PEs participating in the operation.
 
     Args:
-        target: Symmetric address of a data object large enough to receive the
+        target: Symmetric destination array large enough to receive the
             combined total of ``size`` elements from each PE in the active set.
-        source: Symmetric address of a data object that contains ``size``
-            elements of data for each PE in the active set, ordered according
-            to destination PE.
+        source: Symmetric source array that contains ``size`` elements of data
+            for each PE in the active set, ordered according to destination PE.
         tst: The stride between consecutive elements of the ``target`` data
             object. The stride is scaled by the element size.
         sst: The stride between consecutive elements of the ``source`` data
@@ -2236,7 +2234,7 @@ def alltoalls(
 class OP(_StrEnum):
     """Reduction operation.
 
-    Attributes: #TODO: is attributes the right section?
+    Attributes:
         AND:  Bitwise AND.
         OR:   Bitwise OR.
         XOR:  Bitwise XOR.
@@ -2264,8 +2262,8 @@ OP_PROD: OP = OP.PROD
 
 
 def reduce(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     op: OP = OP_SUM,
     size: Optional[int] = None,
     team: Optional[Team] = None,
@@ -2273,10 +2271,10 @@ def reduce(
     """Perform a specified reduction across a set of PEs.
 
     Args:
-        target: Symmetric address of an array, of length ``size`` elements, to
+        target: Symmetric destination array of length ``size`` elements, to
             receive the result of the reduction routine.
-        source: Symmetric address of an array, of length ``size`` elements,
-            that contains one element for each separate reduction routine.
+        source: Symmetric source array of length ``size`` elements, that
+            contains one element for each separate reduction routine.
         op: The reduction operation to perform.
         size: The number of elements in the ``target`` and ``source`` arrays.
         team: The team over which to perform the operation.
@@ -2290,18 +2288,18 @@ def reduce(
 
 
 def and_reduce(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
     """Perform a bitwise AND reduction across a set of PEs.
 
     Args:
-        target: Symmetric address of an array, of length ``size`` elements, to
+        target: Symmetric destination array of length ``size`` elements, to
             receive the result of the reduction routine.
-        source: Symmetric address of an array, of length ``size`` elements,
-            that contains one element for each separate reduction routine.
+        source: Symmetric source array of length ``size`` elements, that
+            contains one element for each separate reduction routine.
         size: The number of elements in the ``target`` and ``source`` arrays.
         team: The team over which to perform the operation.
     """
@@ -2309,18 +2307,18 @@ def and_reduce(
 
 
 def or_reduce(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
     """Perform a bitwise OR reduction across a set of PEs.
 
     Args:
-        target: Symmetric address of an array, of length ``size`` elements, to
+        target: Symmetric destination array of length ``size`` elements, to
             receive the result of the reduction routine.
-        source: Symmetric address of an array, of length ``size`` elements,
-            that contains one element for each separate reduction routine.
+        source: Symmetric source array of length ``size`` elements, that
+            contains one element for each separate reduction routine.
         size: The number of elements in the ``target`` and ``source`` arrays.
         team: The team over which to perform the operation.
     """
@@ -2328,18 +2326,18 @@ def or_reduce(
 
 
 def xor_reduce(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
     """Perform a bitwise exclusive OR (XOR) reduction across a set of PEs.
 
     Args:
-        target: Symmetric address of an array, of length ``size`` elements, to
+        target: Symmetric destination array of length ``size`` elements, to
             receive the result of the reduction routine.
-        source: Symmetric address of an array, of length ``size`` elements,
-            that contains one element for each separate reduction routine.
+        source: Symmetric source array of length ``size`` elements, that
+            contains one element for each separate reduction routine.
         size: The number of elements in the ``target`` and ``source`` arrays.
         team: The team over which to perform the operation.
     """
@@ -2347,18 +2345,18 @@ def xor_reduce(
 
 
 def max_reduce(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
     """Perform a maximum-value reduction across a set of PEs.
 
     Args:
-        target: Symmetric address of an array, of length ``size`` elements, to
+        target: Symmetric destination array of length ``size`` elements, to
             receive the result of the reduction routine.
-        source: Symmetric address of an array, of length ``size`` elements,
-            that contains one element for each separate reduction routine.
+        source: Symmetric source array of length ``size`` elements, that
+            contains one element for each separate reduction routine.
         size: The number of elements in the ``target`` and ``source`` arrays.
         team: The team over which to perform the operation.
     """
@@ -2366,18 +2364,18 @@ def max_reduce(
 
 
 def min_reduce(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
     """Perform a minimum-value reduction across a set of PEs.
 
     Args:
-        target: Symmetric address of an array, of length ``size`` elements, to
+        target: Symmetric destination array of length ``size`` elements, to
             receive the result of the reduction routine.
-        source: Symmetric address of an array, of length ``size`` elements,
-            that contains one element for each separate reduction routine.
+        source: Symmetric source array of length ``size`` elements, that
+            contains one element for each separate reduction routine.
         size: The number of elements in the ``target`` and ``source`` arrays.
         team: The team over which to perform the operation.
     """
@@ -2385,18 +2383,18 @@ def min_reduce(
 
 
 def sum_reduce(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
     """Perform a sum reduction across a set of PEs.
 
     Args:
-        target: Symmetric address of an array, of length ``size`` elements, to
+        target: Symmetric destination array of length ``size`` elements, to
             receive the result of the reduction routine.
-        source: Symmetric address of an array, of length ``size`` elements,
-            that contains one element for each separate reduction routine.
+        source: Symmetric source array of length ``size`` elements, that
+            contains one element for each separate reduction routine.
         size: The number of elements in the ``target`` and ``source`` arrays.
         team: The team over which to perform the operation.
     """
@@ -2404,18 +2402,18 @@ def sum_reduce(
 
 
 def prod_reduce(
-    target,
-    source,
+    target: NDArray[T],
+    source: NDArray[T],
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
     """Perform a product reduction across a set of PEs.
 
     Args:
-        target: Symmetric address of an array, of length ``size`` elements, to
+        target: Symmetric destination array of length ``size`` elements, to
             receive the result of the reduction routine.
-        source: Symmetric address of an array, of length ``size`` elements,
-            that contains one element for each separate reduction routine.
+        source: Symmetric source array of length ``size`` elements, that
+            contains one element for each separate reduction routine.
         size: The number of elements in the ``target`` and ``source`` arrays.
         team: The team over which to perform the operation.
     """
@@ -2511,7 +2509,7 @@ def _shmem_sync(ctype, name):
 
 
 def wait_until(
-    ivar,
+    ivar: NDArray[Any],
     cmp: CMP,
     value: Number,
 ) -> None:
@@ -2522,7 +2520,8 @@ def wait_until(
     operator.
 
     Args:
-        ivar: Symmetric address of a remotely accessible data object.
+        ivar: Symmetric array of size ``1`` containing the element that will
+            be compared.
         cmp: The comparison operator that compares ``ivar`` with ``value``.
         value: The value to be compared with ``ivar``.
     """
@@ -2533,7 +2532,7 @@ def wait_until(
 
 
 def wait_until_all(
-    ivars,
+    ivars: NDArray[Any],
     cmp: CMP,
     value: Number,
     status: Optional[Sequence[int]] = None,
@@ -2545,8 +2544,7 @@ def wait_until_all(
     is the comparison operator.
 
     Args:
-        ivars: Symmetric address of an array of remotely accessible data
-            objects.
+        ivars: Symmetric array of objects to be compared.
         cmp: The comparison operator that compares elements of ``ivars`` with
             ``value``.
         value: The value to be compared with elements of ``ivars``.
@@ -2562,7 +2560,7 @@ def wait_until_all(
 
 
 def wait_until_any(
-    ivars,
+    ivars: NDArray[Any],
     cmp: CMP,
     value: Number,
     status: Optional[Sequence[int]] = None,
@@ -2574,8 +2572,7 @@ def wait_until_any(
     calling PE, where ``cmp`` is the comparison operator.
 
     Args:
-        ivars: Symmetric address of an array of remotely accessible data
-            objects.
+        ivars: Symmetric array of objects to be compared.
         cmp: The comparison operator that compares elements of ``ivars`` with
             ``value``.
         value: The value to be compared with elements of ``ivars``.
@@ -2584,7 +2581,7 @@ def wait_until_any(
             values exclude the corresponding element from the wait set.
 
     Returns:
-        The index of entry ``i`` of ``ivars`` that satisfied the condition.
+        The index of entry ``i`` of ``ivars`` that satisfies the condition.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2595,7 +2592,7 @@ def wait_until_any(
 
 
 def wait_until_some(
-    ivars,
+    ivars: NDArray[Any],
     cmp: CMP,
     value: Number,
     status: Optional[Sequence[int]] = None,
@@ -2607,8 +2604,7 @@ def wait_until_some(
     calling PE, where ``cmp`` is the comparison operator.
 
     Args:
-        ivars: Symmetric address of an array of remotely accessible data
-            objects.
+        ivars: Symmetric array of objects to be compared.
         cmp: The comparison operator that compares elements of ``ivars`` with
             ``value``.
         value: The value to be compared with elements of ``ivars``.
@@ -2629,7 +2625,7 @@ def wait_until_some(
 
 
 def wait_until_all_vector(
-    ivars,
+    ivars: NDArray[Any],
     cmp: CMP,
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
@@ -2641,8 +2637,7 @@ def wait_until_all_vector(
     where ``cmp`` is the comparison operator.
 
     Args:
-        ivars: Symmetric address of an array of remotely accessible data
-            objects.
+        ivars: Symmetric array of objects to be compared.
         cmp: The comparison operator that compares elements of ``ivars`` with
             the elements of ``values``.
         values: Local array containing values to be compared with the
@@ -2660,7 +2655,7 @@ def wait_until_all_vector(
 
 
 def wait_until_any_vector(
-    ivars,
+    ivars: NDArray[Any],
     cmp: CMP,
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
@@ -2672,8 +2667,7 @@ def wait_until_any_vector(
     calling PE, where ``cmp`` is the comparison operator.
 
     Args:
-        ivars: Symmetric address of an array of remotely accessible data
-            objects.
+        ivars: Symmetric array of objects to be compared.
         cmp: The comparison operator that compares elements of ``ivars`` with
             the elements of ``values``.
         values: Local array containing values to be compared with the
@@ -2695,7 +2689,7 @@ def wait_until_any_vector(
 
 
 def wait_until_some_vector(
-    ivars,
+    ivars: NDArray[Any],
     cmp: CMP,
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
@@ -2707,8 +2701,7 @@ def wait_until_some_vector(
     calling PE, where ``cmp`` is the comparison operator.
 
     Args:
-        ivars: Symmetric address of an array of remotely accessible data
-            objects.
+        ivars: Symmetric array of objects to be compared.
         cmp: The comparison operator that compares elements of ``ivars`` with
             the elements of ``values``.
         values: Local array containing values to be compared with the
@@ -2731,14 +2724,15 @@ def wait_until_some_vector(
 
 
 def test(
-    ivar,
+    ivar: NDArray[Any],
     cmp: CMP,
     value: Number,
 ) -> bool:
     """Indicate whether a variable on the local PE meets the specified condition.
 
     Args:
-        ivar: Symmetric address of remotely accessible data object.
+        ivar: Symmetric array of size ``1`` containing the element that will
+            be compared.
         cmp: The comparison operator that compares ``ivar`` with ``value``.
         value: The value to be compared with ``ivar``.
     """
@@ -2750,7 +2744,7 @@ def test(
 
 
 def test_all(
-    ivars,
+    ivars: NDArray[Any],
     cmp: CMP,
     value: Number,
     status: Optional[Sequence[int]] = None,
@@ -2758,8 +2752,7 @@ def test_all(
     """Indicate whether all variables on the local PE meet the specified condition.
 
     Args:
-        ivars: Symmetric address of an array of remotely accessible data
-            objects.
+        ivars: Symmetric array of objects to be compared.
         cmp: The comparison operator that compares elements of ``ivars`` with
             ``value``.
         value: The value to be compared with elements of ``ivars``.
@@ -2776,7 +2769,7 @@ def test_all(
 
 
 def test_any(
-    ivars,
+    ivars: NDArray[Any],
     cmp: CMP,
     value: Number,
     status: Optional[Sequence[int]] = None,
@@ -2784,8 +2777,7 @@ def test_any(
     """Indicate whether any one variable on the local PE meets the specified condition.
 
     Args:
-        ivars: Symmetric address of an array of remotely accessible data
-            objects.
+        ivars: Symmetric array of objects to be compared.
         cmp: The comparison operator that compares elements of ``ivars`` with
             ``value``.
         value: The value to be compared with elements of ``ivars``.
@@ -2805,7 +2797,7 @@ def test_any(
 
 
 def test_some(
-    ivars,
+    ivars: NDArray[Any],
     cmp: CMP,
     value: Number,
     status: Optional[Sequence[int]] = None,
@@ -2813,8 +2805,7 @@ def test_some(
     """Indicate whether at least one variable on the local PE meets the specified condition.
 
     Args:
-        ivars: Symmetric address of an array of remotely accessible data
-            objects.
+        ivars: Symmetric array of objects to be compared.
         cmp: The comparison operator that compares elements of ``ivars`` with
             ``value``.
         value: The value to be compared with elements of ``ivars``.
@@ -2835,7 +2826,7 @@ def test_some(
 
 
 def test_all_vector(
-    ivars,
+    ivars: NDArray[Any],
     cmp: CMP,
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
@@ -2843,8 +2834,7 @@ def test_all_vector(
     """Indicate whether all variables on the local PE meets the specified conditions.
 
     Args:
-        ivars: Symmetric address of an array of remotely accessible data
-            objects.
+        ivars: Symmetric array of objects to be compared.
         cmp: The comparison operator that compares elements of ``ivars`` with
             the elements ``values``.
         values: Local array containing values to be compared with the
@@ -2865,7 +2855,7 @@ def test_all_vector(
 
 
 def test_any_vector(
-    ivars,
+    ivars: NDArray[Any],
     cmp: CMP,
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
@@ -2873,8 +2863,7 @@ def test_any_vector(
     """Indicate whether any one variable on the local PE meets its specified condition.
 
     Args:
-        ivars: Symmetric address of an array of remotely accessible data
-            objects.
+        ivars: Symmetric array of objects to be compared.
         cmp: The comparison operator that compares elements of ``ivars`` with
             the elements ``values``.
         values: Local array containing values to be compared with the
@@ -2896,7 +2885,7 @@ def test_any_vector(
 
 
 def test_some_vector(
-    ivars,
+    ivars: NDArray[Any],
     cmp: CMP,
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
@@ -2904,8 +2893,7 @@ def test_some_vector(
     """Indicate whether at least one variable on the local PE meets its specified condition.
 
     Args:
-        ivars: Symmetric address of an array of remotely accessible data
-            objects.
+        ivars: Symmetric array of objects to be compared.
         cmp: The comparison operator that compares elements of ``ivars`` with
             the elements ``values``.
         values: Local array containing values to be compared with the
