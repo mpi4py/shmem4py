@@ -2982,8 +2982,7 @@ _lock_ctype: ffi.CType = ffi.typeof('long*')
 
 
 def new_lock() -> LockHandle:
-    """Create a lock object.
-    """
+    """Create a lock object."""
     allocator = _get_allocator()
     lock = allocator(_lock_ctype)  # type: ignore[call-arg]
     return _typing.cast('LockHandle', lock)
@@ -3004,10 +3003,10 @@ def set_lock(lock: LockHandle) -> None:
 
     Any other PE currently holding the lock can free the lock. If the lock is
     currently set, the routine returns without waiting.
+    #TODO: this is not clear. should it be "if the lock is currently set by the calling PE"?
 
     Args:
-        lock: Symmetric address of data object that is a scalar variable or an
-            array of length 1.
+        lock: Symmetric scalar variable or an array of length ``1``.
     """
     lib.shmem_set_lock(lock)
 
@@ -3018,13 +3017,12 @@ def test_lock(lock: LockHandle) -> bool:
     By using this routine, a PE can avoid blocking on a set lock.
 
     Args:
-        lock: Symmetric address of data object that is a scalar variable or an
-            array of length 1.
+        lock: Symmetric scalar variable or an array of length ``1``.
 
     Returns:
         Returns `False` if the lock was originally cleared and this call was
-        able to set the lock. A value of ``True`` is returned if the lock had
-        been set and the call returned without waiting to set the lock.
+        able to set the lock. ``True`` is returned if the lock had been set and
+        the call returned without waiting to set the lock.
     """
     return bool(lib.shmem_test_lock(lock))
 
@@ -3032,13 +3030,12 @@ def test_lock(lock: LockHandle) -> bool:
 def clear_lock(lock: LockHandle) -> None:
     """Release a lock previously set by `set_lock` or `test_lock`.
 
-    After performing a `quiet` operation on the default context to ensure that
-    all symmetric memory accesses that occurred during the critical region are
-    complete.
+    Releases a lock after performing a `quiet` operation on the default
+    context to ensure that all symmetric memory accesses that occurred
+    during the critical region are complete.
 
     Args:
-        lock: Symmetric address of data object that is a scalar variable or an
-            array of length 1.
+        lock: Symmetric scalar variable or an array of length ``1``.
     """
     lib.shmem_clear_lock(lock)
 
@@ -3063,9 +3060,13 @@ class Lock:
         """Acquire a lock.
 
         Args:
-            blocking: If `True`, wait until the lock is acquired. If `False`,
-                return `True` if the lock is acquired and `False` otherwise
-                (i.e., lock was already set).
+            blocking: `True` to wait until the lock is acquired.
+
+        Returns:
+            If `blocking` is `True`, waits and returns `True` once the lock has
+            been acquired. If `blocking` is `False`, returns `True` if the lock
+            has been acquired and `False` otherwise (i.e., lock was already
+            set).
         """
         lock = self._lock
         assert lock is not None
@@ -3075,11 +3076,11 @@ class Lock:
         return not test_lock(lock)
 
     def release(self) -> None:
-        """Release a lock previously set by `set_lock` or `test_lock`.
+        """Release a lock.
 
-        After performing a `quiet` operation on the default context to ensure
-        that all symmetric memory accesses that occurred during the critical
-        region are complete.
+        Releases a lock after performing a `quiet` operation on the default
+        context to ensure that all symmetric memory accesses that occurred
+        during the critical region are complete.
         """
         lock = self._lock
         assert lock is not None
@@ -3096,7 +3097,7 @@ class Lock:
 
 
 def pcontrol(level: int = 1) -> None:
-    """Allow the user to control profiling.
+    """Set the profiling level.
 
     Args:
         level: The profiling level.
