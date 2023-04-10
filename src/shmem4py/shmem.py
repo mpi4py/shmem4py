@@ -1439,7 +1439,7 @@ def atomic_swap(
 
 def atomic_compare_swap(
     target: NDArray[Any],
-    cond, #TODO: Number?
+    cond: Number,
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
@@ -1594,7 +1594,7 @@ def atomic_swap_nbi(
 def atomic_compare_swap_nbi(
     fetch: NDArray[T],
     target: NDArray[T],
-    cond, #TODO:
+    cond: Number,
     value: Number,
     pe: int,
     ctx: Optional[Ctx] = None,
