@@ -1,0 +1,32 @@
+# https://readthedocs.org/projects/shmem4py/builds/
+
+version: 2
+
+formats: all
+
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.11"
+  apt_packages:
+    - autoconf
+    - automake
+    - libtool
+    - mpich
+    - libmpich-dev
+  jobs:
+    pre_install:
+      - git clone --depth 1 https://github.com/pmodels/oshmpi --recurse-submodules
+      - cd oshmpi && ./autogen.sh
+      - cd oshmpi && ./configure --enable-g CC=/usr/bin/mpicc CXX=/usr/bin/mpicxx --prefix=$READTHEDOCS_VIRTUALENV_PATH
+      - cd oshmpi && make
+      - cd oshmpi && make install
+
+python:
+   install:
+     - path: .
+     - requirements: docs/requirements.txt
+
+sphinx:
+   configuration: docs/conf.py
+   fail_on_warning: true
