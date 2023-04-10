@@ -762,8 +762,7 @@ def alloc(
     Args:
         count: Number of elements to allocate.
         size: Size of each element in bytes.
-        align: If provided, an aligned symmetric address whose value is a
-            multiple of alignment is returned.
+        align: Byte alignment of the block allocated from the symmetric heap.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
             combined using the bitwise OR operator.
@@ -804,7 +803,7 @@ def fromalloc(
     """Return a NumPy array interpreted from the buffer allocated from the symmetric heap.
 
     Args:
-        mem: The memory to be converted interpreted as a NumPy array.
+        mem: The memory to be interpreted as a NumPy array.
         shape: The shape of the array. If ``None``, the shape is inferred from
             the size of the memory.
         dtype: The data type of the array. If ``None``, the data type is
@@ -843,9 +842,7 @@ def new_array(
         order: The memory layout of the array. If ``'C'``, the array is
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
-        align: If provided, an aligned symmetric address whose value is a
-            multiple of alignment is returned. Can be provided as a keyword
-            argument only.
+        align: Byte alignment of the block allocated from the symmetric heap.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
             combined using the bitwise OR operator. Can be provided as a
@@ -878,18 +875,18 @@ def array(
     hints: Optional[int] = None,
 ) -> NDArray[Any]:
     """Return a new NumPy array allocated from the symmetric heap with contents of ``obj``.
-
+    # TODO: verify/rephrase 1 line above and 2 lines below and order
     Args:
         obj: The data to be copied to a NumPy array.
         dtype: The data type of the array. If ``None``, the data type is
             inferred from the memory contents.
-        order: The memory layout of the array. If ``'C'``, the array is
-            contiguous in memory (row major). If ``'F'``, the array is Fortran
-            contiguous (column major). Can be provided as a keyword argument
-            only.
-        align: If provided, an aligned symmetric address whose value is a
-            multiple of alignment is returned. Can be provided as a keyword
-            argument only.
+        order: The memory layout of the array. If ``'K'``, the order of the
+            array is preserved. If ``'A'``, the array may be in any order. If
+            ``'C'``, the array is contiguous in memory (row major). If ``'F'``,
+            the array is Fortran contiguous (column major). Can be provided as
+            a keyword argument only.
+        align: Byte alignment of the block allocated from the symmetric heap.
+            Can be provided as a keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
             combined using the bitwise OR operator. Can be provided as a
@@ -921,9 +918,8 @@ def empty(
         order: The memory layout of the array. If ``'C'``, the array is
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
-        align: If provided, an aligned symmetric address whose value is a
-            multiple of alignment is returned. Can be provided as a keyword
-            argument only.
+        align: Byte alignment of the block allocated from the symmetric heap.
+            Can be provided as a keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
             combined using the bitwise OR operator. Can be provided as a
@@ -941,7 +937,7 @@ def zeros(
     align: Optional[int] = None,
     hints: Optional[int] = None,
 ) -> NDArray[Any]:
-    """Return a new 0-initialized NumPy array allocated from the symmetric heap.
+    """Return a new ``0``-initialized NumPy array allocated from the symmetric heap.
 
     Args:
         shape: The shape of the array.
@@ -949,9 +945,8 @@ def zeros(
         order: The memory layout of the array. If ``'C'``, the array is
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
-        align: If provided, an aligned symmetric address whose value is a
-            multiple of alignment is returned. Can be provided as a keyword
-            argument only.
+        align: Byte alignment of the block allocated from the symmetric heap.
+            Can be provided as a keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
             combined using the bitwise OR operator. Can be provided as a
@@ -969,7 +964,7 @@ def ones(
     align: Optional[int] = None,
     hints: Optional[int] = None,
 ) -> NDArray[Any]:
-    """Return a new 1-initialized NumPy array allocated from the symmetric heap.
+    """Return a new ``1``-initialized NumPy array allocated from the symmetric heap.
 
     Args:
         shape: The shape of the array.
@@ -977,9 +972,8 @@ def ones(
         order: The memory layout of the array. If ``'C'``, the array is
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
-        align: If provided, an aligned symmetric address whose value is a
-            multiple of alignment is returned. Can be provided as a keyword
-            argument only.
+        align: Byte alignment of the block allocated from the symmetric heap.
+            Can be provided as a keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
             combined using the bitwise OR operator. Can be provided as a
@@ -1009,9 +1003,8 @@ def full(
         order: The memory layout of the array. If ``'C'``, the array is
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
-        align: If provided, an aligned symmetric address whose value is a
-            multiple of alignment is returned. Can be provided as a keyword
-            argument only.
+        align: Byte alignment of the block allocated from the symmetric heap.
+            Can be provided as a keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
             combined using the bitwise OR operator. Can be provided as a
@@ -1138,9 +1131,8 @@ def put(
     """Copy data from local ``source`` to ``target`` on PE ``pe``.
 
     Args:
-        target: Symmetric address of the destination data object.
-        source: Local address of the data object containing the data to be
-            copied.
+        target: Symmetric destination array.
+        source: Local array containing the data to be copied.
         pe: PE number of the remote PE.
         size: Number of elements in the ``target`` and ``source`` arrays.
         ctx: A context handle specifying the context on which to perform
@@ -1159,8 +1151,8 @@ def get(
     """Copy data from a specified PE.
 
     Args:
-        target: Local address of the data object to be updated.
-        source: Symmetric address of the source data object.
+        target: Local array to be updated.
+        source: Symmetric source array.
         pe: PE number of the remote PE.
         size: Number of elements in the ``target`` and ``source`` arrays.
         ctx: A context handle specifying the context on which to perform
@@ -1181,9 +1173,8 @@ def iput(
     """Copy strided data to a specified PE.
 
     Args:
-        target: Symmetric address of the destination data object.
-        source: Local address of the data object containing the data to be
-            copied.
+        target: Symmetric destination array.
+        source: Local array containing the data to be copied.
         pe: PE number of the remote PE.
         tst: The stride between consecutive elements of the ``target`` array.
             The stride is scaled by the element size of the ``target`` array.
@@ -1210,8 +1201,8 @@ def iget(
     """Copy strided data from a specified PE.
 
     Args:
-        target: Local address of the data object to be updated.
-        source: Symmetric address of the source data object.
+        target: Local array to be updated.
+        source: Symmetric source array.
         pe: PE number of the remote PE.
         tst: The stride between consecutive elements of the ``target`` array.
             The stride is scaled by the element size of the ``target`` array.
@@ -1238,8 +1229,8 @@ def put_nbi(
     Nonblocking.
 
     Args:
-        target: Symmetric address of the destination data object.
-        source: Local address of the object containing the data to be copied.
+        target: Symmetric destination array.
+        source: Local array containing the data to be copied.
         pe: PE number of the remote PE.
         size: Number of elements in the ``target`` and ``source`` arrays.
         ctx: A context handle specifying the context on which to perform
@@ -1259,8 +1250,8 @@ def get_nbi(
     Nonblocking.
 
     Args:
-        target: Local address of the data object to be updated.
-        source: Symmetric address of the source data object.
+        target: Local array to be updated.
+        source: Symmetric source array.
         pe: PE number of the remote PE.
         size: Number of elements in the ``target`` and ``source`` arrays.
         ctx: A context handle specifying the context on which to perform
