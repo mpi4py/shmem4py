@@ -1328,7 +1328,7 @@ def atomic_inc(
     """Increment ``target`` data object on PE ``pe``.
 
     Args:
-        target: Symmetric address of the destination data object.
+        target: Symmetric array of size ``1`` where value will be modified.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
             default context is used.
@@ -1345,7 +1345,7 @@ def atomic_add(
     """Add ``value`` to ``target`` on PE ``pe`` and atomically updates ``target``.
 
     Args:
-        target: Symmetric address of the destination data object.
+        target: Symmetric array of size ``1`` where value will be modified.
         value: The operand to the atomic add operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -1363,7 +1363,7 @@ def atomic_and(
     """Perform bitwise AND on ``target`` on PE ``pe`` with the operand ``value``.
 
     Args:
-        target: Symmetric address of the destination data object.
+        target: Symmetric array of size ``1`` where value will be modified.
         value: The operand to the bitwise AND operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -1381,7 +1381,7 @@ def atomic_or(
     """Perform bitwise OR on ``target`` on PE ``pe`` with the operand ``value``.
 
     Args:
-        target: Symmetric address of the destination data object.
+        target: Symmetric array of size ``1`` where value will be modified.
         value: The operand to the bitwise OR operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -1399,7 +1399,7 @@ def atomic_xor(
     """Perform bitwise XOR on ``target`` on PE ``pe`` with the operand ``value``.
 
     Args:
-        target: Symmetric address of the destination data object.
+        target: Symmetric array of size ``1`` where value will be modified.
         value: The operand to the bitwise XOR operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -1416,7 +1416,7 @@ def atomic_fetch(
     """Return the value of a ``source`` on PE ``pe``.
 
     Args:
-        source: Symmetric address of the source data object.
+        source: Symmetric array of size ``1`` from where value will be fetched.
         pe: The PE number from which ``source`` is to be fetched.
         ctx: The context on which to perform the operation. If ``None``, the
             default context is used.
@@ -1433,7 +1433,7 @@ def atomic_swap(
     """Write ``value`` into ``target`` on PE ``pe`` and returns the prior value.
 
     Args:
-        target: Symmetric address of the destination data object.
+        target: Symmetric array of size ``1`` containing the destination value.
         value: The value to be atomically written to the remote PE.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -1452,7 +1452,7 @@ def atomic_compare_swap(
     """Conditionally update ``target`` on PE ``pe`` and return its prior value.
 
     Args:
-        target: Symmetric address of the destination data object.
+        target: Symmetric array of size ``1`` containing the destination value.
         cond: ``cond`` is compared to the remote ``target`` value. If ``cond``
             and the remote ``target`` are equal, then ``value`` is swapped into
             the ``target``; otherwise, the ``target`` is unchanged.
@@ -1472,7 +1472,7 @@ def atomic_fetch_inc(
     """Increment ``target`` on PE ``pe`` and returns its prior value.
 
     Args:
-        target: Symmetric address of the destination data object.
+        target: Symmetric array of size ``1`` containing the destination value.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
             default context is used.
@@ -1489,7 +1489,7 @@ def atomic_fetch_add(
     """Add ``value`` to ``target`` on PE ``pe`` and returns its prior value.
 
     Args:
-        target: Symmetric address of the destination data object.
+        target: Symmetric array of size ``1`` containing the destination value.
         value: The operand to the atomic fetch-and-add operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -1507,7 +1507,7 @@ def atomic_fetch_and(
     """Perform a bitwise AND on ``target`` at PE ``pe`` with the operand value and returns its prior value.
 
     Args:
-        target: Symmetric address of the destination data object.
+        target: Symmetric array of size ``1`` containing the destination value.
         value: The operand to the bitwise AND operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -1525,7 +1525,7 @@ def atomic_fetch_or(
     """Perform a bitwise OR on ``target`` at PE ``pe`` with the operand value and returns its prior value.
 
     Args:
-        target: Symmetric address of the destination data object.
+        target: Symmetric array of size ``1`` containing the destination value.
         value: The operand to the bitwise OR operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -1543,7 +1543,7 @@ def atomic_fetch_xor(
     """Perform a bitwise XOR on ``target`` at PE ``pe`` with the operand value and returns its prior value.
 
     Args:
-        target: Symmetric address of the destination data object.
+        target: Symmetric array of size ``1`` containing the destination value.
         value: The operand to the bitwise XOR operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -1564,8 +1564,8 @@ def atomic_fetch_nbi(
     to ``quiet``.
 
     Args:
-        fetch: Local address of data object to be updated.
-        source: Symmetric address of the source data object.
+        fetch: Local array of size ``1`` to be updated.
+        source: Symmetric array of size ``1`` from where value will be fetched.
         pe: The PE number from which ``source`` is to be fetched.
         ctx: The context on which to perform the operation. If ``None``, the
             default context is used.
@@ -1586,8 +1586,8 @@ def atomic_swap_nbi(
     to ``quiet``.
 
     Args:
-        fetch: Local address of data object to be updated.
-        target: Symmetric address of the destination data object.
+        fetch: Local array of size ``1`` to be updated.
+        target: Symmetric array of size ``1`` containing the destination value.
         value: The value to be atomically written to the remote PE.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -1610,8 +1610,8 @@ def atomic_compare_swap_nbi(
     to ``quiet``.
 
     Args:
-        fetch: Local address of data object to be updated.
-        target: Symmetric address of the destination data object.
+        fetch: Local array of size ``1`` to be updated.
+        target: Symmetric array of size ``1`` containing the destination value.
         cond: ``cond`` is compared to the remote ``target`` value. If ``cond``
             and the remote ``target`` are equal, then ``value`` is swapped into
             the ``target``; otherwise, the ``target`` is unchanged.
@@ -1636,8 +1636,8 @@ def atomic_fetch_inc_nbi(
     The operation is considered complete after a subsequent call to ``quiet``.
 
     Args:
-        fetch: Local address of data object to be updated.
-        target: Symmetric address of the destination data object.
+        fetch: Local array of size ``1`` to be updated.
+        target: Symmetric array of size ``1`` containing the destination value.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
             default context is used.
@@ -1658,8 +1658,8 @@ def atomic_fetch_add_nbi(
     to ``quiet``.
 
     Args:
-        fetch: Local address of data object to be updated.
-        target: Symmetric address of the destination data object.
+        fetch: Local array of size ``1`` to be updated.
+        target: Symmetric array of size ``1`` containing the destination value.
         value: The value to be the atomic fetch-and-add operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -1681,8 +1681,8 @@ def atomic_fetch_and_nbi(
     to ``quiet``.
 
     Args:
-        fetch: Local address of data object to be updated.
-        target: Symmetric address of the destination data object.
+        fetch: Local array of size ``1`` to be updated.
+        target: Symmetric array of size ``1`` containing the destination value.
         value: The operand to the bitwise AND operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -1704,8 +1704,8 @@ def atomic_fetch_or_nbi(
     to ``quiet``.
 
     Args:
-        fetch: Local address of data object to be updated.
-        target: Symmetric address of the destination data object.
+        fetch: Local array of size ``1`` to be updated.
+        target: Symmetric array of size ``1`` containing the destination value.
         value: The operand to the bitwise OR operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -1727,8 +1727,8 @@ def atomic_fetch_xor_nbi(
     to ``quiet``.
 
     Args:
-        fetch: Local address of data object to be updated.
-        target: Symmetric address of the destination data object.
+        fetch: Local array of size ``1`` to be updated.
+        target: Symmetric array of size ``1`` containing the destination value.
         value: The operand to the bitwise XOR operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -1774,8 +1774,8 @@ def atomic_op(
     """Perform operation ``op`` on ``target`` on PE ``pe`` with the operand ``value``.
 
     Args:
-        target: Symmetric address of the destination data object.
-        value: The operand to the bitwise XOR operation.
+        target: Symmetric array of size ``1`` containing the destination value.
+        value: The operand to the operation.
         op: The operation to be performed.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -1795,8 +1795,8 @@ def atomic_fetch_op(
     """Perform operation ``op`` on ``target`` on PE ``pe`` and returns the prior value.
 
     Args:
-        target: Symmetric address of the destination data object.
-        value: The operand to the bitwise XOR operation.
+        target: Symmetric array of size ``1`` containing the destination value.
+        value: The operand to the operation.
         op: The operation to be performed.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
@@ -1817,9 +1817,9 @@ def atomic_fetch_op_nbi(
     """Perform operation ``op`` on ``target`` on PE ``pe`` and fetch the prior value to ``fetch``.
 
     Args:
-        fetch: Local address of data object to be updated.
-        target: Symmetric address of the destination data object.
-        value: The operand to the bitwise XOR operation.
+        fetch: Local array of size ``1`` to be updated.
+        target: Symmetric array of size ``1`` containing the destination value.
+        value: The operand to the operation.
         op: The operation to be performed.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If ``None``, the
