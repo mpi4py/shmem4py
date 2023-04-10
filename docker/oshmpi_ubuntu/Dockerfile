@@ -15,7 +15,7 @@ RUN apt-get update -y && apt-get install -y \
   python3 python3-pip python-is-python3
 
 RUN cd $INSTALL_DIR                                                                        && \
-    git clone https://github.com/dalcinl/oshmpi -b fix-api-1.5 --recurse-submodules        && \
+    git clone https://github.com/pmodels/oshmpi --recurse-submodules                       && \
     cd oshmpi                                                                              && \
     ./autogen.sh                                                                           && \
     ./configure CC=/usr/bin/mpicc CXX=/usr/bin/mpicxx --prefix=$INSTALL_DIR/oshmpi/install && \

@@ -9,7 +9,7 @@ RUN dnf update -y && \
     dnf clean all
 
 RUN cd $INSTALL_DIR                                                                                                && \
-    git clone https://github.com/dalcinl/oshmpi -b fix-api-1.5 --recurse-submodules                                && \
+    git clone https://github.com/pmodels/oshmpi --recurse-submodules                                               && \
     cd oshmpi                                                                                                      && \
     ./autogen.sh                                                                                                   && \
     ./configure CC=/usr/lib64/mpich/bin/mpicc CXX=/usr/lib64/mpich/bin/mpicxx --prefix=$INSTALL_DIR/oshmpi/install && \
