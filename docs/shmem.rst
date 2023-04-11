@@ -79,15 +79,42 @@ Memory Management
 .. autofunction:: ones
 .. autofunction:: full
 
+Team Management
+---------------
+.. autosummary::
+   Team
+   Team.destroy
+   Team.split_strided
+   Team.get_config
+   Team.my_pe
+   Team.n_pes
+   Team.translate_pe
+   Team.create_ctx
+   Team.sync
+
+.. autoclass:: Team
+
+   .. automethod:: destroy
+   .. automethod:: split_strided
+   .. automethod:: get_config
+   .. automethod:: my_pe
+   .. automethod:: n_pes
+   .. automethod:: translate_pe
+   .. automethod:: create_ctx
+   .. automethod:: sync
 
 Communication Management
 ------------------------
 
 .. autosummary::
    Ctx
+   Ctx.create
+   Ctx.destroy
+   Ctx.get_team
+   Ctx.fence
+   Ctx.quiet
 
-.. autoclass::
-   CTX
+.. autoclass:: CTX
 
 .. autoclass:: Ctx
 
@@ -203,8 +230,6 @@ Collective Operations
 ---------------------
 
 .. autosummary::
-   Team
-
    barrier_all
    sync_all
    sync
@@ -224,9 +249,6 @@ Collective Operations
    min_reduce
    sum_reduce
    prod_reduce
-
-
-.. autoclass::    Team
 
 .. autofunction:: barrier_all
 .. autofunction:: sync_all
@@ -268,6 +290,7 @@ Point-To-Point Synchronization
    test_all_vector
    test_any_vector
    test_some_vector
+   signal_wait_until
 
 .. autoclass::    CMP
 .. autofunction:: wait_until
@@ -284,6 +307,7 @@ Point-To-Point Synchronization
 .. autofunction:: test_all_vector
 .. autofunction:: test_any_vector
 .. autofunction:: test_some_vector
+.. autofunction:: signal_wait_until
 
 
 Memory Ordering
@@ -312,6 +336,18 @@ Distributed Locking
 .. autofunction:: set_lock
 .. autofunction:: test_lock
 .. autofunction:: clear_lock
+
+.. autosummary::
+   Lock
+   Lock.destroy
+   Lock.acquire
+   Lock.release
+
+.. autoclass:: Lock
+
+   .. automethod:: destroy
+   .. automethod:: acquire
+   .. automethod:: release
 
 
 Profiling Control

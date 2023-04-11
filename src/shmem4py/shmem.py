@@ -166,7 +166,7 @@ def global_exit(status: int = 0) -> NoReturn:  # pragma: no cover
 
 
 def init_thread(requested: THREAD = THREAD_MULTIPLE) -> THREAD:
-    """Initialize the OpenSHMEM library with support for the provided thread level.
+    """Initialize the library with support for the provided thread level.
 
     Either `init` or `init_thread` should be used to initialize the program.
 
@@ -608,9 +608,9 @@ def ptr(
         pe: The PE number on which ``target`` is to be accessed.
 
     Returns:
-        A local pointer to the remotely accessible ``target`` data object is
-        returned when it can be accessed using memory loads and stores.
-        Otherwise, `None` is returned.
+        A local pointer to the remotely accessible ``target`` array is returned
+        when it can be accessed using memory loads and stores. Otherwise,
+        `None` is returned.
     """
     caddr = _getbuffer(target, readonly=True)[0]
     cdata = lib.shmem_ptr(caddr, pe)
@@ -842,12 +842,12 @@ def new_array(
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
         align: Byte alignment of the block allocated from the symmetric heap.
+            Keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
-            combined using the bitwise OR operator. Can be provided as a
-            keyword argument only.
-        clear: If ``True``, the allocated memory is cleared to zero. Can be
-            provided as a keyword argument only.
+            combined using the bitwise OR operator. Keyword argument only.
+        clear: If ``True``, the allocated memory is cleared to zero. Keyword
+            argument only.
     """
     dtype = np.dtype(dtype)
     count = np.prod(shape, dtype='p')
@@ -873,25 +873,19 @@ def array(
     align: Optional[int] = None,
     hints: Optional[int] = None,
 ) -> NDArray[Any]:
-    """Return a new NumPy array allocated from the symmetric heap with contents of ``obj``.
-
-    TODO: verify/rephrase 1 line above and 2 lines below and order
+    """Return a new NumPy array allocated from the symmetric heap and initialize contents with ``obj``.
 
     Args:
-        obj: The data to be copied to a NumPy array.
+        obj: The object from which a NumPy array is to be initialized.
         dtype: The data type of the array. If `None`, the data type is inferred
             from the memory contents.
-        order: The memory layout of the array. If ``'K'``, the order of the
-            array is preserved. If ``'A'``, the array may be in any order. If
-            ``'C'``, the array is contiguous in memory (row major). If ``'F'``,
-            the array is Fortran contiguous (column major). Can be provided as
-            a keyword argument only.
+        order: The memory layout of the array. See `numpy.array` for the
+            explanation of the options. Keyword argument only.
         align: Byte alignment of the block allocated from the symmetric heap.
-            Can be provided as a keyword argument only.
+            Keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
-            combined using the bitwise OR operator. Can be provided as a
-            keyword argument only.
+            combined using the bitwise OR operator. Keyword argument only.
     """
     tmp = np.array(obj, dtype, copy=False, order=order)
     a = new_array(tmp.size, tmp.dtype, align=align, hints=hints, clear=False)
@@ -920,11 +914,10 @@ def empty(
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
         align: Byte alignment of the block allocated from the symmetric heap.
-            Can be provided as a keyword argument only.
+            Keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
-            combined using the bitwise OR operator. Can be provided as a
-            keyword argument only.
+            combined using the bitwise OR operator. Keyword argument only.
     """
     a = new_array(shape, dtype, order, align=align, hints=hints, clear=False)
     return a
@@ -947,11 +940,10 @@ def zeros(
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
         align: Byte alignment of the block allocated from the symmetric heap.
-            Can be provided as a keyword argument only.
+            Keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
-            combined using the bitwise OR operator. Can be provided as a
-            keyword argument only.
+            combined using the bitwise OR operator. Keyword argument only.
     """
     a = new_array(shape, dtype, order, align=align, hints=hints, clear=True)
     return a
@@ -974,11 +966,10 @@ def ones(
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
         align: Byte alignment of the block allocated from the symmetric heap.
-            Can be provided as a keyword argument only.
+            Keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
-            combined using the bitwise OR operator. Can be provided as a
-            keyword argument only.
+            combined using the bitwise OR operator. Keyword argument only.
     """
     a = new_array(shape, dtype, order, align=align, hints=hints, clear=False)
     np.copyto(a, 1, casting='unsafe')
@@ -1005,11 +996,10 @@ def full(
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
         align: Byte alignment of the block allocated from the symmetric heap.
-            Can be provided as a keyword argument only.
+            Keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
-            combined using the bitwise OR operator. Can be provided as a
-            keyword argument only.
+            combined using the bitwise OR operator. Keyword argument only.
     """
     if dtype is None:
         dtype = np.array(fill_value).dtype
@@ -1321,7 +1311,7 @@ def atomic_inc(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Increment ``target`` data object on PE ``pe``.
+    """Increment ``target`` array element on PE ``pe``.
 
     Args:
         target: Symmetric array of size ``1`` where value will be modified.
