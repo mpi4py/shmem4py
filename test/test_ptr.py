@@ -34,6 +34,8 @@ class TestPtr(unittest.TestCase):
                 shmem.barrier_all()
                 self.assertEqual(sym[0], mype)
 
+            shmem.barrier_all()
+
             ploc = shmem.ptr(sym, pvpe)
             if ploc is not None:
                 self.assertTrue(isinstance(ploc, np.ndarray))
@@ -65,6 +67,9 @@ class TestPtr(unittest.TestCase):
                         loc[...] = nxpe
                         shmem.barrier_all()
                         self.assertTrue(np.all(sym == mype))
+
+                    shmem.barrier_all()
+
                     loc = shmem.ptr(sym, pvpe)
                     if loc is not None:
                         self.assertTrue(isinstance(loc, np.ndarray))
