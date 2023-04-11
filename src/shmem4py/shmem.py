@@ -3041,9 +3041,9 @@ class Lock:
 
         Returns:
             If ``blocking`` is `True`, waits and returns `True` once the lock
-            has been acquired. If `blocking` is `False`, returns `True` if the
-            lock has been acquired and `False` otherwise (i.e., lock was already
-            set).
+            has been acquired. If ``blocking`` is `False`, returns `True` if
+            the lock has been acquired and `False` otherwise (i.e., lock was
+            already set).
         """
         lock = self._lock
         assert lock is not None
