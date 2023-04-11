@@ -23,7 +23,7 @@ class TestPtr(unittest.TestCase):
         for t in types:
             sym = shmem.new_array(1, t)
             sym[0] = npes
-            shmem.barrier_all()
+            shmem.sync_all()
 
             nloc = shmem.ptr(sym, nxpe)
             if nloc is not None:
@@ -31,7 +31,7 @@ class TestPtr(unittest.TestCase):
                 self.assertEqual(nloc.dtype, sym.dtype)
                 self.assertEqual(nloc[0], npes)
                 nloc[0] = nxpe
-                shmem.barrier_all()
+                shmem.sync_all()
                 self.assertEqual(sym[0], mype)
 
             shmem.sync_all()
@@ -42,7 +42,7 @@ class TestPtr(unittest.TestCase):
                 self.assertEqual(ploc.dtype, sym.dtype)
                 self.assertEqual(ploc[0], pvpe)
                 ploc[0] = mype
-                shmem.barrier_all()
+                shmem.sync_all()
                 self.assertEqual(sym[0], nxpe)
 
             shmem.free(sym)
@@ -56,7 +56,7 @@ class TestPtr(unittest.TestCase):
             for d in (0, 1, 2, 3):
                 for order in ('C', 'F'):
                     sym = shmem.full((3,)*d, npes, dtype=t, order=order)
-                    shmem.barrier_all()
+
                     loc = shmem.ptr(sym, nxpe)
                     if loc is not None:
                         self.assertTrue(isinstance(loc, np.ndarray))
@@ -65,7 +65,7 @@ class TestPtr(unittest.TestCase):
                         self.assertEqual(loc.strides, sym.strides)
                         self.assertTrue(np.all(loc == npes))
                         loc[...] = nxpe
-                        shmem.barrier_all()
+                        shmem.sync_all()
                         self.assertTrue(np.all(sym == mype))
 
                     shmem.sync_all()
@@ -78,8 +78,9 @@ class TestPtr(unittest.TestCase):
                         self.assertEqual(loc.strides, sym.strides)
                         self.assertTrue(np.all(loc == pvpe))
                         loc[...] = mype
-                        shmem.barrier_all()
+                        shmem.sync_all()
                         self.assertTrue(np.all(sym == nxpe))
+
                     shmem.free(sym)
 
 
