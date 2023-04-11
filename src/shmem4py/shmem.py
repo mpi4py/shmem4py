@@ -590,7 +590,7 @@ def addr_accessible(
     """Return whether an address is accessible from the specified remote PE.
 
     Args:
-        addr: Local address of data object to query. #TODO: is "address" appropriate?
+        addr: Local array object to query.
         pe: The id of a remote PE.
     """
     caddr = _getbuffer(addr, readonly=True)[0]
