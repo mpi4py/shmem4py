@@ -452,7 +452,7 @@ class Team:
             stride: The stride between team PE numbers in the parent team that
                 comprise the subset of PEs that will form the new team.
             size: The number of PEs from the parent team in the subset of PEs
-                that will form the new team. If ``None``, the size is
+                that will form the new team. If `None`, the size is
                 automatically determined.
             config: A pointer to the configuration parameters for the new team.
                 TODO: more info needed 9.4.3
@@ -804,10 +804,10 @@ def fromalloc(
 
     Args:
         mem: The memory to be interpreted as a NumPy array.
-        shape: The shape of the array. If ``None``, the shape is inferred from
+        shape: The shape of the array. If `None`, the shape is inferred from
             the size of the memory.
-        dtype: The data type of the array. If ``None``, the data type is
-            inferred from the memory contents.
+        dtype: The data type of the array. If `None`, the data type is inferred
+            from the memory contents.
         order: The memory layout of the array. If ``'C'``, the array is
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
@@ -880,8 +880,8 @@ def array(
 
     Args:
         obj: The data to be copied to a NumPy array.
-        dtype: The data type of the array. If ``None``, the data type is
-            inferred from the memory contents.
+        dtype: The data type of the array. If `None`, the data type is inferred
+            from the memory contents.
         order: The memory layout of the array. If ``'K'``, the order of the
             array is preserved. If ``'A'``, the array may be in any order. If
             ``'C'``, the array is contiguous in memory (row major). If ``'F'``,
@@ -1311,7 +1311,7 @@ def atomic_set(
         target: Symmetric array of size ``1`` where data will be written.
         value: The operand to the atomic set operation.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     _shmem_amo(ctx, 'set', target, value, pe)
@@ -1327,7 +1327,7 @@ def atomic_inc(
     Args:
         target: Symmetric array of size ``1`` where value will be modified.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     _shmem_amo(ctx, 'inc', target, None, pe)
@@ -1345,7 +1345,7 @@ def atomic_add(
         target: Symmetric array of size ``1`` where value will be modified.
         value: The operand to the atomic add operation.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     _shmem_amo(ctx, 'add', target, value, pe)
@@ -1363,7 +1363,7 @@ def atomic_and(
         target: Symmetric array of size ``1`` where value will be modified.
         value: The operand to the bitwise AND operation.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     _shmem_amo(ctx, 'and', target, value, pe)
@@ -1381,7 +1381,7 @@ def atomic_or(
         target: Symmetric array of size ``1`` where value will be modified.
         value: The operand to the bitwise OR operation.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     _shmem_amo(ctx, 'or', target, value, pe)
@@ -1399,7 +1399,7 @@ def atomic_xor(
         target: Symmetric array of size ``1`` where value will be modified.
         value: The operand to the bitwise XOR operation.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     _shmem_amo(ctx, 'xor', target, value, pe)
@@ -1415,7 +1415,7 @@ def atomic_fetch(
     Args:
         source: Symmetric array of size ``1`` from where value will be fetched.
         pe: The PE number from which ``source`` is to be fetched.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     return _shmem_amo(ctx, 'fetch', source, pe, readonly=True)
@@ -1433,7 +1433,7 @@ def atomic_swap(
         target: Symmetric array of size ``1`` containing the destination value.
         value: The value to be atomically written to the remote PE.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     return _shmem_amo(ctx, 'swap', target, value, pe)
@@ -1455,7 +1455,7 @@ def atomic_compare_swap(
             the ``target``; otherwise, the ``target`` is unchanged.
         value: The value to be atomically written to the remote PE.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     return _shmem_amo(ctx, 'compare_swap', target, cond, value, pe)
@@ -1471,7 +1471,7 @@ def atomic_fetch_inc(
     Args:
         target: Symmetric array of size ``1`` containing the destination value.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     return _shmem_amo(ctx, 'fetch_inc', target, None, pe)
@@ -1489,7 +1489,7 @@ def atomic_fetch_add(
         target: Symmetric array of size ``1`` containing the destination value.
         value: The operand to the atomic fetch-and-add operation.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     return _shmem_amo(ctx, 'fetch_add', target, value, pe)
@@ -1507,7 +1507,7 @@ def atomic_fetch_and(
         target: Symmetric array of size ``1`` containing the destination value.
         value: The operand to the bitwise AND operation.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
 """
     return _shmem_amo(ctx, 'fetch_and', target, value, pe)
@@ -1525,7 +1525,7 @@ def atomic_fetch_or(
         target: Symmetric array of size ``1`` containing the destination value.
         value: The operand to the bitwise OR operation.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     return _shmem_amo(ctx, 'fetch_or', target, value, pe)
@@ -1543,7 +1543,7 @@ def atomic_fetch_xor(
         target: Symmetric array of size ``1`` containing the destination value.
         value: The operand to the bitwise XOR operation.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     return _shmem_amo(ctx, 'fetch_xor', target, value, pe)
@@ -1564,7 +1564,7 @@ def atomic_fetch_nbi(
         fetch: Local array of size ``1`` to be updated.
         source: Symmetric array of size ``1`` from where value will be fetched.
         pe: The PE number from which ``source`` is to be fetched.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     _shmem_amo_nbi(ctx, 'fetch', fetch, source, pe, readonly=True)
@@ -1587,7 +1587,7 @@ def atomic_swap_nbi(
         target: Symmetric array of size ``1`` containing the destination value.
         value: The value to be atomically written to the remote PE.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     _shmem_amo_nbi(ctx, 'swap', fetch, target, value, pe)
@@ -1614,7 +1614,7 @@ def atomic_compare_swap_nbi(
             the ``target``; otherwise, the ``target`` is unchanged.
         value: The value to be atomically written to the remote PE.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     _shmem_amo_nbi(ctx, 'compare_swap', fetch, target, cond, value, pe)
@@ -1636,7 +1636,7 @@ def atomic_fetch_inc_nbi(
         fetch: Local array of size ``1`` to be updated.
         target: Symmetric array of size ``1`` containing the destination value.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     _shmem_amo_nbi(ctx, 'fetch_inc', fetch, target, None, pe)
@@ -1659,7 +1659,7 @@ def atomic_fetch_add_nbi(
         target: Symmetric array of size ``1`` containing the destination value.
         value: The value to be the atomic fetch-and-add operation.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     _shmem_amo_nbi(ctx, 'fetch_add', fetch, target, value, pe)
@@ -1682,7 +1682,7 @@ def atomic_fetch_and_nbi(
         target: Symmetric array of size ``1`` containing the destination value.
         value: The operand to the bitwise AND operation.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     _shmem_amo_nbi(ctx, 'fetch_and', fetch, target, value, pe)
@@ -1705,7 +1705,7 @@ def atomic_fetch_or_nbi(
         target: Symmetric array of size ``1`` containing the destination value.
         value: The operand to the bitwise OR operation.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     _shmem_amo_nbi(ctx, 'fetch_or', fetch, target, value, pe)
@@ -1728,7 +1728,7 @@ def atomic_fetch_xor_nbi(
         target: Symmetric array of size ``1`` containing the destination value.
         value: The operand to the bitwise XOR operation.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     _shmem_amo_nbi(ctx, 'fetch_xor', fetch, target, value, pe)
@@ -1775,7 +1775,7 @@ def atomic_op(
         value: The operand to the operation.
         op: The operation to be performed.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
 """
     op = _parse_amo_op(op)
@@ -1796,7 +1796,7 @@ def atomic_fetch_op(
         value: The operand to the operation.
         op: The operation to be performed.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     op = _parse_amo_op(op)
@@ -1819,7 +1819,7 @@ def atomic_fetch_op_nbi(
         value: The operand to the operation.
         op: The operation to be performed.
         pe: The PE number on which ``target`` is to be updated.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     op = _parse_amo_op(op)
@@ -1925,7 +1925,7 @@ def put_signal(
         sigop: Signal operator that represents the type of update to be
             performed on the remote ``signal`` data object.
         size: Number of elements in the ``target`` and ``source`` arrays.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     _shmem_rma_signal(
@@ -1963,7 +1963,7 @@ def put_signal_nbi(
         sigop: Signal operator that represents the type of update to be
             performed on the remote ``signal`` data object.
         size: Number of elements in the ``target`` and ``source`` arrays.
-        ctx: The context on which to perform the operation. If ``None``, the
+        ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
     _shmem_rma_signal(
