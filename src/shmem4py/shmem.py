@@ -2992,10 +2992,6 @@ def del_lock(lock: LockHandle) -> None:
 def set_lock(lock: LockHandle) -> None:
     """Set a mutual exclusion lock after waiting for the lock to be freed.
 
-    Any other PE currently holding the lock can free the lock. If the lock is
-    currently set, the routine returns without waiting.
-    #TODO: this is not clear. should it be "if the lock is currently set by the calling PE"?
-
     Args:
         lock: Symmetric scalar variable or an array of length ``1``.
     """
