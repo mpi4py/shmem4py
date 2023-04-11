@@ -601,8 +601,7 @@ def ptr(
     target: NDArray[T],
     pe: int,
 ) -> Optional[NDArray[T]]:
-    """Return a local pointer to a symmetric data object on the specified PE.
-    #TODO: it's not a pointer, it's a numpy array with remote memory backing it?
+    """Return a local view to a symmetric array on the specified PE.
 
     Args:
         target: The symmetric destination array.
