@@ -34,7 +34,7 @@ class TestPtr(unittest.TestCase):
                 shmem.barrier_all()
                 self.assertEqual(sym[0], mype)
 
-            shmem.barrier_all()
+            shmem.sync_all()
 
             ploc = shmem.ptr(sym, pvpe)
             if ploc is not None:
@@ -68,7 +68,7 @@ class TestPtr(unittest.TestCase):
                         shmem.barrier_all()
                         self.assertTrue(np.all(sym == mype))
 
-                    shmem.barrier_all()
+                    shmem.sync_all()
 
                     loc = shmem.ptr(sym, pvpe)
                     if loc is not None:
