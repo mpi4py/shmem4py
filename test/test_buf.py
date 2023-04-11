@@ -11,7 +11,7 @@ class TestBuf(unittest.TestCase):
         self.assertTrue(isinstance(cdata, shmem.ffi.CData))
         self.assertEqual(csize, 4)
         self.assertEqual(ctype, 'double')
-        
+
     def testReadOnly(self):
         a = np.zeros(1)
         a.flags.writeable = False
