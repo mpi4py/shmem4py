@@ -875,7 +875,9 @@ def array(
     hints: Optional[int] = None,
 ) -> NDArray[Any]:
     """Return a new NumPy array allocated from the symmetric heap with contents of ``obj``.
-    # TODO: verify/rephrase 1 line above and 2 lines below and order
+
+    TODO: verify/rephrase 1 line above and 2 lines below and order
+
     Args:
         obj: The data to be copied to a NumPy array.
         dtype: The data type of the array. If ``None``, the data type is
