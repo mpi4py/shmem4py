@@ -15,17 +15,17 @@ class TestQuery(unittest.TestCase):
             )
         )
 
-    def testPEAccesible(self):
+    def testPEAccessible(self):
         flag = shmem.pe_accessible(shmem.my_pe())
         self.assertTrue(flag)
 
-    def testAddrAccesibleCData(self):
+    def testAddrAccessibleCData(self):
         addr = shmem.new_array(1, 'i')
         flag = shmem.addr_accessible(addr, shmem.my_pe())
         shmem.free(addr)
         self.assertTrue(flag)
 
-    def testAddrAccesibleNumPy(self):
+    def testAddrAccessibleNumPy(self):
         addr = shmem.empty(1, dtype='i')
         flag = shmem.addr_accessible(addr, shmem.my_pe())
         shmem.free(addr)
