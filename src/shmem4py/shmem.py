@@ -99,7 +99,7 @@ def info_get_version() -> Tuple[int, int]:
 
 
 def info_get_name() -> str:
-    """Return the vendor-defined name string of the library implementation."""
+    """Return the name string of the library implementation."""
     name = ffi.new('char[]', lib.SHMEM_MAX_NAME_LEN)
     lib.shmem_info_get_name(name)
     return ffi.string(name).decode()
@@ -302,7 +302,7 @@ class Ctx:
         options: int = 0,
         team: Optional[Team] = None,
     ) -> Ctx:
-        """Create and return a communication context.
+        """Return a new communication context.
 
         Args:
             options: The set of options requested for the given context. Valid
@@ -349,7 +349,7 @@ class Ctx:
         """Ensure ordering of delivery of operations on symmetric data objects.
 
         All operations on symmetric data objects issued to a particular PE on
-        the given context prior to the call to ``fence`` are guaranteed to be
+        the given context prior to the call to `fence` are guaranteed to be
         delivered before any subsequent operations on symmetric data objects to
         the same PE.
         """
@@ -442,7 +442,7 @@ class Team:
         config: Optional[Mapping[str, int]] = None,
         **kwargs: int,
     ) -> Team:
-        """Create and return a team from a subset of the existing parent team PEs.
+        """Return a new team from a subset of the existing parent team PEs.
 
         This routine must be called by all PEs in the parent team.
 
@@ -454,9 +454,9 @@ class Team:
             size: The number of PEs from the parent team in the subset of PEs
                 that will form the new team. If `None`, the size is
                 automatically determined.
-            config: A pointer to the configuration parameters for the new team.
-                TODO: more info needed 9.4.3
-            **kwargs: TODO:
+            config: Configuration parameters for the new team. Currently, only
+                ``SHMEM_TEAM_NUM_CONTEXTS`` key is supported.
+            **kwargs: Additional configuration parameters for the new team.
         """
         team = self.ob_team
         if size is None:
@@ -587,7 +587,7 @@ def addr_accessible(
     addr: NDArray[Any],
     pe: int,
 ) -> bool:
-    """Return whether an address is accessible from the specified remote PE.
+    """Return whether a local array is accessible from the specified remote PE.
 
     Args:
         addr: Local array object to query.
@@ -734,12 +734,8 @@ class MALLOC(_enum.IntFlag):
     """Memory allocation hints.
 
     Attributes:
-        ATOMICS_REMOTE: The hint to the memory allocation routine which
-            specifies that the allocated memory will be used for atomic
-            variables.
-        SIGNAL_REMOTE: The hint to the memory allocation routine which
-            specifies that the allocated memory will be used for signal
-            variables.
+        ATOMICS_REMOTE: The allocated memory will be used for atomic variables.
+        SIGNAL_REMOTE: The allocated memory will be used for signal variables.
     """
     ATOMICS_REMOTE: int = lib.SHMEM_MALLOC_ATOMICS_REMOTE
     SIGNAL_REMOTE:  int = lib.SHMEM_MALLOC_SIGNAL_REMOTE
@@ -765,7 +761,7 @@ def alloc(
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
             combined using the bitwise OR operator.
-        clear: If ``True``, the allocated memory is cleared to zero.
+        clear: If `True`, the allocated memory is cleared to zero.
     """
     allocator = _get_allocator(align, hints, clear)
     cdata = allocator('char[]', count*size)
@@ -846,7 +842,7 @@ def new_array(
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
             combined using the bitwise OR operator. Keyword argument only.
-        clear: If ``True``, the allocated memory is cleared to zero. Keyword
+        clear: If `True`, the allocated memory is cleared to zero. Keyword
             argument only.
     """
     dtype = np.dtype(dtype)
@@ -1125,9 +1121,9 @@ def put(
         target: Symmetric destination array.
         source: Local array containing the data to be copied.
         pe: PE number of the remote PE.
-        size: Number of elements in the ``target`` and ``source`` arrays.
-        ctx: A context handle specifying the context on which to perform
-            the operation.
+        size: Number of elements to copy.
+        ctx: A context handle specifying the context on which to perform the
+            operation.
     """
     _shmem_rma(ctx, 'put', target, source, size, pe)
 
@@ -1139,15 +1135,15 @@ def get(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copy data from a specified PE.
+    """Copy data from ``source`` on PE ``pe`` to local ``target``.
 
     Args:
         target: Local array to be updated.
         source: Symmetric source array.
         pe: PE number of the remote PE.
-        size: Number of elements in the ``target`` and ``source`` arrays.
-        ctx: A context handle specifying the context on which to perform
-            the operation.
+        size: Number of elements to copy.
+        ctx: A context handle specifying the context on which to perform the
+            operation.
     """
     _shmem_rma(ctx, 'get', target, source, size, pe)
 
@@ -1161,7 +1157,7 @@ def iput(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copy strided data to a specified PE.
+    """Copy strided data from local ``source`` to ``target`` on PE ``pe``.
 
     Args:
         target: Symmetric destination array.
@@ -1173,9 +1169,9 @@ def iput(
         sst: The stride between consecutive elements of the ``source`` array.
             The stride is scaled by the element size of the ``source`` array.
             A value of ``1`` indicates contiguous data.
-        size: Number of elements in the ``target`` and ``source`` arrays.
-        ctx: A context handle specifying the context on which to perform
-            the operation.
+        size: Number of elements to copy.
+        ctx: A context handle specifying the context on which to perform the
+            operation.
     """
     _shmem_irma(ctx, 'put', target, source, tst, sst, size, pe)
 
@@ -1189,7 +1185,7 @@ def iget(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copy strided data from a specified PE.
+    """Copy strided data from ``source`` on PE ``pe`` to local ``target``.
 
     Args:
         target: Local array to be updated.
@@ -1201,9 +1197,9 @@ def iget(
         sst: The stride between consecutive elements of the ``source`` array.
             The stride is scaled by the element size of the ``source`` array.
             A value of ``1`` indicates contiguous data.
-        size: Number of elements in the ``target`` and ``source`` arrays.
-        ctx: A context handle specifying the context on which to perform
-            the operation.
+        size: Number of elements to copy.
+        ctx: A context handle specifying the context on which to perform the
+            operation.
     """
     _shmem_irma(ctx, 'get', target, source, tst, sst, size, pe)
 
@@ -1215,16 +1211,15 @@ def put_nbi(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copy data from local ``source`` to ``target`` on PE ``pe``.
-
-    Nonblocking.
+    """Copy data from local ``source`` to ``target`` on PE ``pe``. Nonblocking.
 
     Args:
         target: Symmetric destination array.
         source: Local array containing the data to be copied.
         pe: PE number of the remote PE.
-        size: Number of elements in the ``target`` and ``source`` arrays.
-        ctx: A context handle specifying the context on which to perform
+        size: Number of elements to copy.
+        ctx: A context handle specifying the context on which to perform the
+            operation.
     """
     _shmem_rma_nbi(ctx, 'put', target, source, size, pe)
 
@@ -1236,16 +1231,15 @@ def get_nbi(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copy data from ``source`` on PE ``pe`` to local ``target``.
-
-    Nonblocking.
+    """Copy data from ``source`` on PE ``pe`` to local ``target``. Nonblocking.
 
     Args:
         target: Local array to be updated.
         source: Symmetric source array.
         pe: PE number of the remote PE.
-        size: Number of elements in the ``target`` and ``source`` arrays.
-        ctx: A context handle specifying the context on which to perform
+        size: Number of elements to copy.
+        ctx: A context handle specifying the context on which to perform the
+            operation.
     """
     _shmem_rma_nbi(ctx, 'get', target, source, size, pe)
 
@@ -1328,7 +1322,7 @@ def atomic_add(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Add ``value`` to ``target`` on PE ``pe`` and atomically updates ``target``.
+    """Add ``value`` to ``target`` on PE ``pe`` and atomically update ``target``.
 
     Args:
         target: Symmetric array of size ``1`` where value will be modified.
@@ -1547,7 +1541,7 @@ def atomic_fetch_nbi(
     """Fetch the value of ``source`` on PE ``pe`` to local ``fetch``.
 
     Nonblocking. The operation is considered complete after a subsequent call
-    to ``quiet``.
+    to `quiet`.
 
     Args:
         fetch: Local array of size ``1`` to be updated.
@@ -1569,7 +1563,7 @@ def atomic_swap_nbi(
     """Write ``value`` into ``target`` on PE ``pe`` and fetch its prior value to ``fetch``.
 
     Nonblocking. The operation is considered complete after a subsequent call
-    to ``quiet``.
+    to `quiet`.
 
     Args:
         fetch: Local array of size ``1`` to be updated.
@@ -1593,7 +1587,7 @@ def atomic_compare_swap_nbi(
     """Conditionally update ``target`` and fetch its prior value to ``fetch``.
 
     Nonblocking. The operation is considered complete after a subsequent call
-    to ``quiet``.
+    to `quiet`.
 
     Args:
         fetch: Local array of size ``1`` to be updated.
@@ -1619,7 +1613,7 @@ def atomic_fetch_inc_nbi(
 
     Nonblocking.
 
-    The operation is considered complete after a subsequent call to ``quiet``.
+    The operation is considered complete after a subsequent call to `quiet`.
 
     Args:
         fetch: Local array of size ``1`` to be updated.
@@ -1641,7 +1635,7 @@ def atomic_fetch_add_nbi(
     """Add ``value`` to ``target`` on PE ``pe`` and fetch its prior value to ``fetch``.
 
     Nonblocking. The operation is considered complete after a subsequent call
-    to ``quiet``.
+    to `quiet`.
 
     Args:
         fetch: Local array of size ``1`` to be updated.
@@ -1664,7 +1658,7 @@ def atomic_fetch_and_nbi(
     """Perform bitwise AND on ``target`` on PE ``pe`` and fetch its prior value to ``fetch``.
 
     Nonblocking. The operation is considered complete after a subsequent call
-    to ``quiet``.
+    to `quiet`.
 
     Args:
         fetch: Local array of size ``1`` to be updated.
@@ -1687,7 +1681,7 @@ def atomic_fetch_or_nbi(
     """Perform bitwise OR on ``target`` on PE ``pe`` and fetch its prior value to ``fetch``.
 
     Nonblocking. The operation is considered complete after a subsequent call
-    to ``quiet``.
+    to `quiet`.
 
     Args:
         fetch: Local array of size ``1`` to be updated.
@@ -1710,7 +1704,7 @@ def atomic_fetch_xor_nbi(
     """Perform bitwise XOR on ``target`` on PE ``pe`` and fetch its prior value to ``fetch``.
 
     Nonblocking. The operation is considered complete after a subsequent call
-    to ``quiet``.
+    to `quiet`.
 
     Args:
         fetch: Local array of size ``1`` to be updated.
@@ -1727,12 +1721,12 @@ class AMO(_StrEnum):
     """Atomic Memory Operations.
 
     Attributes:
-        SET: Set. operation
-        INC: Increment operation.
-        ADD: Add operation.
-        AND: Bitwise AND operation.
-        OR: Bitwise OR operation.
-        XOR: Bitwise XOR operation.
+        SET: Set.
+        INC: Increment.
+        ADD: Add.
+        AND: Bitwise AND.
+        OR: Bitwise OR.
+        XOR: Bitwise XOR.
     """
     SET: str = 'set'
     INC: str = 'inc'
@@ -1913,7 +1907,7 @@ def put_signal(
             object.
         sigop: Signal operator that represents the type of update to be
             performed on the remote ``signal`` data object.
-        size: Number of elements in the ``target`` and ``source`` arrays.
+        size: Number of elements to copy.
         ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
@@ -1934,9 +1928,7 @@ def put_signal_nbi(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copy local ``source`` to ``target`` on PE ``pe`` and update a remote flag to signal completion.
-
-    Nonblocking.
+    """Copy local ``source`` to ``target`` on PE ``pe`` and update a remote flag to signal completion. Nonblocking.
 
     This routine returns after initiating the operation. The operation is
     considered complete after a subsequent call to `quiet`.
@@ -1951,7 +1943,7 @@ def put_signal_nbi(
             object.
         sigop: Signal operator that represents the type of update to be
             performed on the remote ``signal`` data object.
-        size: Number of elements in the ``target`` and ``source`` arrays.
+        size: Number of elements to copy.
         ctx: The context on which to perform the operation. If `None`, the
             default context is used.
     """
@@ -2046,12 +2038,12 @@ def _shmem_collective(ctype, name, size):
 
 
 def barrier_all() -> None:
-    """Register the arrival of a PE at a barrier, wait for others.
+    """Register the arrival of a PE at a barrier, complete updates, wait for others.
 
-    This routine blocks the calling PE until all PEs have called
-    ``barrier_all``. Prior to synchronizing with other PEs, ``barrier_all``
-    ensures completion of all previously issued memory stores and remote memory
-    updates issued on the default context.
+    This routine blocks the calling PE until all PEs have called `barrier_all`.
+    Prior to synchronizing with other PEs, `barrier_all` ensures completion of
+    all previously issued memory stores and remote memory updates issued on the
+    default context.
     """
     lib.shmem_barrier_all()
 
@@ -2093,9 +2085,9 @@ def broadcast(
     Args:
         target: Symmetric destination array.
         source: Symmetric source array.
-        root: Zero-based ordinal of the PE, with respect to the team or active
-            set, from which the data is copied.
-        size: The number of elements in ``source`` and ``target`` arrays.
+        root: PE number within the team or active set from which the data is
+            copied.
+        size: The number of elements to be copied.
         team: The team over which to perform the operation.
     """
     team, _ = _parse_team(team)
@@ -2112,9 +2104,7 @@ def collect(
 ) -> None:
     """Concatenate blocks of data from multiple PEs to an array in every PE participating in the collective routine.
 
-    **size** can vary from PE to PE.
-
-    ``MPI_Allgatherv`` equivalent.
+    **size** can vary from PE to PE; ``MPI_Allgatherv`` equivalent.
 
     Performs a collective operation to concatenate ``size`` data items from the
     ``source`` array into the ``target`` array.
@@ -2123,7 +2113,7 @@ def collect(
         target: Symmetric destination array large enough to accept the
             concatenation of the source arrays on all participating PEs.
         source: Symmetric source array.
-        size: The number of elements in ``source`` array.
+        size: The number of elements to be communicated.
         team: The team over which to perform the operation.
     """
     team, _ = _parse_team(team)
@@ -2140,15 +2130,14 @@ def fcollect(
 ) -> None:
     """Concatenate blocks of data from multiple PEs to an array in every PE participating in the collective routine.
 
-    **size** must be the same value in all participating PEs.
-
-    ``MPI_Allgather`` equivalent.
+    **size** must be the same value in all participating PEs; ``MPI_Allgather``
+    equivalent.
 
     Args:
         target: Symmetric destination array large enough to accept the
             concatenation of the source arrays on all participating PEs.
         source: Symmetric source array.
-        size: The number of elements in ``source`` array.
+        size: The number of elements to be communicated.
         team: The team over which to perform the operation.
     """
     team, npes = _parse_team(team)
@@ -2158,7 +2147,7 @@ def fcollect(
 
 
 def alltoall(target, source, size=None, team=None) -> None:
-    """Each PE participating in the operation exchanges data elements with all other participating PEs.
+    """Exchange data elements with all other participating PEs.
 
     The total size of each PE's ``source`` object and ``target`` object is
     ``size`` times the size of an element times ``N``, where N equals the
@@ -2189,7 +2178,7 @@ def alltoalls(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """Each PE participating in the operation exchanges strided data elements with all other PEs participating in the operation.
+    """Exchange strided data elements with all other PEs participating in the operation.
 
     Args:
         target: Symmetric destination array large enough to receive the
@@ -2255,12 +2244,12 @@ def reduce(
     """Perform a specified reduction across a set of PEs.
 
     Args:
-        target: Symmetric destination array of length ``size`` elements, to
-            receive the result of the reduction routine.
-        source: Symmetric source array of length ``size`` elements, that
-            contains one element for each separate reduction routine.
+        target: Symmetric destination array of length at least ``size``
+            elements, where the result of the reduction routine will be stored.
+        source: Symmetric source array of length at least ``size`` elements,
+            that contains one element for each separate reduction routine.
         op: The reduction operation to perform.
-        size: The number of elements in the ``target`` and ``source`` arrays.
+        size: The number of elements to perform the reduction on.
         team: The team over which to perform the operation.
     """
     op = _parse_reduce_op(op)
@@ -2280,11 +2269,11 @@ def and_reduce(
     """Perform a bitwise AND reduction across a set of PEs.
 
     Args:
-        target: Symmetric destination array of length ``size`` elements, to
-            receive the result of the reduction routine.
-        source: Symmetric source array of length ``size`` elements, that
-            contains one element for each separate reduction routine.
-        size: The number of elements in the ``target`` and ``source`` arrays.
+        target: Symmetric destination array of length at least ``size``
+            elements, where the result of the reduction routine will be stored.
+        source: Symmetric source array of length at least ``size`` elements,
+            that contains one element for each separate reduction routine.
+        size: The number of elements to perform the reduction on.
         team: The team over which to perform the operation.
     """
     reduce(target, source, OP_AND, size, team)
@@ -2299,11 +2288,11 @@ def or_reduce(
     """Perform a bitwise OR reduction across a set of PEs.
 
     Args:
-        target: Symmetric destination array of length ``size`` elements, to
-            receive the result of the reduction routine.
-        source: Symmetric source array of length ``size`` elements, that
-            contains one element for each separate reduction routine.
-        size: The number of elements in the ``target`` and ``source`` arrays.
+        target: Symmetric destination array of length at least ``size``
+            elements, where the result of the reduction routine will be stored.
+        source: Symmetric source array of length at least ``size`` elements,
+            that contains one element for each separate reduction routine.
+        size: The number of elements to perform the reduction on.
         team: The team over which to perform the operation.
     """
     reduce(target, source, OP_OR, size, team)
@@ -2318,11 +2307,11 @@ def xor_reduce(
     """Perform a bitwise exclusive OR (XOR) reduction across a set of PEs.
 
     Args:
-        target: Symmetric destination array of length ``size`` elements, to
-            receive the result of the reduction routine.
-        source: Symmetric source array of length ``size`` elements, that
-            contains one element for each separate reduction routine.
-        size: The number of elements in the ``target`` and ``source`` arrays.
+        target: Symmetric destination array of length at least ``size``
+            elements, where the result of the reduction routine will be stored.
+        source: Symmetric source array of length at least ``size`` elements,
+            that contains one element for each separate reduction routine.
+        size: The number of elements to perform the reduction on.
         team: The team over which to perform the operation.
     """
     reduce(target, source, OP_XOR, size, team)
@@ -2337,11 +2326,11 @@ def max_reduce(
     """Perform a maximum-value reduction across a set of PEs.
 
     Args:
-        target: Symmetric destination array of length ``size`` elements, to
-            receive the result of the reduction routine.
-        source: Symmetric source array of length ``size`` elements, that
-            contains one element for each separate reduction routine.
-        size: The number of elements in the ``target`` and ``source`` arrays.
+        target: Symmetric destination array of length at least ``size``
+            elements, where the result of the reduction routine will be stored.
+        source: Symmetric source array of length at least ``size`` elements,
+            that contains one element for each separate reduction routine.
+        size: The number of elements to perform the reduction on.
         team: The team over which to perform the operation.
     """
     reduce(target, source, OP_MAX, size, team)
@@ -2356,11 +2345,11 @@ def min_reduce(
     """Perform a minimum-value reduction across a set of PEs.
 
     Args:
-        target: Symmetric destination array of length ``size`` elements, to
-            receive the result of the reduction routine.
-        source: Symmetric source array of length ``size`` elements, that
-            contains one element for each separate reduction routine.
-        size: The number of elements in the ``target`` and ``source`` arrays.
+        target: Symmetric destination array of length at least ``size``
+            elements, where the result of the reduction routine will be stored.
+        source: Symmetric source array of length at least ``size`` elements,
+            that contains one element for each separate reduction routine.
+        size: The number of elements to perform the reduction on.
         team: The team over which to perform the operation.
     """
     reduce(target, source, OP_MIN, size, team)
@@ -2375,11 +2364,11 @@ def sum_reduce(
     """Perform a sum reduction across a set of PEs.
 
     Args:
-        target: Symmetric destination array of length ``size`` elements, to
-            receive the result of the reduction routine.
-        source: Symmetric source array of length ``size`` elements, that
-            contains one element for each separate reduction routine.
-        size: The number of elements in the ``target`` and ``source`` arrays.
+        target: Symmetric destination array of length at least ``size``
+            elements, where the result of the reduction routine will be stored.
+        source: Symmetric source array of length at least ``size`` elements,
+            that contains one element for each separate reduction routine.
+        size: The number of elements to perform the reduction on.
         team: The team over which to perform the operation.
     """
     reduce(target, source, OP_SUM, size, team)
@@ -2394,11 +2383,11 @@ def prod_reduce(
     """Perform a product reduction across a set of PEs.
 
     Args:
-        target: Symmetric destination array of length ``size`` elements, to
-            receive the result of the reduction routine.
-        source: Symmetric source array of length ``size`` elements, that
-            contains one element for each separate reduction routine.
-        size: The number of elements in the ``target`` and ``source`` arrays.
+        target: Symmetric destination array of length at least ``size``
+            elements, where the result of the reduction routine will be stored.
+        source: Symmetric source array of length at least ``size`` elements,
+            that contains one element for each separate reduction routine.
+        size: The number of elements to perform the reduction on.
         team: The team over which to perform the operation.
     """
     reduce(target, source, OP_PROD, size, team)
@@ -2504,8 +2493,8 @@ def wait_until(
     operator.
 
     Args:
-        ivar: Symmetric array of size ``1`` containing the element that will
-            be compared.
+        ivar: Symmetric array of size ``1`` containing the element that will be
+            compared.
         cmp: The comparison operator that compares ``ivar`` with ``value``.
         value: The value to be compared with ``ivar``.
     """
@@ -2524,8 +2513,8 @@ def wait_until_all(
     """Wait until all variables satisfy a condition.
 
     Blocks until all values specified in ``ivars`` not excluded by ``status``
-    satisfy the condition ``ivar cmp value`` at the calling PE, where ``cmp``
-    is the comparison operator.
+    satisfy the condition ``ivars[i] cmp value`` at the calling PE, where
+    ``cmp`` is the comparison operator.
 
     Args:
         ivars: Symmetric array of objects to be compared.
@@ -2552,8 +2541,8 @@ def wait_until_any(
     """Wait until any one variable satisfies a condition.
 
     Blocks until any one entry in the wait set specified by ``ivars`` not
-    excluded by ``status`` satisfies the condition ``ivar cmp value`` at the
-    calling PE, where ``cmp`` is the comparison operator.
+    excluded by ``status`` satisfies the condition ``ivars[i] cmp value`` at
+    the calling PE, where ``cmp`` is the comparison operator.
 
     Args:
         ivars: Symmetric array of objects to be compared.
@@ -2584,8 +2573,8 @@ def wait_until_some(
     """Wait until at least one variable satisfies a condition.
 
     Blocks until at least one entry in the wait set specified by ``ivars`` not
-    excluded by ``status`` satisfies the condition ``ivar cmp value`` at the
-    calling PE, where ``cmp`` is the comparison operator.
+    excluded by ``status`` satisfies the condition ``ivars[i] cmp value`` at
+    the calling PE, where ``cmp`` is the comparison operator.
 
     Args:
         ivars: Symmetric array of objects to be compared.
@@ -2597,7 +2586,7 @@ def wait_until_some(
             values exclude the corresponding element from the wait set.
 
     Returns:
-        A list of indices of entries of ``ivars`` that satisfy the condition.
+        Indices of entries of ``ivars`` that satisfy the condition.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2695,7 +2684,7 @@ def wait_until_some_vector(
             values exclude the corresponding element from the wait set.
 
     Returns:
-        A list of indices of entries of ``ivars`` that satisfy the condition.
+        Indices of entries of ``ivars`` that satisfy the condition.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2712,11 +2701,11 @@ def test(
     cmp: CMP,
     value: Number,
 ) -> bool:
-    """Indicate whether a variable on the local PE meets the specified condition.
+    """Indicate whether a variable on the local PE meets a condition.
 
     Args:
-        ivar: Symmetric array of size ``1`` containing the element that will
-            be tested.
+        ivar: Symmetric array of size ``1`` containing the element that will be
+            tested.
         cmp: The comparison operator that compares ``ivar`` with ``value``.
         value: The value to be compared with ``ivar``.
     """
@@ -2733,7 +2722,7 @@ def test_all(
     value: Number,
     status: Optional[Sequence[int]] = None,
 ) -> bool:
-    """Indicate whether all variables on the local PE meet the specified condition.
+    """Indicate whether all variables on the local PE meet a condition.
 
     Args:
         ivars: Symmetric array of objects to be tested.
@@ -2758,7 +2747,7 @@ def test_any(
     value: Number,
     status: Optional[Sequence[int]] = None,
 ) -> Optional[int]:
-    """Indicate whether any one variable on the local PE meets the specified condition.
+    """Indicate whether any one variable on the local PE meets a condition.
 
     Args:
         ivars: Symmetric array of objects to be tested.
@@ -2786,7 +2775,7 @@ def test_some(
     value: Number,
     status: Optional[Sequence[int]] = None,
 ) -> List[int]:
-    """Indicate whether at least one variable on the local PE meets the specified condition.
+    """Indicate whether at least one variable on the local PE meets a condition.
 
     Args:
         ivars: Symmetric array of objects to be tested.
@@ -2798,7 +2787,7 @@ def test_some(
             values exclude the corresponding element from the test set.
 
     Returns:
-        A list of indices of entries of ``ivars`` that satisfy the condition.
+        Indices of entries of ``ivars`` that satisfy the condition.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2815,7 +2804,7 @@ def test_all_vector(
     values: Sequence[Number],
     status: Optional[Sequence[int]] = None,
 ) -> bool:
-    """Indicate whether all variables on the local PE meets the specified conditions.
+    """Indicate whether all variables on the local PE meet the specified conditions.
 
     Args:
         ivars: Symmetric array of objects to be tested.
@@ -2826,9 +2815,6 @@ def test_all_vector(
         status: An optional mask array of length ``len(ivars)`` indicating
             which elements of ``ivars`` are excluded from the test set. Nonzero
             values exclude the corresponding element from the test set.
-
-    Returns:
-        A list of indices of entries of ``ivars`` that satisfy the condition.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2887,7 +2873,7 @@ def test_some_vector(
             values exclude the corresponding element from the test set.
 
     Returns:
-        A list of indices of entries of ``ivars`` that satisfy the condition.
+        Indices of entries of ``ivars`` that satisfy the condition.
     """
     cmp = _parse_cmp(cmp)
     ctype, ivars, nelems = _parse_sync_ivars(ivars)
@@ -2909,7 +2895,7 @@ def signal_wait_until(
     Args:
         signal: Local symmetric source signal variable.
         cmp: The comparison operator that compares ``signal`` with ``value``.
-        value: The value against which the object poitned to by ``signal`` will
+        value: The value against which the object pointed to by ``signal`` will
             be compared.
 
     Returns:
@@ -2928,7 +2914,7 @@ def fence(ctx: Optional[Ctx] = None) -> None:
     """Ensure ordering of delivery of operations on symmetric data objects.
 
     All operations on symmetric data objects issued to a particular PE on the
-    given context prior to the call to ``fence`` are guaranteed to be delivered
+    given context prior to the call to `fence` are guaranteed to be delivered
     before any subsequent operations on symmetric data objects to the same PE.
 
     Args:
@@ -2980,7 +2966,7 @@ def del_lock(lock: LockHandle) -> None:
 
 
 def set_lock(lock: LockHandle) -> None:
-    """Set a mutual exclusion lock after waiting for the lock to be freed.
+    """Acquire a mutual exclusion lock after waiting for the lock to be freed.
 
     Args:
         lock: Symmetric scalar variable or an array of length ``1``.
@@ -2989,7 +2975,7 @@ def set_lock(lock: LockHandle) -> None:
 
 
 def test_lock(lock: LockHandle) -> bool:
-    """Set a mutual exclusion lock only if it is currently cleared.
+    """Acquire a mutual exclusion lock only if it is currently cleared.
 
     By using this routine, a PE can avoid blocking on a set lock.
 
@@ -2998,8 +2984,8 @@ def test_lock(lock: LockHandle) -> bool:
 
     Returns:
         Returns `False` if the lock was originally cleared and this call was
-        able to set the lock. ``True`` is returned if the lock had been set and
-        the call returned without waiting to set the lock.
+        able to acquire the lock. `True` is returned if the lock had been set
+        and the call returned without waiting to set the lock.
     """
     return bool(lib.shmem_test_lock(lock))
 
@@ -3007,9 +2993,9 @@ def test_lock(lock: LockHandle) -> bool:
 def clear_lock(lock: LockHandle) -> None:
     """Release a lock previously set by `set_lock` or `test_lock`.
 
-    Releases a lock after performing a `quiet` operation on the default
-    context to ensure that all symmetric memory accesses that occurred
-    during the critical region are complete.
+    Releases a lock after performing a `quiet` operation on the default context
+    to ensure that all symmetric memory accesses that occurred during the
+    critical region are complete.
 
     Args:
         lock: Symmetric scalar variable or an array of length ``1``.
@@ -3034,7 +3020,7 @@ class Lock:
             del_lock(lock)
 
     def acquire(self, blocking: bool = True) -> bool:
-        """Acquire a lock.
+        """Acquire the lock.
 
         Args:
             blocking: `True` to wait until the lock is acquired.
@@ -3053,7 +3039,7 @@ class Lock:
         return not test_lock(lock)
 
     def release(self) -> None:
-        """Release a lock.
+        """Release the lock.
 
         Releases a lock after performing a `quiet` operation on the default
         context to ensure that all symmetric memory accesses that occurred
