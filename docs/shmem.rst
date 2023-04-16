@@ -22,20 +22,21 @@ Library Setup and Exit
    init
    finalize
    global_exit
-   THREAD
    init_thread
    query_thread
+   THREAD
 
 .. autofunction:: init
 .. autofunction:: finalize
 .. autofunction:: global_exit
-.. autoclass::    THREAD
 .. autofunction:: init_thread
 .. autofunction:: query_thread
 
+.. autoclass::    THREAD
 
-Accesibility Queries
---------------------
+
+Accessibility Queries
+---------------------
 
 .. autosummary::
    my_pe
@@ -65,8 +66,8 @@ Memory Management
    zeros
    ones
    full
+   MALLOC
 
-.. autoclass:: MALLOC
 
 .. autofunction:: alloc
 .. autofunction:: free
@@ -78,6 +79,8 @@ Memory Management
 .. autofunction:: zeros
 .. autofunction:: ones
 .. autofunction:: full
+
+.. autoclass:: MALLOC
 
 Team Management
 ---------------
@@ -113,8 +116,7 @@ Communication Management
    Ctx.get_team
    Ctx.fence
    Ctx.quiet
-
-.. autoclass:: CTX
+   CTX
 
 .. autoclass:: Ctx
 
@@ -124,6 +126,7 @@ Communication Management
    .. automethod:: fence
    .. automethod:: quiet
 
+.. autoclass:: CTX
 
 Remote Memory Access
 --------------------
@@ -146,6 +149,12 @@ Remote Memory Access
 
 Atomic Memory Operations
 ------------------------
+
+.. autosummary::
+   atomic_op
+   atomic_fetch_op
+   atomic_fetch_op_nbi
+   AMO
 
 .. autosummary::
    atomic_set
@@ -172,10 +181,10 @@ Atomic Memory Operations
    atomic_fetch_or_nbi
    atomic_fetch_xor_nbi
 
-   AMO
-   atomic_op
-   atomic_fetch_op
-   atomic_fetch_op_nbi
+.. autofunction:: atomic_op
+.. autofunction:: atomic_fetch_op
+.. autofunction:: atomic_fetch_op_nbi
+.. autoclass::    AMO
 
 .. autofunction:: atomic_set
 .. autofunction:: atomic_inc
@@ -201,10 +210,6 @@ Atomic Memory Operations
 .. autofunction:: atomic_fetch_or_nbi
 .. autofunction:: atomic_fetch_xor_nbi
 
-.. autoclass::    AMO
-.. autofunction:: atomic_op
-.. autofunction:: atomic_fetch_op
-.. autofunction:: atomic_fetch_op_nbi
 
 
 Signaling Operations
@@ -214,16 +219,16 @@ Signaling Operations
    new_signal
    del_signal
    signal_fetch
-   SIGNAL
    put_signal
    put_signal_nbi
+   SIGNAL
 
 .. autofunction:: new_signal
 .. autofunction:: del_signal
 .. autofunction:: signal_fetch
-.. autoclass::    SIGNAL
 .. autofunction:: put_signal
 .. autofunction:: put_signal_nbi
+.. autoclass::    SIGNAL
 
 
 Collective Operations
@@ -240,8 +245,8 @@ Collective Operations
    alltoall
    alltoalls
 
-   OP
    reduce
+   OP
    and_reduce
    or_reduce
    xor_reduce
@@ -260,8 +265,8 @@ Collective Operations
 .. autofunction:: alltoall
 .. autofunction:: alltoalls
 
-.. autoclass::    OP
 .. autofunction:: reduce
+.. autoclass::    OP
 .. autofunction:: and_reduce
 .. autofunction:: or_reduce
 .. autofunction:: xor_reduce
@@ -275,7 +280,6 @@ Point-To-Point Synchronization
 ------------------------------
 
 .. autosummary::
-   CMP
    wait_until
    wait_until_all
    wait_until_any
@@ -291,8 +295,8 @@ Point-To-Point Synchronization
    test_any_vector
    test_some_vector
    signal_wait_until
+   CMP
 
-.. autoclass::    CMP
 .. autofunction:: wait_until
 .. autofunction:: wait_until_all
 .. autofunction:: wait_until_any
@@ -308,6 +312,7 @@ Point-To-Point Synchronization
 .. autofunction:: test_any_vector
 .. autofunction:: test_some_vector
 .. autofunction:: signal_wait_until
+.. autoclass::    CMP
 
 
 Memory Ordering
@@ -337,6 +342,8 @@ Distributed Locking
 .. autofunction:: test_lock
 .. autofunction:: clear_lock
 
+Distributed Locking (Object-Oriented)
+-------------------------------------
 .. autosummary::
    Lock
    Lock.destroy

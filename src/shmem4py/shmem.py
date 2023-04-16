@@ -795,7 +795,7 @@ def fromalloc(
     dtype: DTypeLike = None,
     order: Literal['C', 'F'] = 'C',
 ) -> NDArray[Any]:
-    """Return a NumPy array interpreted from the buffer allocated from the symmetric heap.
+    """Return a NumPy array interpreted from the buffer allocated in the symmetric memory.
 
     Args:
         mem: The memory to be interpreted as a NumPy array.
@@ -829,7 +829,7 @@ def new_array(
     hints: Optional[int] = None,
     clear: bool = True,
 ) -> NDArray[Any]:
-    """Return a new NumPy array allocated from the symmetric heap.
+    """Return a new NumPy array allocated in the symmetric memory.
 
     Args:
         shape: The shape of the array.
@@ -837,7 +837,7 @@ def new_array(
         order: The memory layout of the array. If ``'C'``, the array is
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
-        align: Byte alignment of the block allocated from the symmetric heap.
+        align: Byte alignment of the block allocated in the symmetric memory.
             Keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
@@ -869,7 +869,7 @@ def array(
     align: Optional[int] = None,
     hints: Optional[int] = None,
 ) -> NDArray[Any]:
-    """Return a new NumPy array allocated from the symmetric heap and initialize contents with ``obj``.
+    """Return a new NumPy array allocated in the symmetric memory and initialize contents with ``obj``.
 
     Args:
         obj: The object from which a NumPy array is to be initialized.
@@ -877,7 +877,7 @@ def array(
             from the memory contents.
         order: The memory layout of the array. See `numpy.array` for the
             explanation of the options. Keyword argument only.
-        align: Byte alignment of the block allocated from the symmetric heap.
+        align: Byte alignment of the block allocated in the symmetric memory.
             Keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
@@ -901,7 +901,7 @@ def empty(
     align: Optional[int] = None,
     hints: Optional[int] = None,
 ) -> NDArray[Any]:
-    """Return a new empty NumPy array allocated from the symmetric heap.
+    """Return a new empty NumPy array allocated in the symmetric memory.
 
     Args:
         shape: The shape of the array.
@@ -909,7 +909,7 @@ def empty(
         order: The memory layout of the array. If ``'C'``, the array is
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
-        align: Byte alignment of the block allocated from the symmetric heap.
+        align: Byte alignment of the block allocated in the symmetric memory.
             Keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
@@ -927,7 +927,7 @@ def zeros(
     align: Optional[int] = None,
     hints: Optional[int] = None,
 ) -> NDArray[Any]:
-    """Return a new ``0``-initialized NumPy array allocated from the symmetric heap.
+    """Return a new ``0``-initialized NumPy array allocated in the symmetric memory.
 
     Args:
         shape: The shape of the array.
@@ -935,7 +935,7 @@ def zeros(
         order: The memory layout of the array. If ``'C'``, the array is
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
-        align: Byte alignment of the block allocated from the symmetric heap.
+        align: Byte alignment of the block allocated in the symmetric memory.
             Keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
@@ -953,7 +953,7 @@ def ones(
     align: Optional[int] = None,
     hints: Optional[int] = None,
 ) -> NDArray[Any]:
-    """Return a new ``1``-initialized NumPy array allocated from the symmetric heap.
+    """Return a new ``1``-initialized NumPy array allocated in the symmetric memory.
 
     Args:
         shape: The shape of the array.
@@ -961,7 +961,7 @@ def ones(
         order: The memory layout of the array. If ``'C'``, the array is
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
-        align: Byte alignment of the block allocated from the symmetric heap.
+        align: Byte alignment of the block allocated in the symmetric memory.
             Keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
@@ -982,7 +982,7 @@ def full(
     align: Optional[int] = None,
     hints: Optional[int] = None,
 ) -> NDArray[Any]:
-    """Return a new ``fill_value``-initialized NumPy array allocated from the symmetric heap.
+    """Return a new ``fill_value``-initialized NumPy array allocated in the symmetric memory.
 
     Args:
         shape: The shape of the array.
@@ -991,7 +991,7 @@ def full(
         order: The memory layout of the array. If ``'C'``, the array is
             contiguous in memory (row major). If ``'F'``, the array is Fortran
             contiguous (column major).
-        align: Byte alignment of the block allocated from the symmetric heap.
+        align: Byte alignment of the block allocated in the symmetric memory.
             Keyword argument only.
         hints: A bit array of hints provided by the user to the implementation.
             Valid hints are defined as enumerations in `MALLOC` and can be
@@ -1211,7 +1211,7 @@ def put_nbi(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copy data from local ``source`` to ``target`` on PE ``pe``. Nonblocking.
+    """Nonblocking copy data from local ``source`` to ``target`` on PE ``pe``.
 
     Args:
         target: Symmetric destination array.
@@ -1231,7 +1231,7 @@ def get_nbi(
     size: Optional[int] = None,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Copy data from ``source`` on PE ``pe`` to local ``target``. Nonblocking.
+    """Nonblocking copy data from ``source`` on PE ``pe`` to local ``target``.
 
     Args:
         target: Local array to be updated.
@@ -1308,7 +1308,8 @@ def atomic_inc(
     """Increment ``target`` array element on PE ``pe``.
 
     Args:
-        target: Symmetric array of size ``1`` where value will be modified.
+        target: Symmetric array of size ``1`` containing the element that will
+            be modified.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If `None`, the
             default context is used.
@@ -1325,7 +1326,8 @@ def atomic_add(
     """Add ``value`` to ``target`` on PE ``pe`` and atomically update ``target``.
 
     Args:
-        target: Symmetric array of size ``1`` where value will be modified.
+        target: Symmetric array of size ``1`` containing the element that will
+            be modified.
         value: The operand to the atomic add operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If `None`, the
@@ -1340,10 +1342,11 @@ def atomic_and(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Perform bitwise AND on ``target`` on PE ``pe`` with the operand ``value``.
+    """Perform bitwise AND on ``value`` and ``target`` on PE ``pe``.
 
     Args:
-        target: Symmetric array of size ``1`` where value will be modified.
+        target: Symmetric array of size ``1`` containing the element that will
+            be modified.
         value: The operand to the bitwise AND operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If `None`, the
@@ -1358,10 +1361,11 @@ def atomic_or(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Perform bitwise OR on ``target`` on PE ``pe`` with the operand ``value``.
+    """Perform bitwise OR on ``value`` and ``target`` on PE ``pe``.
 
     Args:
-        target: Symmetric array of size ``1`` where value will be modified.
+        target: Symmetric array of size ``1`` containing the element that will
+            be modified.
         value: The operand to the bitwise OR operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If `None`, the
@@ -1376,10 +1380,11 @@ def atomic_xor(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Perform bitwise XOR on ``target`` on PE ``pe`` with the operand ``value``.
+    """Perform bitwise XOR on ``value`` and ``target`` on PE ``pe``.
 
     Args:
-        target: Symmetric array of size ``1`` where value will be modified.
+        target: Symmetric array of size ``1`` containing the element that will
+            be modified.
         value: The operand to the bitwise XOR operation.
         pe: The PE number on which ``target`` is to be updated.
         ctx: The context on which to perform the operation. If `None`, the
@@ -1396,7 +1401,8 @@ def atomic_fetch(
     """Return the value of a ``source`` on PE ``pe``.
 
     Args:
-        source: Symmetric array of size ``1`` from where value will be fetched.
+        source: Symmetric array of size ``1`` containing the element that will
+            be fetched.
         pe: The PE number from which ``source`` is to be fetched.
         ctx: The context on which to perform the operation. If `None`, the
             default context is used.
@@ -1484,7 +1490,7 @@ def atomic_fetch_and(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Perform a bitwise AND on ``target`` at PE ``pe`` with the operand value and return its prior value.
+    """Perform a bitwise AND on ``value`` and ``target`` at PE ``pe`` and return ``target``'s prior value.
 
     Args:
         target: Symmetric array of size ``1`` containing the destination value.
@@ -1502,7 +1508,7 @@ def atomic_fetch_or(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Perform a bitwise OR on ``target`` at PE ``pe`` with the operand value and return its prior value.
+    """Perform a bitwise OR on ``value`` and ``target`` at PE ``pe`` and return ``target``'s prior value.
 
     Args:
         target: Symmetric array of size ``1`` containing the destination value.
@@ -1520,7 +1526,7 @@ def atomic_fetch_xor(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Perform a bitwise XOR on ``target`` at PE ``pe`` with the operand value and return its prior value.
+    """Perform a bitwise XOR on ``value`` and ``target`` at PE ``pe`` and return ``target``'s prior value.
 
     Args:
         target: Symmetric array of size ``1`` containing the destination value.
@@ -1545,7 +1551,8 @@ def atomic_fetch_nbi(
 
     Args:
         fetch: Local array of size ``1`` to be updated.
-        source: Symmetric array of size ``1`` from where value will be fetched.
+        source: Symmetric array of size ``1`` containing the element that will
+            be fetched.
         pe: The PE number from which ``source`` is to be fetched.
         ctx: The context on which to perform the operation. If `None`, the
             default context is used.
@@ -1751,7 +1758,7 @@ def atomic_op(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Perform operation ``op`` on ``target`` on PE ``pe`` with the operand ``value``.
+    """Perform operation ``op`` on ``value`` and ``target`` on PE ``pe``.
 
     Args:
         target: Symmetric array of size ``1`` containing the destination value.
@@ -1772,7 +1779,7 @@ def atomic_fetch_op(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> Number:
-    """Perform operation ``op`` on ``target`` on PE ``pe`` and return the prior value.
+    """Perform operation ``op`` on ``value`` and ``target`` on PE ``pe`` and return ``target``'s prior value.
 
     Args:
         target: Symmetric array of size ``1`` containing the destination value.
@@ -1794,7 +1801,7 @@ def atomic_fetch_op_nbi(
     pe: int,
     ctx: Optional[Ctx] = None,
 ) -> None:
-    """Perform operation ``op`` on ``target`` on PE ``pe`` and fetch the prior value to ``fetch``.
+    """Perform operation ``op`` on ``value`` and ``target`` on PE ``pe`` and fetch ``target``'s prior value to ``fetch``.
 
     Args:
         fetch: Local array of size ``1`` to be updated.
@@ -2150,7 +2157,7 @@ def alltoall(target, source, size=None, team=None) -> None:
     """Exchange data elements with all other participating PEs.
 
     The total size of each PE's ``source`` object and ``target`` object is
-    ``size`` times the size of an element times ``N``, where N equals the
+    ``size`` times the size of an element times ``N``, where ``N`` equals the
     number of PEs participating in the operation. The source object contains
     ``N`` blocks of data (where the size of each block is defined by ``size``)
     and each block of data is sent to a different PE.
@@ -2178,7 +2185,7 @@ def alltoalls(
     size: Optional[int] = None,
     team: Optional[Team] = None,
 ) -> None:
-    """Exchange strided data elements with all other PEs participating in the operation.
+    """Exchange strided data elements with all other participating PEs.
 
     Args:
         target: Symmetric destination array large enough to receive the
@@ -2486,11 +2493,10 @@ def wait_until(
     cmp: CMP,
     value: Number,
 ) -> None:
-    """Wait until the value ``ivar`` satisfies a condition.
+    """Wait until a variable satisfies a condition.
 
-    Blocks until the value ``ivar`` at the calling PE satisfies the condition
-    ``ivar cmp value`` at the calling PE, where ``cmp`` is the comparison
-    operator.
+    Blocks until the value ``ivar`` satisfies the condition ``ivar cmp value``
+    at the calling PE, where ``cmp`` is the comparison operator.
 
     Args:
         ivar: Symmetric array of size ``1`` containing the element that will be
@@ -2809,7 +2815,7 @@ def test_all_vector(
     Args:
         ivars: Symmetric array of objects to be tested.
         cmp: The comparison operator that compares elements of ``ivars`` with
-            the elements ``values``.
+            the elements of ``values``.
         values: Local array containing values to be compared with the
             respective elements of ``ivars``.
         status: An optional mask array of length ``len(ivars)`` indicating
@@ -2835,7 +2841,7 @@ def test_any_vector(
     Args:
         ivars: Symmetric array of objects to be tested.
         cmp: The comparison operator that compares elements of ``ivars`` with
-            the elements ``values``.
+            the elements of ``values``.
         values: Local array containing values to be compared with the
             respective elements of ``ivars``.
         status: An optional mask array of length ``len(ivars)`` indicating
@@ -2865,7 +2871,7 @@ def test_some_vector(
     Args:
         ivars: Symmetric array of objects to be tested.
         cmp: The comparison operator that compares elements of ``ivars`` with
-            the elements ``values``.
+            the elements of ``values``.
         values: Local array containing values to be compared with the
             respective elements of ``ivars``.
         status: An optional mask array of length ``len(ivars)`` indicating
