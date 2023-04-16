@@ -71,6 +71,7 @@ nitpick_ignore_regex = [
 
 autodoc_preserve_defaults = True
 autodoc_typehints = 'description'
+autodoc_typehints_format = 'short'
 autodoc_type_aliases = {}
 autodoc_mock_imports = []
 
@@ -83,7 +84,6 @@ intersphinx_mapping = {
 napoleon_preprocess_types = True
 
 _numpy_types = [
-    'NDArray',
     'DTypeLike',
     'ArrayLike',
 ]
@@ -97,13 +97,8 @@ _shmem_types = [
 ]
 
 autodoc_type_aliases.update({
-    typename: f'numpy.typing.{typename}'
+    typename: f'~numpy.typing.{typename}'
     for typename in _numpy_types
-})
-
-autodoc_type_aliases.update({
-    typename: f'{typename}'
-    for typename in _shmem_types
 })
 
 try:
@@ -114,56 +109,74 @@ except ImportError:
     sphinx_rtd_theme = None
 
 
-def _patch_util_inspect():
-    from sphinx.util.inspect import TypeAliasForwardRef
-    TypeAliasForwardRef.__getitem__ = lambda self, item: item
-
-
 def _patch_domain_python():
-    from sphinx.domains import python
+    from sphinx.domains.python import PythonDomain
+    PythonDomain.object_types['data'].roles += ('class',)
 
-    xref_info = {}
-    for typename in _numpy_types:
-        xref_info[f'numpy.typing.{typename}'] = {'reftype': 'data'}
-    for typename in _shmem_types:
-        xref_info[f'{typename}'] = {'reftype': 'data'}
 
-    def make_xref(self, rolename, domain, target, *args, **kwargs):
-        if target in ('None', 'True', 'False'):
-            rolename = 'obj'
-        pymodule = None
-        reftype = None
-        if target in xref_info:
-            reftype = xref_info[target].get('reftype')
-            pymodule, _, target  = target.rpartition('.')
-        xref = make_xref_orig(self, rolename, domain, target, *args, *kwargs)
-        if pymodule:
-            xref.attributes['py:module'] = pymodule
-        if reftype:
-            xref.attributes['reftype'] = reftype
-        return xref
+def _patch_numpy_typing():
+    import numpy.typing
+    from types import new_class
+    from typing import Generic, TypeVar
+    NDArray = new_class('NDArray', (Generic[TypeVar('T')],))
+    NDArray.__module__ = numpy.typing.__name__
+    numpy.typing.NDArray = NDArray
 
-    make_xref_orig = python.PyXrefMixin.make_xref
-    python.PyXrefMixin.make_xref = make_xref
+
+def _patch_cffi_typing():
+    from types import new_class
+    CData = new_class('CData')
+    CData.__module__ = 'ffi'
+    CData.__qualname__ = 'CData'
+    from shmem4py import shmem
+    for attr in _shmem_types:
+        data = getattr(shmem, attr)
+        if isinstance(data, typing.NewType):
+            if data.__supertype__ == shmem.ffi.CData:
+                data.__supertype__ = CData
+
+
+def _setup_autodoc(app):
+    from sphinx.ext import autodoc
+    from sphinx.ext import autosummary
+    from sphinx.util import inspect
+    from sphinx.util import typing
+    from sphinx.locale import _
+
+    #
+
+    def stringify_annotation(annotation, mode='fully-qualified-except-typing'):
+        qualname = getattr(annotation, '__qualname__', '')
+        module = getattr(annotation, '__module__', '')
+        args = getattr(annotation, '__args__', None)
+        if module == 'builtins' and qualname and args is not None:
+            args = ', '.join(stringify_annotation(a, mode) for a in args)
+            return f'{qualname}[{args}]'
+        return stringify_annotation_orig(annotation, mode)
+
+    try:
+        stringify_annotation_orig = typing.stringify_annotation
+        inspect.stringify_annotation = stringify_annotation
+        typing.stringify_annotation = stringify_annotation
+        autodoc.stringify_annotation = stringify_annotation
+        autodoc.typehints.stringify_annotation = stringify_annotation
+    except AttributeError:
+        stringify_annotation_orig = typing.stringify
+        inspect.stringify_annotation = stringify_annotation
+        typing.stringify = stringify_annotation
+        autodoc.stringify_typehint = stringify_annotation
 
 
 def setup(app):
-    _patch_util_inspect()
     _patch_domain_python()
+    _setup_autodoc(app)
 
+    _patch_numpy_typing()
     import numpy.typing
     typing.TYPE_CHECKING = True
     import shmem4py.shmem
     typing.TYPE_CHECKING = False
-
-    class CData: pass
-    CData.__module__ = 'ffi'
-    CData.__qualname__ = 'CData'
-    for attr in _shmem_types:
-        data = getattr(shmem4py.shmem, attr)
-        if isinstance(data, typing.NewType):
-            if data.__supertype__ == shmem4py.shmem.ffi.CData:
-                data.__supertype__ = CData
+    _patch_cffi_typing()
 
 
 # -- Options for HTML output -------------------------------------------------
