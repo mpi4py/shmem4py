@@ -22,9 +22,9 @@ jobs:
         uses: actions/checkout@v3
       - uses: jpribyl/action-docker-layer-caching@v0.1.1
         with:
-          key: ${{ matrix.shmem }}-3-{hash}
+          key: ${{ matrix.shmem }}-4-{hash}
           restore-keys: |
-            ${{ matrix.shmem }}-3-
+            ${{ matrix.shmem }}-4-
       - name: Build Docker container
         run: docker build -t local docker/${{ matrix.shmem }}/
       - name: run shmem4py test-1
