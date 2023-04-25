@@ -1,0 +1,62 @@
+name: native
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+
+  test:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+        mpi:
+          - mpich
+        py:
+          - "3.7"
+          - "3.8"
+          - "3.9"
+          - "3.10"
+          - "3.11"
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup MPI (${{ matrix.mpi }})
+      uses: mpi4py/setup-mpi@v1
+      with:
+        mpi: ${{ matrix.mpi }}
+
+    - name: Use Python ${{ matrix.py }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.py }}
+        architecture: x64
+
+    - name: Setup oshmpi
+      run: >
+        git clone https://github.com/pmodels/oshmpi --recurse-submodules &&
+        cd oshmpi &&
+        ./autogen.sh &&
+        ./configure CC=/usr/bin/mpicc CXX=/usr/bin/mpicxx --prefix=$HOME/oshmpi/install &&
+        make -j && make install &&
+        echo "${HOME}/oshmpi/install/bin" >> $GITHUB_PATH
+
+    - name: Install
+      run: python -m pip install .
+
+    - name: Test - 1 process
+      run: make test-1
+
+    - name: Test - 2 processes
+      run: make test-2
