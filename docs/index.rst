@@ -19,6 +19,9 @@ OpenSHMEM for Python (shmem4py)
    :caption: Contents
    :maxdepth: 2
 
+   introduction
+   installation
+   examples
    shmem
 
 
