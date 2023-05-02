@@ -1,6 +1,5 @@
 # adapted from http://openshmem.org/site/sites/default/site_files/OpenSHMEM-1.5.pdf (Example 31)
 
-
 from shmem4py import shmem
 
 mype = shmem.my_pe()

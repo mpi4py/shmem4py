@@ -7,15 +7,11 @@ Hello world
 -----------
 
 The simplest "Hello world" example analog to that of `C implementation <https://github.com/openshmem-org/osss-ucx/blob/main/example/hello.c>`_
-reads::
+reads:
 
-    from shmem4py import shmem
-
-    mype = shmem.my_pe()
-    npes = shmem.n_pes()
-
-    print(f"Hello from PE {mype} of {npes}")
-
+.. literalinclude:: ../demo/hello.py
+    :language: python
+    :linenos:
 
 It should produce the following output::
 
@@ -36,28 +32,11 @@ In the following example, each process (``mype``) out of ``npes`` processes,
 writes its rank into ``src`` and initializes an empty ``dst`` array.
 Then, each process fetches the value of ``src`` from the next process's (``mype + 1``)
 memory using `get` and stores it into its own ``dst`` array. The last process gets the value
-of ``src`` from the first process (``% npes``)::
+of ``src`` from the first process (``% npes``):
 
-    from shmem4py import shmem
-    import numpy as np
-
-    mype = shmem.my_pe()
-    npes = shmem.n_pes()
-    nextpe = (mype + 1) % npes
-
-    src = shmem.empty(1, dtype='i')
-    src[0] = mype
-
-    dst = np.empty(1, dtype='i')
-    dst[0] = -1
-
-    print(f'Before data transfer rank {mype} src={src[0]} dst={dst[0]}')
-
-    shmem.barrier_all()
-    shmem.get(dst, src, nextpe)
-
-    print(f'After data transfer rank {mype} src={src[0]} dst={dst[0]}')
-
+.. literalinclude:: ../demo/rotget.py
+    :language: python
+    :linenos:
 
 The following output is expected::
 
@@ -77,26 +56,12 @@ can write its rank into a remote process's memory.
 
 Broadcast an array from root to all PEs
 ---------------------------------------
-The following code can be used to broadcast an array from a chosen rank (here ``0``, the third argument of `broadcast` routine)::
+The following code can be used to broadcast an array from a chosen rank (here ``0``, the third argument of `broadcast` routine):
 
-    from shmem4py import shmem
-
-    mype = shmem.my_pe()
-    npes = shmem.n_pes()
-
-    source = shmem.zeros(npes, dtype="int32")
-    dest = shmem.full(npes, -999, dtype="int32")
-
-    if mype == 0:
-        for i in range(npes):
-            source[i] = i + 1
-
-    shmem.barrier_all()
-
-    shmem.broadcast(dest, source, 0)
-
-    print(f"{mype}: {dest}")
-
+.. literalinclude:: ../demo/broadcast.py
+    :language: python
+    :lines: 3-
+    :linenos:
 
 The following output is expected::
 
@@ -113,39 +78,12 @@ Approximate the value of Pi with reductions
 -------------------------------------------
 
 The following example approximates the value of Pi following the C example given
-by Sandia SOS (`pi_reduce.c <https://github.com/Sandia-OpenSHMEM/SOS/blob/main/examples/pi_reduce.c>`_)::
+by Sandia SOS (`pi_reduce.c <https://github.com/Sandia-OpenSHMEM/SOS/blob/main/examples/pi_reduce.c>`_):
 
-    from shmem4py import shmem
-    import random
-
-    RAND_MAX = 2147483647
-    NUM_POINTS = 10000
-
-    inside = shmem.zeros(1, dtype='i')
-    total = shmem.zeros(1, dtype='i')
-
-    myshmem_n_pes = shmem.n_pes()
-    me = shmem.my_pe()
-
-    random.seed(1+me)
-
-    for _ in range(0, NUM_POINTS):
-        x = random.randint(0, RAND_MAX)/RAND_MAX
-        y = random.randint(0, RAND_MAX)/RAND_MAX
-
-        total[0] += 1
-        if x*x + y*y < 1:
-            inside[0] += 1
-
-    shmem.barrier_all()
-
-    shmem.sum_reduce(inside, inside)
-    shmem.sum_reduce(total, total)
-
-    if me == 0:
-        approx_pi = 4.0*inside/total
-        print(f"Pi from {total} points on {myshmem_n_pes} PEs: {approx_pi}")
-
+.. literalinclude:: ../demo/pi.py
+    :language: python
+    :lines: 3-
+    :linenos:
 
 Here we can see that as the total number of points depends on the number of PEs,
 the more processes we use, the more accurate the approximation is::
@@ -166,25 +104,12 @@ Collect the same number of elements from each PE
     MPI programmers will see the close resemblance of `fcollect` to `MPI_Allgather <https://rookiehpc.org/mpi/docs/mpi_allgatherv/index.html>`_.
 
 The following example gathers one element from the ``src`` array from each PE into a single array available on all the PEs.
-It is a port of the `C OpenSHMEM example (fcollect.c) <https://github.com/openshmem-org/openshmem-examples/blob/master/c/fcollect.c>`_::
+It is a port of the `C OpenSHMEM example (fcollect.c) <https://github.com/openshmem-org/openshmem-examples/blob/master/c/fcollect.c>`_:
 
-    from shmem4py import shmem
-
-    npes = shmem.n_pes()
-    me = shmem.my_pe()
-
-    dst = shmem.full(npes, 10101, dtype="int32")
-    src = shmem.zeros(1, dtype="int32")
-    src[0] = me + 100
-
-    print(f"BEFORE: dst[{me}/{npes}] = {dst}")
-
-    shmem.barrier_all()
-    shmem.fcollect(dst, src)
-    shmem.barrier_all()
-
-    print(f"AFTER: dst[{me}/{npes}] = {dst}")
-
+.. literalinclude:: ../demo/fcollect.py
+    :language: python
+    :lines: 3-
+    :linenos:
 
 As we can see in the output, the results are available on every PE::
 
@@ -211,22 +136,12 @@ Collect a different number of elements from each PE
 
 The following example gathers a different number of elements from each PE into a single array available on all the PEs.
 It is a port of the `C OpenSHMEM example (collect64.c) <https://github.com/openshmem-org/openshmem-examples/blob/master/c/collect64.c>`_.
-Each PE has a symmetric array of 4 elements (``[11, 12, 13, 14]``). ``me+1`` elements from each PE are collected into a single array::
+Each PE has a symmetric array of 4 elements (``[11, 12, 13, 14]``). ``me+1`` elements from each PE are collected into a single array:
 
-    from shmem4py import shmem
-
-    npes = shmem.n_pes()
-    me = shmem.my_pe()
-
-    src = shmem.array([11,12,13,14])
-    dst = shmem.full(npes*(1+npes)//2, -1)
-
-    shmem.barrier_all()
-
-    shmem.collect(dst, src, me+1)
-
-    print(f"AFTER: dst[{me}/{npes}] = {dst}")
-
+.. literalinclude:: ../demo/collect.py
+    :language: python
+    :lines: 3-
+    :linenos:
 
 As we can see in the output, the results are available on every PE::
 
@@ -241,17 +156,12 @@ Atomic conditional swap on a remote data object
 -----------------------------------------------
 
 This example is ported from the `OpenSHMEM Specification <http://openshmem.org/site/sites/default/site_files/OpenSHMEM-1.5.pdf>`_ (Example 21).
-In it, the first PE to execute the conditional swap will successfully write its PE number to ``race_winner`` array on PE 0::
+In it, the first PE to execute the conditional swap will successfully write its PE number to ``race_winner`` array on PE 0:
 
-    from shmem4py import shmem
-
-    race_winner = shmem.array([-1])
-
-    mype = shmem.my_pe()
-    oldval = shmem.atomic_compare_swap(race_winner, -1, mype, 0)
-
-    if oldval == -1:
-        print(f"PE {mype} was first")
+.. literalinclude:: ../demo/race_winner.py
+    :language: python
+    :lines: 3-
+    :linenos:
 
 As expected, the order of the PEs is not guaranteed::
 
@@ -273,23 +183,12 @@ Test if condition is met
     ``wait_vars[idx]`` would be a read-only value and cannot be updated.
 
 This example is ported from the `OpenSHMEM Specification <http://openshmem.org/site/sites/default/site_files/OpenSHMEM-1.5.pdf>`_ (Example 40).
-In this example, each non-zero PE updates a value in an array on PE ``0``. PE ``0`` returns once the first process completed the update::
+In this example, each non-zero PE updates a value in an array on PE ``0``. PE ``0`` returns once the first process completed the update:
 
-    from shmem4py import shmem
-
-    mype = shmem.my_pe()
-    npes = shmem.n_pes()
-
-    wait_vars = shmem.zeros(npes, dtype='i')
-
-    if mype == 0:
-        idx = 0
-        while not shmem.test(wait_vars[idx:idx+1], shmem.CMP.NE, 0):
-            idx = (idx + 1) % npes
-        print(f"PE {mype} observed first update from PE {idx}")
-
-    else:
-        shmem.atomic_set(wait_vars[mype:mype+1], mype, 0)
+.. literalinclude:: ../demo/race_winner_test.py
+    :language: python
+    :lines: 3-
+    :linenos:
 
 As before, the order of the updates is not guaranteed::
 
@@ -303,31 +202,12 @@ All to all communication
 ------------------------
 
 This example is ported from the `OpenSHMEM Specification <http://openshmem.org/site/sites/default/site_files/OpenSHMEM-1.5.pdf>`_ (Example 31).
-All pairs of PEs exchange two integers::
+All pairs of PEs exchange two integers:
 
-    from shmem4py import shmem
-
-    mype = shmem.my_pe()
-    npes = shmem.n_pes()
-
-    count = 2
-
-    source = shmem.zeros(count*npes, dtype="int32")
-    dest = shmem.full(count*npes, 9999, dtype="int32")
-
-    for pe in range(0, npes):
-        for i in range(0, count):
-            source[(pe*count) + i] = mype*npes + pe
-
-    print(f"{mype}: source = {source}")
-
-    team = shmem.Team(shmem.TEAM_WORLD)
-    team.sync()
-
-    shmem.alltoall(dest, source, 2, team)
-
-    print(f"{mype}: dest = {dest}")
-
+.. literalinclude:: ../demo/alltoall.py
+    :language: python
+    :lines: 3-
+    :linenos:
 
 We see the transposition in the destination array::
 
@@ -344,41 +224,19 @@ Locking
 -------
 
 This example is ported from the `OpenSHMEM Specification <http://openshmem.org/site/sites/default/site_files/OpenSHMEM-1.5.pdf>`_ (Example 45).
-A lock is used to make sure that only one process modifies the array on PE ``0``::
+A lock is used to make sure that only one process modifies the array on PE ``0``:
 
-    from shmem4py import shmem
+.. literalinclude:: ../demo/lock.py
+    :language: python
+    :lines: 3-
+    :linenos:
 
-    lock = shmem.new_lock()
-    mype = shmem.my_pe()
+Alternatively, ``shmem4py`` provides a more object-oriented interface to achieve the same:
 
-    count = shmem.array([0], dtype='i')
-    val = shmem.array([0], dtype='i')
-
-    shmem.set_lock(lock)
-    shmem.get(val, count, 0)
-    print(f"{mype}: count is {val[0]}")
-    val[0] += 1
-    shmem.put(count, val, 0)
-    shmem.clear_lock(lock)
-
-
-Alternatively, ``shmem4py`` provides a more object-oriented interface to achieve the same::
-
-    from shmem4py import shmem
-
-    lock = shmem.Lock()
-    mype = shmem.my_pe()
-
-    count = shmem.array([0], dtype='i')
-    val = shmem.array([0], dtype='i')
-
-    lock.acquire()
-    shmem.get(val, count, 0)
-    print(f"{mype}: count is {val[0]}")
-    val[0] += 1
-    shmem.put(count, val, 0)
-    lock.release()
-
+.. literalinclude:: ../demo/lock_oo.py
+    :language: python
+    :lines: 3-
+    :linenos:
 
 Both examples produce the same output::
 

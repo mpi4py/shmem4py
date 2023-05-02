@@ -4,6 +4,8 @@ from shmem4py import shmem
 
 mype = shmem.my_pe()
 npes = shmem.n_pes()
+if npes == 1:
+    exit(0) # test requires at least 2 PEs
 
 wait_vars = shmem.zeros(npes, dtype='i')
 
