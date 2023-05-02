@@ -13,7 +13,10 @@ Overview
 --------
 
 This package provides Python bindings for `OpenSHMEM <http://openshmem.org/>`_.
-It exposes an API which grounds on the
+OpenSHMEM is a Partitioned Global Address Space (PGAS) programming model that
+provides low-latency, high-bandwidth communication for use in parallel
+applications. The OpenSHMEM project aims to standardize several implementations
+of the different SHMEM APIs. shmem4py exposes an API which grounds on the
 `OpenSHMEM 1.5 specification <http://openshmem.org/site/sites/default/site_files/OpenSHMEM-1.5.pdf>`_;
 however, it also supports legacy 1.4 implementations.
 
