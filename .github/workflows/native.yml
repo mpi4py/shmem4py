@@ -60,3 +60,9 @@ jobs:
 
     - name: Test - 2 processes
       run: make test-2
+
+    - name: Demo - Test - 1 process
+      run: cd demo && make test-1
+
+    - name: Demo - Test - 2 processes
+      run: cd demo && make test-2
