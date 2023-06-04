@@ -6,7 +6,7 @@ Installation
 Requirements
 ------------
 A working OpenSHMEM implementation is required. Currently,
-`Cray OpenSHMEMX <https://cray-openshmemx.readthedocs.io/>`_,
+`Cray OpenSHMEMX`_,
 `Open Source Software Solutions (OSSS) OpenSHMEM <https://github.com/openshmem-org/osss-ucx>`_,
 `Open MPI OpenSHMEM`_,
 `OSHMPI`_, and
@@ -56,12 +56,15 @@ following package versions all work correctly:
 |                             +----------------------+-----------------------------------------+-----------------------------------+----------------------+
 |                             | Ubuntu 22.04         | Python 3.10, MPICH 4.0                  | `libfabric`_ latest               | `sos_ubuntu`_        |
 +-----------------------------+----------------------+-----------------------------------------+-----------------------------------+----------------------+
+| `Cray OpenSHMEMX`_ 9.1.2    | Cray XC SLES 15      | cray-openshmemx/9.1.2 module                                                |                      |
++-----------------------------+----------------------+-----------------------------------------------------------------------------+----------------------+
 
 .. _Open MPI OpenSHMEM: https://www.open-mpi.org/doc/v3.1/man3/OpenSHMEM.3.php
 .. _Open MPI: https://www.open-mpi.org/
 .. _OSHMPI: https://pmodels.github.io/oshmpi-www/
 .. _OSSS OpenSHMEM: https://github.com/openshmem-org/osss-ucx
 .. _Sandia OpenSHMEM: https://github.com/Sandia-OpenSHMEM/SOS
+.. _Cray OpenSHMEMX: https://cray-openshmemx.readthedocs.io/
 .. _ucx: https://github.com/openucx/ucx
 .. _libfabric: https://github.com/ofiwg/libfabric
 
