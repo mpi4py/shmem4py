@@ -9,8 +9,10 @@ mype = shmem.my_pe()
 val = np.array([0], dtype='i')
 count = shmem.array([0], dtype='i')
 shmem.barrier_all()
+print(f"{mype}: past the barrier")
 
 shmem.set_lock(lock)
+print(f"{mype}: set the lock")
 shmem.get(val, count, 0)
 print(f"{mype}: count is {val[0]}")
 val[0] += 1
