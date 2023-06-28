@@ -6,8 +6,9 @@ from shmem4py import shmem
 lock = shmem.new_lock()
 mype = shmem.my_pe()
 
-count = shmem.array([0], dtype='i')
 val = np.array([0], dtype='i')
+count = shmem.array([0], dtype='i')
+shmem.barrier_all()
 
 shmem.set_lock(lock)
 shmem.get(val, count, 0)
