@@ -21,4 +21,3 @@ lock.release()
 
 lock.destroy()
 shmem.free(count)
-shmem.free(val)
