@@ -1,12 +1,13 @@
 # adapted from http://openshmem.org/site/sites/default/site_files/OpenSHMEM-1.5.pdf (Example 45)
 
+import numpy as np
 from shmem4py import shmem
 
 lock = shmem.new_lock()
 mype = shmem.my_pe()
 
 count = shmem.array([0], dtype='i')
-val = shmem.array([0], dtype='i')
+val = np.array([0], dtype='i')
 
 shmem.set_lock(lock)
 shmem.get(val, count, 0)
@@ -17,4 +18,3 @@ shmem.clear_lock(lock)
 
 shmem.del_lock(lock)
 shmem.free(count)
-shmem.free(val)
