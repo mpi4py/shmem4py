@@ -51,11 +51,6 @@ We use GitHub issues to track bugs and errors. If you run into an issue with the
 - Please provide as much context as possible and describe the *reproduction steps* that someone else can follow to recreate the issue on their own. This usually includes your code. For good bug reports, you should isolate the problem and create a reduced test case.
 - Provide the information you collected in the previous section.
 
-Once it's filed:
-
-- A team member will try to reproduce the issue with your provided steps. If there are no reproduction steps or no obvious way to reproduce the issue, the team will ask you for those steps and mark the issue as `needs-repro`. Bugs with the `needs-repro` tag will not be addressed until they are reproduced.
-- If the team is able to reproduce the issue, it will be marked `needs-fix`, as well as possibly other tags (such as `critical`), and worked on as soon as time allows.
-
 ### Suggesting Enhancements
 
 This section guides you through submitting an enhancement suggestion for shmem4py, including completely new features and minor improvements to existing functionality. Following these guidelines will help maintainers and the community to understand your suggestion and find related suggestions.
