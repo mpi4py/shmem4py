@@ -15,7 +15,7 @@ Thanks for taking the time to contribute!
 
 Before you ask a question, it is best to search for existing [Issues](/issues) that might help you. In case you have found a suitable issue and still need clarification, you can write your question in this issue. It is also advisable to search the internet for answers first. Please note that many questions regarding the programming model itself and suggestions for its enhancements may better belong to the [OpenSHMEM Community](http://openshmem.org/site/Community) rather than the shmem4py project, which is naturally constrained by the specification and underlying OpenSHMEM implementations.
 
-If you still feel the need to ask a question or clarification, we recommend opening an [Issue](/issues/new). Please remember to provide as much context as possible about what you're running into and report project and platform versions depending on what seems relevant.
+If you still feel the need to ask a question or clarification, we recommend opening a [Discussion (Q&A)](/discussions/new?category=q-a). Please remember to provide as much context as possible about what you're running into and report project and platform versions depending on what seems relevant.
 
 We will then take care of the issue as soon as possible.
 
