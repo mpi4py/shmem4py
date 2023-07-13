@@ -15,10 +15,11 @@ RUN apt-get update -y && apt-get install -y \
   libpmix-bin libpmix-dev                   \
   python3 python3-pip python-is-python3
 
-RUN cd $INSTALL_DIR                                                                                                  && \
-    git clone https://github.com/openucx/ucx                                                                         && \
-    cd ucx && ./autogen.sh                                                                                           && \
-    ./configure --prefix=$INSTALL_DIR/ucx-master/install --disable-debug --disable-assertions --disable-params-check && \
+RUN cd $INSTALL_DIR                                                                                                             && \
+    wget https://github.com/openucx/ucx/archive/refs/tags/v1.14.1.tar.gz                                                        && \
+    tar xf v1.14.1.tar.gz                                                                                                       && \
+    cd ucx-1.14.1 && ./autogen.sh                                                                                               && \
+    ./configure CFLAGS=-Wno-error --prefix=$INSTALL_DIR/ucx/install --disable-debug --disable-assertions --disable-params-check && \
     make -j && make install
 
 RUN cd $INSTALL_DIR                                                                   && \
@@ -26,14 +27,14 @@ RUN cd $INSTALL_DIR                                                             
     tar xf openmpi-4.1.4.tar.bz2                                                      && \
     cd openmpi-4.1.4                                                                  && \
     ./configure --enable-oshmem --prefix=$INSTALL_DIR/openmpi-4.1.4/install              \
-                --with-ucx=/home/shmem/ucx-master/install                             && \
+                --with-ucx=/home/shmem/ucx/install                                    && \
     make -j && make install
 
 RUN cd $INSTALL_DIR && \
-    git clone https://github.com/openshmem-org/osss-ucx osss-ucx                                                                             && \
-    cd osss-ucx/                                                                                                                             && \
-    ./autogen.sh                                                                                                                             && \
-    ./configure --prefix=$INSTALL_DIR/osss-ucx/install --enable-debug --enable-logging --with-pmix --with-ucx=/home/shmem/ucx-master/install && \
+    git clone https://github.com/openshmem-org/osss-ucx osss-ucx                                                                      && \
+    cd osss-ucx/                                                                                                                      && \
+    ./autogen.sh                                                                                                                      && \
+    ./configure --prefix=$INSTALL_DIR/osss-ucx/install --enable-debug --enable-logging --with-pmix --with-ucx=/home/shmem/ucx/install && \
     make -j && make install
 
 ENV PATH=$INSTALL_DIR/osss-ucx/install/bin:/home/shmem/openmpi-4.1.4/install/bin:"${PATH}" \
