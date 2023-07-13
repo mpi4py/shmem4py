@@ -8,7 +8,7 @@ if _typing.TYPE_CHECKING:  # pragma: no cover
     from typing import Any, Optional
 
 
-__version__ = '0.1.0'
+__version__ = '1.0.0'
 __author__ = 'Lisandro Dalcin'
 __credits__ = 'OpenSHMEM Team'
 
