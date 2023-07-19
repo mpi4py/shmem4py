@@ -8,6 +8,8 @@ shmem4py: OpenSHMEM for Python
    :target: https://github.com/mpi4py/shmem4py/actions/workflows/containers.yml
 .. image::  https://readthedocs.org/projects/shmem4py/badge/?version=latest
    :target: https://shmem4py.readthedocs.io/en/latest/
+.. image:: https://joss.theoj.org/papers/10.21105/joss.05444/status.svg
+   :target: https://doi.org/10.21105/joss.05444
 
 Overview
 --------
