@@ -13,7 +13,7 @@ static void *shmem_py_alloc(size_t size, size_t align, long hints, int clear)
   }
   if (clear) {
     memset(ptr, 0, size);
-    shmem_sync_all();
+    shmem_barrier_all();
   }
   return ptr;
 }
