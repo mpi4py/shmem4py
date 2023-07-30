@@ -889,7 +889,7 @@ def array(
     if tmp.ndim > 1:
         a.strides = tmp.strides
     np.copyto(a, tmp, casting='no')
-    lib.shmem_sync_all()
+    lib.shmem_barrier_all()
     return a
 
 
@@ -969,7 +969,7 @@ def ones(
     """
     a = new_array(shape, dtype, order, align=align, hints=hints, clear=False)
     np.copyto(a, 1, casting='unsafe')
-    lib.shmem_sync_all()
+    lib.shmem_barrier_all()
     return a
 
 
@@ -1001,7 +1001,7 @@ def full(
         dtype = np.array(fill_value).dtype
     a = new_array(shape, dtype, order, align=align, hints=hints, clear=False)
     np.copyto(a, fill_value, casting='unsafe')
-    lib.shmem_sync_all()
+    lib.shmem_barrier_all()
     return a
 
 

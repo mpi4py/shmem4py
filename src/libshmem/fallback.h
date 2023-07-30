@@ -311,7 +311,7 @@ static inline long *_py_shmem_pSync()
     _py_shmem_pSync_array = (long *) shmem_malloc(SHMEM_SYNC_SIZE * sizeof(long));
     for (int i = 0; i < SHMEM_SYNC_SIZE; i++)
       _py_shmem_pSync_array[i] = SHMEM_SYNC_VALUE;
-    shmem_sync_all();
+    shmem_barrier_all();
   }
   return _py_shmem_pSync_array;
 }
@@ -328,7 +328,7 @@ static inline void *_py_shmem_pWrk(size_t nreduce, size_t eltsize)
     shmem_free(_py_shmem_pWrk_array);
     _py_shmem_pWrk_size  = wrk_size;
     _py_shmem_pWrk_array = shmem_malloc(wrk_size);
-    shmem_sync_all();
+    shmem_barrier_all();
   }
   return _py_shmem_pWrk_array;
 }
