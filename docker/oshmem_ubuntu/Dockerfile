@@ -17,15 +17,17 @@ RUN cd $INSTALL_DIR                                                             
     tar xf v1.15.0.tar.gz                                                                                                       && \
     cd ucx-1.15.0 && ./autogen.sh                                                                                               && \
     ./configure CFLAGS=-Wno-error --prefix=$INSTALL_DIR/ucx/install --disable-debug --disable-assertions --disable-params-check && \
-    make -j && make install
+    make -j 2 && make install
 
 RUN cd $INSTALL_DIR                                                                   && \
     wget -c https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.6.tar.bz2 && \
     tar xf openmpi-4.1.6.tar.bz2                                                      && \
     cd openmpi-4.1.6                                                                  && \
-    ./configure --enable-oshmem --prefix=$INSTALL_DIR/openmpi-4.1.6/install              \
-                --with-ucx=/home/shmem/ucx/install                                    && \
-    make -j && make install
+    ./configure --disable-dependency-tracking --enable-debug --enable-mem-debug          \
+                --disable-sphinx --disable-man-pages --disable-mpi-fortran               \
+                --with-ucx=/home/shmem/ucx/install                                       \
+                --enable-oshmem --prefix=$INSTALL_DIR/openmpi-4.1.6/install          &&  \
+    make -j 2 install
 
 ENV PATH=/home/shmem/openmpi-4.1.6/install/bin:"${PATH}" \
     OMPI_ALLOW_RUN_AS_ROOT=1 \
