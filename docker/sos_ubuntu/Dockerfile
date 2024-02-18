@@ -31,7 +31,7 @@ RUN cd $INSTALL_DIR                                                       && \
 
 # Build SOS
 RUN cd $INSTALL_DIR                                                                         && \
-    git clone https://github.com/Sandia-OpenSHMEM/SOS.git                                   && \
+    git clone --recursive https://github.com/Sandia-OpenSHMEM/SOS.git                       && \
     cd SOS                                                                                  && \
     ./autogen.sh                                                                            && \
     # To build SOS w/ basic Libfabric                                                          \
