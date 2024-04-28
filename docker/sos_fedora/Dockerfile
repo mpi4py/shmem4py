@@ -1,6 +1,7 @@
 # adapted from https://github.com/Sandia-OpenSHMEM/SOS/blob/master/scripts/docker/Dockerfile
 
 FROM fedora:latest
+SHELL ["/bin/bash", "-c"]
 
 ENV INSTALL_DIR=/home/shmem
 RUN mkdir /home/shmem
@@ -33,5 +34,5 @@ RUN cd $INSTALL_DIR                                                             
     make check TESTS= -j
 
 ENV PATH="/home/shmem/SOS/install/bin:/usr/lib64/mpich/bin:${PATH}"
-RUN ln -s /usr/bin/python3 /usr/bin/python
-RUN python -m pip install numpy cffi setuptools
+RUN python3 -m venv /venv
+RUN source /venv/bin/activate && pip install numpy cffi setuptools

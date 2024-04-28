@@ -1,6 +1,7 @@
 # adapted from https://github.com/Sandia-OpenSHMEM/SOS/blob/master/scripts/docker/Dockerfile
 
 FROM ubuntu:latest
+SHELL ["/bin/bash", "-c"]
 
 ENV INSTALL_DIR=/home/shmem
 RUN mkdir /home/shmem
@@ -19,7 +20,7 @@ RUN apt-get update -y && apt-get install -y \
   libhwloc-dev                              \
   libevent-dev                              \
   mpich                                     \
-  python3 python3-pip python-is-python3
+  python3 python3-pip python-is-python3 python3-venv
 
 # Build Libfabric
 RUN cd $INSTALL_DIR                                                       && \
@@ -41,4 +42,5 @@ RUN cd $INSTALL_DIR                                                             
     make check TESTS= -j
 
 ENV PATH="/home/shmem/SOS/install/bin:${PATH}"
-RUN python -m pip install numpy cffi setuptools
+RUN python3 -m venv /venv
+RUN source /venv/bin/activate && pip install numpy cffi setuptools

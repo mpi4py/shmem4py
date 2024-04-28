@@ -1,4 +1,6 @@
 FROM ubuntu:latest
+SHELL ["/bin/bash", "-c"]
+
 ENV INSTALL_DIR=/home/shmem
 RUN mkdir /home/shmem
 ENV DEBIAN_FRONTEND=noninteractive
@@ -10,7 +12,7 @@ RUN apt-get update -y && apt-get install -y \
   automake                                  \
   libtool                                   \
   wget                                      \
-  python3 python3-pip python-is-python3
+  python3 python3-pip python-is-python3 python3-venv
 
 RUN cd $INSTALL_DIR                                                                                                             && \
     wget https://github.com/openucx/ucx/archive/refs/tags/v1.15.0.tar.gz                                                        && \
@@ -33,4 +35,5 @@ ENV PATH=/home/shmem/openmpi-4.1.6/install/bin:"${PATH}" \
     OMPI_ALLOW_RUN_AS_ROOT=1 \
     OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
 
-RUN python -m pip install numpy cffi
+RUN python3 -m venv /venv
+RUN source /venv/bin/activate && pip install numpy cffi
