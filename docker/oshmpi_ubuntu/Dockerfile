@@ -12,7 +12,7 @@ RUN apt-get update -y && apt-get install -y \
   automake                                  \
   libtool                                   \
   mpich                                     \
-  python3 python3-pip python-is-python3
+  python3 python3-pip python-is-python3 python3-venv
 
 RUN cd $INSTALL_DIR                                                                        && \
     git clone https://github.com/pmodels/oshmpi --recurse-submodules                       && \
@@ -22,4 +22,6 @@ RUN cd $INSTALL_DIR                                                             
     make -j && make install
 
 ENV PATH="/home/shmem/oshmpi/install/bin/:${PATH}"
+RUN python3 -m venv .venv
+RUN rm /usr/bin/python && ln -s /.venv/bin/python /usr/bin/python
 RUN python -m pip install numpy cffi

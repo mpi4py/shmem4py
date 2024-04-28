@@ -33,5 +33,6 @@ RUN cd $INSTALL_DIR                                                             
     make check TESTS= -j
 
 ENV PATH="/home/shmem/SOS/install/bin:/usr/lib64/mpich/bin:${PATH}"
-RUN ln -s /usr/bin/python3 /usr/bin/python
+RUN python3 -m venv .venv
+RUN ln -s /.venv/bin/python /usr/bin/python
 RUN python -m pip install numpy cffi setuptools

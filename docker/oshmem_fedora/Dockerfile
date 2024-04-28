@@ -29,5 +29,6 @@ ENV PATH=/home/shmem/openmpi-4.1.6/install/bin:"${PATH}" \
     OMPI_ALLOW_RUN_AS_ROOT=1 \
     OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
 
-RUN ln -s /usr/bin/python3 /usr/bin/python
+RUN python3 -m venv .venv
+RUN ln -s /.venv/bin/python /usr/bin/python
 RUN python -m pip install setuptools cffi numpy

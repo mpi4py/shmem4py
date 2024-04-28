@@ -16,6 +16,7 @@ RUN cd $INSTALL_DIR                                                             
     make -j && make install
 
 ENV PATH="/home/shmem/oshmpi/install/bin/:/usr/lib64/mpich/bin/:${PATH}"
-RUN ln -s /usr/bin/python3 /usr/bin/python
+RUN python3 -m venv .venv
+RUN ln -s /.venv/bin/python /usr/bin/python
 RUN python -m pip install numpy cffi
 ENV PSM3_DEVICES="self,shm"

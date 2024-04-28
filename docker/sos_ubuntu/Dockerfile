@@ -19,7 +19,7 @@ RUN apt-get update -y && apt-get install -y \
   libhwloc-dev                              \
   libevent-dev                              \
   mpich                                     \
-  python3 python3-pip python-is-python3
+  python3 python3-pip python-is-python3 python3-venv
 
 # Build Libfabric
 RUN cd $INSTALL_DIR                                                       && \
@@ -41,4 +41,6 @@ RUN cd $INSTALL_DIR                                                             
     make check TESTS= -j
 
 ENV PATH="/home/shmem/SOS/install/bin:${PATH}"
+RUN python3 -m venv .venv
+RUN rm /usr/bin/python && ln -s /.venv/bin/python /usr/bin/python
 RUN python -m pip install numpy cffi setuptools
