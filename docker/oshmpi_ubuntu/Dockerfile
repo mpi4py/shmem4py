@@ -23,5 +23,5 @@ RUN cd $INSTALL_DIR                                                             
     make -j && make install
 
 ENV PATH="/home/shmem/oshmpi/install/bin/:${PATH}"
-RUN python3 -m venv .venv
-RUN source /.venv/bin/activate && pip install numpy cffi
+RUN python3 -m venv /venv
+RUN source /venv/bin/activate && pip install numpy cffi
