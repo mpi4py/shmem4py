@@ -42,5 +42,4 @@ RUN cd $INSTALL_DIR                                                             
 
 ENV PATH="/home/shmem/SOS/install/bin:${PATH}"
 RUN python3 -m venv .venv
-RUN rm /usr/bin/python && ln -s /.venv/bin/python /usr/bin/python
-RUN python -m pip install numpy cffi setuptools
+RUN source /.venv/bin/activate && pip install numpy cffi setuptools

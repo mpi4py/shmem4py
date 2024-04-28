@@ -17,6 +17,5 @@ RUN cd $INSTALL_DIR                                                             
 
 ENV PATH="/home/shmem/oshmpi/install/bin/:/usr/lib64/mpich/bin/:${PATH}"
 RUN python3 -m venv .venv
-RUN ln -s /.venv/bin/python /usr/bin/python
-RUN python -m pip install numpy cffi
+RUN source /.venv/bin/activate && pip install numpy cffi
 ENV PSM3_DEVICES="self,shm"
