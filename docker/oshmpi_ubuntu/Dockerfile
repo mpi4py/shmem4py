@@ -1,4 +1,5 @@
 FROM ubuntu:latest
+SHELL ["/bin/bash", "-c"]
 
 ENV INSTALL_DIR=/home/shmem
 RUN mkdir /home/shmem
