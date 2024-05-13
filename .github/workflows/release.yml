@@ -1,4 +1,4 @@
-name: dist
+name: release
 
 on:  # yamllint disable-line rule:truthy
   release:
