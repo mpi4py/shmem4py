@@ -883,7 +883,7 @@ def array(
             Valid hints are defined as enumerations in `MALLOC` and can be
             combined using the bitwise OR operator. Keyword argument only.
     """
-    tmp = np.array(obj, dtype, copy=False, order=order)
+    tmp = np.asarray(obj, dtype, order=order)
     a = new_array(tmp.size, tmp.dtype, align=align, hints=hints, clear=False)
     a.shape = tmp.shape
     if tmp.ndim > 1:
