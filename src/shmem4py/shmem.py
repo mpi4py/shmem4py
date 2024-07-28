@@ -281,15 +281,15 @@ class Ctx:
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Ctx):
             return NotImplemented
-        return self.ob_ctx == other.ob_ctx
+        return lib.eq_ctx(self.ob_ctx, other.ob_ctx)
 
     def __ne__(self, other: Any) -> bool:
         if not isinstance(other, Ctx):
             return NotImplemented
-        return self.ob_ctx != other.ob_ctx
+        return not lib.eq_ctx(self.ob_ctx, other.ob_ctx)
 
     def __bool__(self) -> bool:
-        return self.ob_ctx != lib.SHMEM_CTX_INVALID
+        return not lib.eq_ctx(self.ob_ctx, lib.SHMEM_CTX_INVALID)
 
     def __enter__(self) -> Ctx:
         return self
@@ -331,9 +331,9 @@ class Ctx:
             return
         ctx = self.ob_ctx
         self.ob_ctx = lib.SHMEM_CTX_INVALID
-        if ctx == lib.SHMEM_CTX_DEFAULT:
+        if lib.eq_ctx(ctx, lib.SHMEM_CTX_DEFAULT):
             return
-        if ctx == lib.SHMEM_CTX_INVALID:
+        if lib.eq_ctx(ctx, lib.SHMEM_CTX_INVALID):
             return
         lib.shmem_ctx_destroy(ctx)
 
@@ -400,15 +400,15 @@ class Team:
     def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Team):
             return NotImplemented
-        return self.ob_team == other.ob_team
+        return lib.eq_team(self.ob_team, other.ob_team)
 
     def __ne__(self, other: Any) -> bool:
         if not isinstance(other, Team):
             return NotImplemented
-        return self.ob_team != other.ob_team
+        return not lib.eq_team(self.ob_team, other.ob_team)
 
     def __bool__(self) -> bool:
-        return self.ob_team != lib.SHMEM_TEAM_INVALID
+        return not lib.eq_team(self.ob_team, lib.SHMEM_TEAM_INVALID)
 
     def __enter__(self) -> Team:
         return self
@@ -426,11 +426,11 @@ class Team:
             return
         team = self.ob_team
         self.ob_team = lib.SHMEM_TEAM_INVALID
-        if team == lib.SHMEM_TEAM_WORLD:
+        if lib.eq_team(team, lib.SHMEM_TEAM_WORLD):
             return
-        if team == lib.SHMEM_TEAM_SHARED:
+        if lib.eq_team(team, lib.SHMEM_TEAM_SHARED):
             return
-        if team == lib.SHMEM_TEAM_INVALID:
+        if lib.eq_team(team, lib.SHMEM_TEAM_INVALID):
             return
         lib.shmem_team_destroy(team)
 
