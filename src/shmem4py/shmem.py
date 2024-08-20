@@ -997,8 +997,9 @@ def full(
             Valid hints are defined as enumerations in `MALLOC` and can be
             combined using the bitwise OR operator. Keyword argument only.
     """
+    fill_value = np.array(fill_value)
     if dtype is None:
-        dtype = np.array(fill_value).dtype
+        dtype = fill_value.dtype
     a = new_array(shape, dtype, order, align=align, hints=hints, clear=False)
     np.copyto(a, fill_value, casting='unsafe')
     lib.shmem_barrier_all()

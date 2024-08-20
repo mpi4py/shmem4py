@@ -63,7 +63,7 @@ class TestRMA(unittest.TestCase):
         nxpe = (mype + 1) % npes
         for t in types:
             src = shmem.full(1, mype, dtype=t)
-            dst = np.full(1, -1, dtype=t)
+            dst = np.full(1, np.array(-1), dtype=t)
             shmem.barrier_all()
             shmem.get(dst, src, nxpe)
             self.assertEqual(dst[0], nxpe)
@@ -148,7 +148,7 @@ class TestRMA(unittest.TestCase):
         nxpe = (mype + 1) % npes
         for t in types:
             src = shmem.full(1, mype, dtype=t)
-            dst = np.full(1, -1, dtype=t)
+            dst = np.full(1, np.array(-1), dtype=t)
             shmem.barrier_all()
             shmem.get_nbi(dst, src, nxpe)
             shmem.fence()
