@@ -11,6 +11,9 @@ on:
   schedule:
     - cron: '44 4 * * 0'
 
+permissions:
+  contents: read
+
 jobs:
   shmem_matrix:
     strategy:
