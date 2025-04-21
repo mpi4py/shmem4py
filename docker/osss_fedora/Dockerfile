@@ -9,10 +9,10 @@ RUN dnf update -y && \
                    pmix pmix-devel libevent libevent-devel python3 python3-devel python3-pip gawk && \
     dnf clean all
 
-RUN cd $INSTALL_DIR                                                                                                             && \
-    wget https://github.com/openucx/ucx/archive/refs/tags/v1.15.0.tar.gz                                                        && \
-    tar xf v1.15.0.tar.gz                                                                                                       && \
-    cd ucx-1.15.0 && ./autogen.sh                                                                                               && \
+RUN cd $INSTALL_DIR                                                                                                                          && \
+    wget https://github.com/openucx/ucx/archive/refs/tags/v1.18.0.tar.gz                                                                     && \
+    tar xf v1.18.0.tar.gz                                                                                                                    && \
+    cd ucx-1.18.0 && ./autogen.sh                                                                                                            && \
     ./configure CFLAGS="-Wno-error -std=gnu17" --prefix=$INSTALL_DIR/ucx/install --disable-debug --disable-assertions --disable-params-check && \
     make -j && make install
 
