@@ -22,16 +22,16 @@ RUN cd $INSTALL_DIR                                                             
     make -j 2 && make install
 
 RUN cd $INSTALL_DIR                                                                   && \
-    wget -c https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.8.tar.bz2 && \
-    tar xf openmpi-4.1.8.tar.bz2                                                      && \
-    cd openmpi-4.1.8                                                                  && \
+    wget -c https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.7.tar.bz2 && \
+    tar xf openmpi-4.1.7.tar.bz2                                                      && \
+    cd openmpi-4.1.7                                                                  && \
     ./configure --disable-dependency-tracking --enable-debug --enable-mem-debug          \
                 --disable-sphinx --disable-man-pages --disable-mpi-fortran               \
                 --with-ucx=/home/shmem/ucx/install                                       \
-                --enable-oshmem --prefix=$INSTALL_DIR/openmpi-4.1.8/install          &&  \
+                --enable-oshmem --prefix=$INSTALL_DIR/openmpi-4.1.7/install          &&  \
     make -j 2 install
 
-ENV PATH=/home/shmem/openmpi-4.1.8/install/bin:"${PATH}" \
+ENV PATH=/home/shmem/openmpi-4.1.7/install/bin:"${PATH}" \
     OMPI_ALLOW_RUN_AS_ROOT=1 \
     OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
 
