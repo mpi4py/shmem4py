@@ -6,7 +6,7 @@ RUN mkdir /home/shmem
 
 RUN dnf update -y && \
     dnf install -y git vim wget pkg-config make automake gcc gcc-c++ kernel-devel libtool lbzip2 hwloc hwloc-devel \
-                   libevent libevent-devel python3 python3-devel python3-pip mpich mpich-devel && \
+                   libevent libevent-devel python3 python3-devel python3-pip mpich mpich-devel gawk && \
     dnf clean all
 
 RUN cd $INSTALL_DIR                                                                                                && \
