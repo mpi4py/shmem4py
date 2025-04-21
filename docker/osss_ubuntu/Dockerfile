@@ -17,9 +17,9 @@ RUN apt-get update -y && apt-get install -y \
   python3 python3-pip python-is-python3 python3-venv
 
 RUN cd $INSTALL_DIR                                                                                                             && \
-    wget https://github.com/openucx/ucx/archive/refs/tags/v1.15.0.tar.gz                                                        && \
-    tar xf v1.15.0.tar.gz                                                                                                       && \
-    cd ucx-1.15.0 && ./autogen.sh                                                                                               && \
+    wget https://github.com/openucx/ucx/archive/refs/tags/v1.18.0.tar.gz                                                        && \
+    tar xf v1.18.0.tar.gz                                                                                                       && \
+    cd ucx-1.18.0 && ./autogen.sh                                                                                               && \
     ./configure CFLAGS=-Wno-error --prefix=$INSTALL_DIR/ucx/install --disable-debug --disable-assertions --disable-params-check && \
     make -j && make install
 
