@@ -27,10 +27,10 @@ RUN cd $INSTALL_DIR                                                             
     make -j 2 install
 
 RUN cd $INSTALL_DIR && \
-    git clone https://github.com/openshmem-org/osss-ucx osss-ucx                                                                      && \
-    cd osss-ucx/                                                                                                                      && \
-    ./autogen.sh                                                                                                                      && \
-    ./configure --prefix=$INSTALL_DIR/osss-ucx/install --enable-debug --enable-logging --with-pmix --with-ucx=/home/shmem/ucx/install && \
+    git clone https://github.com/openshmem-org/osss-ucx osss-ucx                                                                                          && \
+    cd osss-ucx/                                                                                                                                          && \
+    ./autogen.sh                                                                                                                                          && \
+    ./configure CFLAGS="-std=gnu17" --prefix=$INSTALL_DIR/osss-ucx/install --enable-debug --enable-logging --with-pmix --with-ucx=/home/shmem/ucx/install && \
     make -j && make install
 
 ENV PATH=$INSTALL_DIR/osss-ucx/install/bin:/home/shmem/openmpi-4.1.7/install/bin:"${PATH}" \
