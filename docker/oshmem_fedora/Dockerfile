@@ -10,9 +10,9 @@ RUN dnf update -y && \
     dnf clean all
 
 RUN cd $INSTALL_DIR                                                                                                                          && \
-    wget https://github.com/openucx/ucx/archive/refs/tags/v1.18.0.tar.gz                                                                     && \
-    tar xf v1.18.0.tar.gz                                                                                                                    && \
-    cd ucx-1.18.0 && ./autogen.sh                                                                                                            && \
+    wget https://github.com/openucx/ucx/archive/refs/tags/v1.19.0.tar.gz                                                                     && \
+    tar xf v1.19.0.tar.gz                                                                                                                    && \
+    cd ucx-1.19.0 && ./autogen.sh                                                                                                            && \
     ./configure CFLAGS="-Wno-error -std=gnu17" --prefix=$INSTALL_DIR/ucx/install --disable-debug --disable-assertions --disable-params-check && \
     make -j && make install
 
