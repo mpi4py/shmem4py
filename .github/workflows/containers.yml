@@ -28,10 +28,10 @@ jobs:
       - name: Build Docker container
         run: docker build -t local docker/${{ matrix.shmem }}/
       - name: run shmem4py test-1
-        run: docker run -v $PWD:/repo -w/repo local /bin/bash -c "source /venv/bin/activate && pip install . && make test-1 opt=-v"
+        run: docker run --shm-size=1g --ipc=host -v $PWD:/repo -w/repo local /bin/bash -c "source /venv/bin/activate && pip install . && make test-1 opt=-v"
       - name: run shmem4py test-2
-        run: docker run -v $PWD:/repo -w/repo local /bin/bash -c "source /venv/bin/activate && pip install . && make test-2 opt=-v"
+        run: docker run --shm-size=1g --ipc=host -v $PWD:/repo -w/repo local /bin/bash -c "source /venv/bin/activate && pip install . && make test-2 opt=-v"
       - name: run shmem4py demo-test-1
-        run: docker run -v $PWD:/repo -w/repo local /bin/bash -c "source /venv/bin/activate && pip install . && cd demo && make test-1 opt=-v"
+        run: docker run --shm-size=1g --ipc=host -v $PWD:/repo -w/repo local /bin/bash -c "source /venv/bin/activate && pip install . && cd demo && make test-1 opt=-v"
       - name: run shmem4py demo-test-2
-        run: docker run -v $PWD:/repo -w/repo local /bin/bash -c "source /venv/bin/activate && pip install . && cd demo && make test-2 opt=-v"
+        run: docker run --shm-size=1g --ipc=host -v $PWD:/repo -w/repo local /bin/bash -c "source /venv/bin/activate && pip install . && cd demo && make test-2 opt=-v"
