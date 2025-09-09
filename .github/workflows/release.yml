@@ -30,7 +30,7 @@ jobs:
         echo $(git log -1 --pretty=%ci) [timestamp=$SOURCE_DATE_EPOCH]
 
     - name: Setup Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: 3
 
