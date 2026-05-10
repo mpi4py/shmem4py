@@ -34,11 +34,14 @@ RUN cd $INSTALL_DIR                                                             
                 --enable-oshmem --prefix=$INSTALL_DIR/openmpi                                        && \
     make -j $(nproc) install && cd .. && rm -rf openmpi-4.1.7 openmpi-4.1.7.tar.bz2
 
+# GCC 15 defaults to gnu23, where an empty parameter list means (void).
+# OSSS-UCX uses void (*)() for a table of collective callbacks with
+# different signatures, so build it as gnu17.
 RUN cd $INSTALL_DIR && \
     git clone https://github.com/openshmem-org/osss-ucx osss-ucx-src                                                                                     && \
     cd osss-ucx-src/                                                                                                                                     && \
     ./autogen.sh                                                                                                                                         && \
-    ./configure --prefix=$INSTALL_DIR/osss-ucx/ --enable-debug --enable-logging --with-pmix=/usr/lib/x86_64-linux-gnu/pmix2 --with-ucx=$INSTALL_DIR/ucx/ && \
+    ./configure CFLAGS="-std=gnu17" --prefix=$INSTALL_DIR/osss-ucx/ --enable-debug --enable-logging --with-pmix=/usr/lib/x86_64-linux-gnu/pmix2 --with-ucx=$INSTALL_DIR/ucx/ && \
     make -j $(nproc) && make install && cd .. && rm -rf osss-ucx-src
 
 ENV PATH=$INSTALL_DIR/osss-ucx/bin:$INSTALL_DIR/openmpi/bin:"${PATH}" \
