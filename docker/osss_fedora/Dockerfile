@@ -16,10 +16,15 @@ RUN cd $INSTALL_DIR                                                             
     ./configure CFLAGS="-Wno-error -std=gnu17" --prefix=$INSTALL_DIR/ucx/ --disable-debug --disable-assertions --disable-params-check && \
     make -j $(nproc) && make install && cd .. && rm -rf ucx-1.19.0 v1.19.0.tar.gz
 
+# Patch Open MPI 4.1.7 for Fedora 44/GCC 16, which rejects its over-braced
+# scalar initializers in oshmem/mca/memheap/base/memheap_base_frame.c.
 RUN cd $INSTALL_DIR                                                                   && \
     wget -c https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.7.tar.bz2 && \
     tar xf openmpi-4.1.7.tar.bz2                                                      && \
     cd openmpi-4.1.7                                                                  && \
+    sed -i -e 's/opal_list_t mca_memheap_base_components_opened = {{0}};/opal_list_t mca_memheap_base_components_opened = {0};/' \
+           -e 's/mca_memheap_map_t mca_memheap_base_map = {{{{0}}}};/mca_memheap_map_t mca_memheap_base_map = {0};/' \
+           oshmem/mca/memheap/base/memheap_base_frame.c                               && \
     ./configure --disable-dependency-tracking --disable-debug --disable-mem-debug --disable-mem-profile \
                 --disable-sphinx --disable-man-pages --disable-mpi-fortran --disable-dlopen             \
                 --with-ucx=$INSTALL_DIR/ucx/                                                            \
