@@ -19,6 +19,12 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
+    env:
+      # Some Azure runner VMs expose the MANA NIC through ibverbs, but
+      # MANA does not support the UD QPs UCX tries to create, causing
+      # MPICH to abort in MPI_Init. These tests run on a single host,
+      # so use TCP, shared-memory, and self transports only.
+      UCX_TLS: "tcp,sm,self"
     strategy:
       fail-fast: false
       matrix:
