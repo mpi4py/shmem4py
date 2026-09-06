@@ -13,7 +13,7 @@ RUN apt-get update -y && apt-get install -y \
   automake                                  \
   libtool                                   \
   mpich                                     \
-  python3 python3-pip python-is-python3 python3-venv
+  python3 python3-dev python3-pip python-is-python3 python3-venv
 
 RUN cd $INSTALL_DIR                                                                && \
     git clone https://github.com/pmodels/oshmpi --recurse-submodules oshmpi-src    && \
