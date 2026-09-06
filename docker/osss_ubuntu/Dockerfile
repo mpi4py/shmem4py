@@ -14,7 +14,7 @@ RUN apt-get update -y && apt-get install -y \
   libtool                                   \
   pkg-config                                \
   libpmix-bin libpmix-dev libevent-dev      \
-  python3 python3-pip python-is-python3 python3-venv
+  python3 python3-dev python3-pip python-is-python3 python3-venv
 
 RUN cd $INSTALL_DIR                                                                                                      && \
     wget https://github.com/openucx/ucx/archive/refs/tags/v1.19.0.tar.gz                                                 && \

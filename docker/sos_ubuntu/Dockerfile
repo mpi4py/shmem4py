@@ -20,7 +20,7 @@ RUN apt-get update -y && apt-get install -y \
   libhwloc-dev                              \
   libevent-dev                              \
   mpich                                     \
-  python3 python3-pip python-is-python3 python3-venv
+  python3 python3-dev python3-pip python-is-python3 python3-venv
 
 # Build Libfabric
 RUN cd $INSTALL_DIR                                                           && \
