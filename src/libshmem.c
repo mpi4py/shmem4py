@@ -50,6 +50,7 @@
 
 /* --- */
 
+#include "libshmem/hdltypes.h"
 #include "libshmem/fallback.h"
 #include "libshmem/initfini.h"
 #include "libshmem/memalloc.h"

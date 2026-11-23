@@ -11,8 +11,8 @@ if srcdir not in sys.path:
 def build_api(
     module="api",
     shmem_h="shmem.h",
-    shmem_ctx_t='...*',
-    shmem_team_t='...*',
+    shmem_ctx_t='struct{...;}',
+    shmem_team_t='struct{...;}',
 ):
     from apicodegen import generate
     ffi = cffi.FFI()
@@ -23,6 +23,12 @@ def build_api(
         ffi.cdef(code)
     for code in generate():
         ffi.cdef(code)
+    for hdl in ('ctx', 'team'):
+        ffi.cdef(f"""
+        bool eq_{hdl}(shmem_{hdl}_t, shmem_{hdl}_t);
+        uintptr_t {hdl}2id(shmem_{hdl}_t);
+        shmem_{hdl}_t id2{hdl}(uintptr_t);
+        """)
     ffi.cdef("""
     int shmem_alltoallsmem_x(
         shmem_team_t team,
